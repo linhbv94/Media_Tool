@@ -145,7 +145,7 @@ Phase 0 ──► Phase 1 ──► Phase 2 ──► Phase 3 ──► Phase 4 
    - Cấu hình File Association (Open With) cho các định dạng mục tiêu trên Windows và macOS.
    - Đóng gói ứng dụng thành file cài đặt độc lập (.msi / .exe trên Win, .dmg / .app trên Mac).
 8. **Phase 7 — Đánh bóng & Kiểm thử Nghiệm thu (Polish / QA):**
-   - Kiểm thử toàn diện 12 tiêu chí nghiệm thu (AC-01 → AC-12).
+   - Kiểm thử toàn diện 18 tiêu chí nghiệm thu (AC-01 → AC-18).
    - Kiểm tra các trường hợp biên: file hỏng, thư mục rỗng, file bị xóa khi đang mở.
 
 ---
@@ -177,7 +177,7 @@ Nhằm đảm bảo sản phẩm đạt đúng tiêu chí **"Siêu nhẹ, Tốc 
 * **Đề xuất:** Phát triển và kiểm thử tương tác trực tiếp (Hot-reload, Browser Subagent, Video Demo) trên môi trường **macOS Apple Silicon** hiện tại; cô lập logic Windows trong `src/platform/windows.rs` và thiết lập kịch bản build tự động (GitHub Actions) để xuất bộ cài Windows 11.
 * **Lý do đề xuất:**
   - Giúp tốc độ phát triển và kiểm thử vòng lặp diễn ra tức thì tại máy của Owner mà không bị gián đoạn.
-  - Đảm bảo tính tương thích và sự đồng nhất 1:1 trên Windows 11 thông qua quy trình kiểm thử khói chuẩn hóa (18-step smoke test).
+  - Đảm bảo tính tương thích và sự đồng nhất 1:1 trên Windows 11 thông qua quy trình kiểm thử khói chuẩn hóa (22-step smoke test).
 
 ### Quyết định 5: Chiến lược Kiểm soát Bộ nhớ & Không để lại Rác Cache (Zero-Disk-Cache & Clean-on-Exit)
 * **Đề xuất:** 

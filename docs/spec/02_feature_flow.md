@@ -123,9 +123,7 @@ stateDiagram-v2
 ### B. Hợp đồng Tua Thời gian (Seek Keyboard Contract & Boundary Clamping)
 
 Mọi thao tác tua bắt buộc phải tuân theo quy tắc chặn biên nghiêm ngặt:
-$$\text{newTime} = \max(0, \min(\text{targetTime}, \text{duration}))$$
-
-*(Quy chuẩn tính toán thay thế No-LaTeX: `newTime = clamp(targetTime, 0, duration)`)*
+`newTime = clamp(targetTime, 0, duration)` (trong đó `clamp(val, min, max) = max(min, min(val, max))`)
 
 | Thao tác Phím | Công thức Tính toán Mục tiêu | Xử lý Biên (Clamping) |
 | :--- | :--- | :--- |
@@ -312,8 +310,8 @@ stateDiagram-v2
     Unmuted --> VolumeAdjust: Nhấn Phím ↑/↓ hoặc Cuộn chuột
     VolumeAdjust --> Unmuted: Cập nhật GainNode, Bắn Volume OSD (1s)
     
-    Unmuted --> Muted: Click Icon Loa / Nhấn Cmd+M
-    Muted --> Unmuted: Click lại Icon Loa / Nhấn Cmd+M (Khôi phục mức cũ)
+    Unmuted --> Muted: Click Icon Loa / Nhấn Shift+M
+    Muted --> Unmuted: Click lại Icon Loa / Nhấn Shift+M (Khôi phục mức cũ)
     Muted --> VolumeAdjust: Nhấn Phím ↑ hoặc Cuộn lên (Tự động unmute)
 ```
 

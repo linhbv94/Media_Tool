@@ -177,16 +177,18 @@ Mọi chức năng đều hỗ trợ song song cả **Phím tắt nhanh** lẫn 
 | **Đánh dấu / Bỏ đánh dấu file này** | Phím `M` | Phím `M` | Nút `[☆ Đánh dấu]` / `[★ Đã mark]` (Outline ↔ Fill) |
 | **Copy DUY NHẤT file đang xem** | `Cmd + C` | `Ctrl + C` | Phím tắt nhanh (Đã bỏ nút để tối giản UI) |
 | **Copy TẤT CẢ các file Đã Mark** | `Cmd + Shift + C` | `Ctrl + Shift + C` | Nút `[📦 Copy Mark (N)]` |
-| **Cut (Cắt/Move) các file Đã Mark** | `Cmd + X` | `Ctrl + X` | Nút `[✂️ Cut Mark (N)]` |
+| **Cut (Cắt/Move) các file Đã Mark** | `Cmd + Shift + X` | `Ctrl + Shift + X` | Nút `[✂️ Cut Mark (N)]` |
 | **Đặt điểm lặp A / Điểm B** | Phím `[` / Phím `]` | Phím `[` / Phím `]` | Nút `[Set Điểm A]` / `[Set Điểm B]` |
-| **Bật / Tắt Vòng lặp A–B** | Phím `L` | Phím `L` | Nút `[🔁 AB: BẬT/TẮT]` |
+| **Bật / Tắt Vòng lặp A–B** | Phím `\` (hoặc `Option + L`) | Phím `\` (hoặc `Alt + L`) | Nút `[🔁 AB: BẬT/TẮT]` |
 | **Bật / Tắt Xáo trộn (Shuffle)** | Phím `S` | Phím `S` | Nút `[🔀 Shuffle: BẬT/TẮT]` |
-| **Chế độ Lặp Tệp (Loop File)** | Phím `R` | Phím `R` | Nút `[🔁 File: Tắt ↔ 1 ↔ All]` |
+| **Chế độ Lặp Tệp (Loop File)** | Phím `L` (hoặc `R`) | Phím `L` (hoặc `R`) | Nút `[🔁 File: Tắt ↔ 1 ↔ All]` |
+| **Tăng / Giảm Âm lượng (±5%)** | `Mũi tên Lên` / `Xuống` | `Mũi tên Lên` / `Xuống` | Thanh trượt `[🔊 Slider]` / Cuộn chuột |
+| **Bật / Tắt tiếng (Mute Toggle)** | `Shift + M` | `Shift + M` | Click Icon Loa `[🔊] / [🔇]` |
 | **Ghim cửa sổ trên cùng (Pin on Top)** | Phím `P` | Phím `P` | Nút `[📌 Ghim / Unpin]` |
 | **Bật/Tắt Danh sách Thư mục (Sidebar)**| Phím `B` | Phím `B` | Nút `[📑 Danh sách (B)]` |
-| **Ẩn / Hiện thanh điều khiển** | Phím `H` | Phím `H` | Nút `[👁️ Ẩn/Hiện HUD]` |
-| **Toàn màn hình (Fullscreen)** | `Cmd + Ctrl + F` | `F11` | Nút `[⛶ Toàn màn hình]` |
-| **Đóng / Thoát ứng dụng** | `Cmd + W` / `Esc` | `Alt + F4` / `Esc` | Nút tắt cửa sổ OS |
+| **Ẩn / Hiện thanh điều khiển (HUD)** | Phím `H` | Phím `H` | Nút `[👁️ Ẩn/Hiện HUD]` |
+| **Toàn màn hình (Fullscreen)** | `Cmd + Ctrl + F` / `F` | `F11` / `F` | Nút `[⛶ Toàn màn hình]` |
+| **Đóng / Thoát ứng dụng sạch sẽ** | `Cmd + W` / Click `[X]` | `Alt + F4` / Click `[✕]` | Nút tắt cửa sổ OS |
 
 ---
 
@@ -307,7 +309,7 @@ Phần này quy định chi tiết 4 trường hợp đặc thù về hành vi h
 **Quy chuẩn thiết kế:**
 1. **Neo vào Cửa sổ (Window-docked), KHÔNG neo vào Media Element:**
    - Cụm Control Bar / Action Bar được định vị neo theo **Cửa sổ ứng dụng (Application Window)** chứ KHÔNG bám theo kích thước của thẻ `<video>` hay `<img>`.
-   - Cửa sổ ứng dụng luôn có kích thước tối thiểu an toàn (`min-width: 520px; min-height: 380px`).
+   - Cửa sổ ứng dụng hỗ trợ co giãn linh hoạt xuống tới kích thước Mini PiP (`min-width: 280px; min-height: 180px`). Khi ở chế độ thông thường (`width ≥ 500px`), thanh Control Bar hiển thị đầy đủ; khi người dùng thu nhỏ cửa sổ dưới 500px, giao diện tự động chuyển đổi sang Chế độ Mini PiP (xem Mục 10.4).
 2. **Căn giữa và Dải đệm hai bên (Pillarbox):**
    - Video/Ảnh khổ dọc đứng gọn gàng ở chính giữa màn hình.
    - Hai khoảng trống hai bên hiển thị nền tối trầm `#0f1117`.
@@ -432,7 +434,7 @@ Khi người dùng click chuột phải vào vùng hiển thị ảnh hoặc vid
 │ [A] Đặt điểm lặp đầu A          [             │
 │ [B] Đặt điểm lặp cuối B         ]             │
 │ 🔁 Bật/Tắt Lặp đoạn A-B         \             │
-│ 🔊 Âm lượng                     80% (↑ / ↓)   │
+│ 🔊 Âm lượng: 80% (↑ / ↓)        Shift + M     │
 │ ⚡ Tốc độ phát                  1.0x    ▶     │
 ├───────────────────────────────────────────────┤
 │ 🔄 Xoay 90° sang phải           R             │ ◄─ Nhóm ảnh (chỉ có trên Viewer)
@@ -444,7 +446,6 @@ Khi người dùng click chuột phải vào vùng hiển thị ảnh hoặc vid
 │ ⛶ Toàn màn hình                 F11 / F       │
 ├───────────────────────────────────────────────┤
 │ 📁 Hiển thị trong Finder...     Cmd + Reveal  │
-│ 🗑️ Chuyển vào Thùng rác         Cmd + Delete  │
 ├───────────────────────────────────────────────┤
 │ ⚙️ Cài đặt...                   Cmd + ,       │
 └───────────────────────────────────────────────┘
@@ -562,7 +563,7 @@ Hệ thống điều khiển âm lượng được thiết kế tinh gọn, mư�
 1. **Phím Mũi tên (Arrow Keys):**
    - Nhấn phím `↑` (Mũi tên Lên): Tăng âm lượng thêm **5%** (giới hạn tối đa 100%).
    - Nhấn phím `↓` (Mũi tên Xuống): Giảm âm lượng bớt **5%** (giới hạn tối thiểu 0%).
-2. **Phím tắt Mute:** Tổ hợp phím **`Cmd + M`** (macOS) hoặc **`Ctrl + M`** (Windows) để bật/tắt tiếng nhanh mà không bị xung đột với phím `M` (dành cho tính năng Đánh dấu tệp).
+2. **Phím tắt Mute:** Phím **`Shift + M`** (hoặc phím số **`0`**) trên cả macOS và Windows để bật/tắt tiếng nhanh mà không bị xung đột với phím `M` (dành cho tính năng Đánh dấu tệp) và tránh xung đột với phím `Cmd + M` (phím tắt mặc định thu nhỏ cửa sổ của macOS).
 3. **Cuộn Chuột / Trackpad Cực Tiện:**
    - Khi con trỏ chuột rê vào vùng hiển thị video hoặc rê lên cụm thanh âm lượng: Người dùng chỉ cần **cuộn con lăn chuột lên/xuống** (hoặc vuốt 2 ngón tay trên Trackpad) để tăng/giảm âm lượng một cách tự nhiên.
 
@@ -582,7 +583,7 @@ Khi người dùng điều chỉnh âm lượng qua phím tắt hoặc cuộn ch
   - Tự động mờ dần và biến mất sau **1 giây** không có thêm thao tác chỉnh âm lượng.
 
 ### 14.4. Cơ chế Ghi nhớ Mức Âm lượng (Volume Persistence)
-* Mức âm lượng được lưu tự động vào `localStorage` của Webview (`media_tool_volume_level`).
+* Mức âm lượng được lưu tự động vào `localStorage` của Webview (`media_tool_volume`).
 * Khi chuyển sang video/audio tiếp theo trong folder, hoặc khi tắt app đi mở lại, mức âm lượng được giữ nguyên vẹn như lần nghe gần nhất, tránh tình trạng bị giật mình vì âm lượng bị reset về 100% to đột ngột.
 
 

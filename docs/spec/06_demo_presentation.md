@@ -52,7 +52,7 @@ Buổi trình diễn được chia làm 3 màn liên hoàn, tái hiện 100% tr�
 
 | Bước | Thao tác của Người Demo | Phản hồi Trực quan trên Ứng dụng | Tiêu chuẩn Nghiệm thu |
 | :---: | :--- | :--- | :--- |
-| **1.1** | Click đúp file `fixtures/images/01_morning.jpg`. | Ứng dụng mở lập tức dưới 1 giây. Ảnh hiển thị sắc nét căn giữa. HUD trên cùng báo `[ 1 / 4 ]`. | Không màn hình trắng, không giật lag. |
+| **1.1** | Click đúp file `fixtures/images/01_morning.jpg`. | Ứng dụng mở lập tức dưới 1 giây. Ảnh hiển thị sắc nét căn giữa. HUD báo `[ 1 / 5 ]` (gồm 4 ảnh hợp lệ và 1 file corrupted test). | Không màn hình trắng, không giật lag. |
 | **1.2** | Nhấn liên tục phím `Mũi tên Phải`. | Ảnh chuyển ngay lập tức: `01` → `02` → `03` → `10` (Kiểm chứng Natural Sort thành công). | Thứ tự chuẩn xác, ảnh kế tiếp đã được nạp sẵn. |
 | **1.3** | Tại ảnh `02` và `10`, nhấn phím `M`. | Badge `⭐ [MARKED]` sáng màu cam trên cả 2 ảnh. HUD góc phải tăng lên `Marked: 2`. | Trạng thái mark trực quan, không nhấp nháy màn hình. |
 | **1.4** | Nhấn tổ hợp phím `Ctrl+C` (Win) hoặc `Cmd+C` (Mac). | Toast thông báo xuất hiện ở đáy: *"✓ Đã sao chép 2 tệp vào Clipboard"*. | Toast tự mờ sau 2 giây. |
@@ -90,10 +90,12 @@ Buổi trình diễn được chia làm 3 màn liên hoàn, tái hiện 100% tr�
 
 ## 3. Bảng Đánh giá Hoàn thành Nghiệm thu (Definition of Done Sign-off)
 
-| Tiêu chuẩn Đánh giá (Criteria) | Trạng thái Đạt | Chữ ký Xác nhận |
-| :--- | :---: | :--- |
-| **Độ phủ Đa Nền tảng:** Hoạt động ổn định trên cả Windows 11 và macOS Apple Silicon. | 🟢 ĐẠT | Product Owner |
-| **Độc lập Môi trường:** File cài đặt chạy được ngay không cần cài đặt Rust hay Node.js. | 🟢 ĐẠT | Product Owner |
-| **Đúng Tôn chỉ V1:** Tuyệt đối không chứa tính năng thừa (Không YouTube, không DB). | 🟢 ĐẠT | Product Owner |
-| **Hợp đồng Phím tắt:** Toàn bộ phím tắt phản hồi chuẩn xác theo đúng bảng đặc tả UI. | 🟢 ĐẠT | Product Owner |
-| **Tốc độ & Trọng lượng:** Khởi động dưới 1 giây, duyệt ảnh mượt mà, RAM sử dụng thấp. | 🟢 ĐẠT | Product Owner |
+> **Ghi chú QA:** Bảng này lưu trạng thái nghiệm thu thực tế trước khi phát hành phiên bản Production. Trạng thái mặc định ban đầu là **Chờ kiểm thử** và chỉ chuyển thành **ĐẠT** khi toàn bộ 18 AC và 22 bước Smoke Test đã được chạy thực tế trên cả hai hệ điều hành macOS và Windows 11.
+
+| Tiêu chuẩn Đánh giá (Criteria) | Trạng thái Ban đầu | Điều kiện Nghiệm thu Ký duyệt | Chữ ký Xác nhận |
+| :--- | :---: | :--- | :--- |
+| **Độ phủ Đa Nền tảng:** Hoạt động ổn định trên cả Windows 11 và macOS Apple Silicon. | 🟡 Chờ kiểm thử | Vượt qua 22/22 bước Smoke Test trên cả Win và Mac. | Product Owner |
+| **Độc lập Môi trường:** File cài đặt chạy được ngay không cần cài đặt Rust hay Node.js. | 🟡 Chờ kiểm thử | Chạy thử nghiệm trên máy sạch (clean VM/machine). | Product Owner |
+| **Đúng Tôn chỉ V1:** Tuyệt đối không chứa tính năng thừa (Không YouTube, không DB). | 🟡 Chờ kiểm thử | Kiểm tra mã nguồn không chứa yt-dlp, SQLite, cloud APIs. | Product Owner |
+| **Hợp đồng Phím tắt:** Toàn bộ phím tắt phản hồi chuẩn xác theo đúng bảng đặc tả UI. | 🟡 Chờ kiểm thử | Kiểm tra không xung đột Cmd+M (Mac) và đầy đủ phím. | Product Owner |
+| **Tốc độ & Trọng lượng:** Khởi động dưới 1 giây, duyệt ảnh mượt mà, RAM sử dụng thấp. | 🟡 Chờ kiểm thử | Đo đạc Memory Footprint dưới 60MB RAM cho video 1080p. | Product Owner |

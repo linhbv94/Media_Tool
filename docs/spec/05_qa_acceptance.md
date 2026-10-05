@@ -133,9 +133,9 @@ Kịch bản: Tăng giảm âm lượng và bật tắt tiếng nhanh
   Khi người dùng nhấn phím Mũi tên Lên (hoặc cuộn con lăn chuột lên)
   Thì âm lượng tăng lên 85%, GainNode cập nhật và huy hiệu Volume OSD hiện trên màn hình video
   Và huy hiệu tự động biến mất sau 1 giây
-  Khi người dùng nhấn Cmd+M (Mac) hoặc Ctrl+M (Win) hoặc click icon Loa
+  Khi người dùng nhấn Shift+M (hoặc phím số 0, hoặc click icon Loa)
   Thì âm lượng chuyển về 0% (Mute) và icon chuyển thành VolumeX
-  Khi bấm Cmd/Ctrl+M lần nữa, âm lượng khôi phục lại 85%.
+  Khi bấm Shift+M lần nữa, âm lượng khôi phục lại 85%.
 ```
 
 ### AC-14: Xáo Trộn & Chế Độ Lặp Tệp (Shuffle & Loop File Modes)
