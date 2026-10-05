@@ -413,3 +413,126 @@ Hệ thống sử dụng CSS Container Queries hoặc Window Resize Listener đ�
 5. **Phím tắt Toàn năng Vẫn Hoạt động 100%:**
    - Dù các nút Copy, Cut, Mark, Loop AB bị ẩn trên UI Mini PiP, người dùng vẫn có thể bấm phím tắt (`M` để đánh dấu, `Cmd+C` / `Ctrl+C` để copy, `[` / `]` để set A-B) hoàn toàn bình thường mà không gặp bất kỳ trở ngại nào.
 
+---
+
+## 11. Wireframe Menu Chuột Phải (Context Menu khi Click vào Vùng Ảnh/Video)
+
+Khi người dùng click chuột phải vào vùng hiển thị ảnh hoặc video, một menu ngữ cảnh tối giản, dạng kính mờ (Glassmorphism Dark) nổi lên ngay tại vị trí con trỏ chuột, cho phép thao tác nhanh các tính năng cốt lõi mà không cần di chuyển chuột xuống thanh điều khiển.
+
+```text
+┌───────────────────────────────────────────────┐
+│ 📋 Sao chép tệp này             Cmd + C       │ ◄─ Thao tác tệp nhanh
+│ ⭐ Đánh dấu tệp này             M             │
+│ 📦 Sao chép các tệp đã đánh (3) Cmd + Shift + C│
+│ ✂️ Cắt các tệp đã đánh dấu (3)  Cmd + Shift + X│
+├───────────────────────────────────────────────┤
+│ ▶ Phát / Tạm dừng               Space         │ ◄─ Nhóm phát (chỉ có trên Video/Audio)
+│ [A] Đặt điểm lặp đầu A          [             │
+│ [B] Đặt điểm lặp cuối B         ]             │
+│ 🔁 Bật/Tắt Lặp đoạn A-B         \             │
+│ ⚡ Tốc độ phát                  1.0x    ▶     │
+├───────────────────────────────────────────────┤
+│ 🔄 Xoay 90° sang phải           R             │ ◄─ Nhóm ảnh (chỉ có trên Viewer)
+│ ↔ Lật ảnh nằm ngang             H-Flip        │
+├───────────────────────────────────────────────┤
+│ 📌 Ghim trên cùng (Pin on Top)  P             │ ◄─ Nhóm điều khiển cửa sổ
+│ 👁️ Ẩn/Hiện HUD                  H             │
+│ 📑 Bật/Tắt Danh sách thư mục    B             │
+│ ⛶ Toàn màn hình                 F11 / F       │
+├───────────────────────────────────────────────┤
+│ 📁 Hiển thị trong Finder...     Cmd + Reveal  │
+│ 🗑️ Chuyển vào Thùng rác         Cmd + Delete  │
+├───────────────────────────────────────────────┤
+│ ⚙️ Cài đặt...                   Cmd + ,       │
+└───────────────────────────────────────────────┘
+```
+
+* **Quy tắc hiển thị:**
+  - Menu tự động nhận diện loại tệp hiện tại: Nếu đang mở ảnh thì ẩn nhóm điều khiển Playback/Loop A-B và hiện nhóm Xoay/Lật ảnh; nếu đang mở video thì hiện đầy đủ nhóm Playback.
+  - Tự động kiểm tra mép màn hình: Nếu vị trí click chuột sát cạnh phải hoặc cạnh dưới cửa sổ, menu tự động đảo chiều hiển thị sang trái/lên trên để không bị che khuất.
+
+---
+
+## 12. Wireframe Hộp thoại Cài đặt (Settings Modal — `Cmd/Ctrl + ,`)
+
+Khi bấm `[⚙️ Cài đặt]` trên Menu chuột phải hoặc nhấn tổ hợp phím kinh điển **`Cmd + ,`** (trên macOS) / **`Ctrl + ,`** (trên Windows), một popup kính mờ hiện đại nổi ở giữa màn hình.
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│  ⚙️ Cài đặt media_tool                                             [✕] │
+├─────────────────────────┬──────────────────────────────────────────────┤
+│ 🔘 Chung (General)      │ HÀNH VI CỬA SỔ & HỆ THỐNG                    │
+│ ▶ Trình phát (Playback) │                                              │
+│ 💾 Bộ nhớ & Cache       │ ☑ Thoát hẳn ứng dụng khi bấm nút đỏ [X]      │
+│ ⌨️ Phím tắt (Hotkeys)    │   (Tắt hẳn tiến trình, không để lại trên Dock)│
+│                         │                                              │
+│                         │ ☑ Luôn mở tệp mới trong cùng 1 cửa sổ        │
+│                         │   (Chế độ Single-Instance tái sử dụng tab)   │
+│                         │                                              │
+│                         │ ☐ Tự động Ghim trên cùng (Pin) khi khởi động │
+│                         │                                              │
+│                         │ Thời gian tự động ẩn thanh điều khiển (HUD): │
+│                         │ [ 2 giây (Mặc định) ▼ ] (1s / 2s / 3s / Tắt) │
+│                         │                                              │
+│                         │ ───────────────────────────────────────────  │
+│                         │ GIAO DIỆN & MÀU SẮC                          │
+│                         │ Chủ đề: [● Tối trầm (Mặc định)] [○ Đen tuyền]│
+├─────────────────────────┴──────────────────────────────────────────────┤
+│                                                    [ Mặc định ] [ Đóng ]│
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### Nội dung các Tab Cài đặt:
+1. **Tab 1 — Chung (General):**
+   - **Thoát hẳn khi bấm nút [X] (Mặc định: BẬT):** Đảm bảo khi đóng cửa sổ là tắt ứng dụng hoàn toàn.
+   - **Single Instance:** Tái sử dụng cửa sổ hiện tại khi click mở file từ ngoài Finder/Explorer.
+   - **Tự động ghim (Pin on top):** Tự động bật chế độ Always-on-Top khi mở.
+   - **Thời gian ẩn HUD:** Tùy chọn 1s, 2s, 3s hoặc Không bao giờ ẩn.
+2. **Tab 2 — Trình phát (Playback):**
+   - **Bước nhảy tua ngắn:** 1 giây (mặc định) / có thể chỉnh 2s, 3s.
+   - **Bước nhảy tua dài:** 5 giây (mặc định) / có thể chỉnh 10s.
+   - **Độ mượt Crossfade khi Lặp A-B:** Slider từ 0ms (ngắt bén) đến 100ms (mặc định: 45ms siêu mượt).
+   - **Chế độ Lặp Tệp Mặc định:** Không lặp / Lặp 1 file / Lặp danh sách.
+   - **Tự động phát khi chuyển video:** Bật / Tắt.
+3. **Tab 3 — Bộ nhớ & Cache (Storage & Cache):**
+   - Báo cáo cơ chế **Zero-Disk-Cache**: Thông báo rõ ứng dụng không ghi bất kỳ tệp đệm nào xuống ổ cứng SSD/HDD.
+   - Mức chiếm dụng RAM hiện tại: Ví dụ `38.4 MB (Trạng thái tối ưu)`.
+   - Nút `[🧹 Giải phóng RAM ngay]`: Xóa sạch bộ đệm ảnh trong RAM để reset về 0MB.
+4. **Tab 4 — Phím tắt (Hotkeys Map):**
+   - Bảng tra cứu trực quan toàn bộ phím tắt thao tác nhanh (`Space`, `M`, `P`, `H`, `B`, `[`, `]`, `\`, `←`, `→`, `Cmd+C`, `Cmd+Shift+C`...).
+
+---
+
+## 13. Đặc tả Cơ chế Nút Thoát Đỏ [X] trên macOS (Quit Completely vs Dock Minimize)
+
+### A. Bản chất Cơ chế Hệ điều hành macOS
+* Trên macOS, các ứng dụng xử lý tài liệu đa cửa sổ (Document-based apps như Safari, Chrome, TextEdit, Pages) tuân theo nguyên tắc: Khi bấm nút đỏ `[X]`, hệ điều hành chỉ đóng cửa sổ đó (`NSWindow close`), nhưng tiến trình ứng dụng (`NSApplication`) vẫn chạy ngầm trên thanh Dock (có dấu chấm tròn bên dưới) để người dùng có thể bấm vào Dock mở cửa sổ mới siêu tốc mà không phải nạp lại từ đầu.
+* Tuy nhiên, với các công cụ đơn cửa sổ (Single-window Utility như System Settings, Calculator, Activity Monitor, hoặc media tool chuyên dụng): Hành vi mong muốn của người dùng là **bấm [X] là phải tắt hẳn ứng dụng ngay lập tức**, xóa sổ chấm tròn trên Dock và giải phóng 100% tài nguyên CPU/RAM.
+
+### B. Cơ chế Kỹ thuật Triển khai trong Tauri v2 & Rust
+Để đạt được hành vi "Ấn X là tắt hẳn hoàn toàn", hệ thống can thiệp trực tiếp vào vòng đời của cửa sổ thông qua sự kiện `WindowEvent::CloseRequested` trong Rust backend:
+
+```rust
+// src-tauri/src/main.rs (hoặc lib.rs trong Tauri v2)
+use tauri::WindowEvent;
+
+tauri::Builder::default()
+    .on_window_event(|window, event| {
+        if let WindowEvent::CloseRequested { api, .. } = event {
+            // Ngăn chặn hành vi chỉ đóng cửa sổ để lại tiến trình ngầm của macOS
+            // Thoát sạch 100% tiến trình ứng dụng ngay lập tức
+            window.app_handle().exit(0);
+        }
+    })
+    .run(tauri::generate_context!())
+    .expect("error while running media_tool");
+```
+
+**Kết quả:**
+- Khi người dùng click vào nút đỏ `[X]` trên góc trái cửa sổ macOS (hoặc nút `[✕]` trên Windows):
+  - Ứng dụng dọn sạch bộ đệm RAM (3 ảnh sliding window).
+  - Ngắt hoàn toàn tiến trình Webview và Rust process (`exit(0)`).
+  - Dấu chấm tròn trên Dock của macOS **biến mất ngay tức thì**.
+  - Không có bất kỳ tiến trình chạy ngầm nào lưu lại trong Activity Monitor (Mac) hay Task Manager (Win).
+
+
