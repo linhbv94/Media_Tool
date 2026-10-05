@@ -84,13 +84,14 @@ Tương tự phân hệ Viewer: Thanh cửa sổ trên cùng giữ chuẩn thố
 │                 ┌────────────────────────────────────┐                 │
 │                 │  ✓ Đã sao chép 3 tệp vào Clipboard │                 │ ◄─ Toast Feedback
 │                 └────────────────────────────────────┘                 │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │ 01:14 ────────────────●───────[════════════════]──────── 04:32   │  │ ◄─ Timeline với mốc [A] và [B]
-│  │                               ▲                ▲                 │  │
-│  │ ──────────────────────────────────────────────────────────────── │  │
-│  │ [◀] [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] [▶]                  │  │ ◄─ Hàng 1: Nút tua & play
-│  │ [Set A] [Set B] [🔁 Loop: 45ms]  [☆ Đánh dấu] [📦 Copy] [✂️ Cut] [⛶]│  │ ◄─ Hàng 2: A-B Loop & Quản lý file
-│  └──────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar (Mặc định HIỆN)
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │ 01:14 ────────────────●───────[════════════════]──────── 04:32                   │  │ ◄─ Timeline với mốc [A] và [B]
+│  │                               ▲                ▲                                 │  │
+│  │ ──────────────────────────────────────────────────────────────────────────────── │  │
+│  │ [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] │ [🔀 Shuffle] [🔁 File: Tắt] │ [Set A] [Set B] [🔁 AB: 45ms] │  │ ◄─ Hàng 1: Tua, Play, Shuffle, Loop File & Loop AB
+│  │ ──────────────────────────────────────────────────────────────────────────────── │  │
+│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu (M)]  │  [📦 Copy Mark (3)]  [✂️ Cut Mark (3)]  │  [⛶] │  │ ◄─ Hàng 2: Chuyển File, Đánh dấu, Copy/Cut & Fullscreen
+│  └──────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar (Mặc định HIỆN)
 │  🏷️ action_clip_02.mp4                                       [ 15 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
 └────────────────────────────────────────────────────────────────────────┘
 ```
@@ -117,11 +118,11 @@ Khi mở file audio, giao diện giữ nguyên cấu trúc chuẩn: Window Bar p
 │                 ┌────────────────────────────────────┐                 │
 │                 │  ✓ Đã sao chép 4 tệp vào Clipboard │                 │ ◄─ Toast Feedback
 │                 └────────────────────────────────────┘                 │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │ 00:45 ─────────────●──────────[═════════════]─────────── 04:17   │  │ ◄─ Timeline
-│  │ [◀] [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] [▶]                  │  │ ◄─ Nút Player
-│  │ [Set A] [Set B] [🔁 Loop: 60ms]  [☆ Đánh dấu] [📦 Copy] [✂️ Cut] [⛶]│  │ ◄─ Nút Loop & Copy/Cut
-│  └──────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar
+│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
+│  │ 00:45 ─────────────●──────────[═════════════]─────────── 04:17                   │  │ ◄─ Timeline
+│  │ [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] │ [🔀 Shuffle] [🔁 File: Tắt] │ [Set A] [Set B] [🔁 AB: 60ms] │  │ ◄─ Hàng 1: Tua, Play, Shuffle & Loop
+│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu (M)]  │  [📦 Copy Mark (4)]  [✂️ Cut Mark (4)]  │  [⛶] │  │ ◄─ Hàng 2: Chuyển File & Copy/Cut
+│  └──────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar
 │  🏷️ track_03_counting_stars.mp3                              [ 16 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
 └────────────────────────────────────────────────────────────────────────┘
 ```
@@ -178,7 +179,9 @@ Mọi chức năng đều hỗ trợ song song cả **Phím tắt nhanh** lẫn 
 | **Copy TẤT CẢ các file Đã Mark** | `Cmd + Shift + C` | `Ctrl + Shift + C` | Nút `[📦 Copy Mark (N)]` |
 | **Cut (Cắt/Move) các file Đã Mark** | `Cmd + X` | `Ctrl + X` | Nút `[✂️ Cut Mark (N)]` |
 | **Đặt điểm lặp A / Điểm B** | Phím `[` / Phím `]` | Phím `[` / Phím `]` | Nút `[Set Điểm A]` / `[Set Điểm B]` |
-| **Bật / Tắt Vòng lặp A–B** | Phím `L` | Phím `L` | Nút `[🔁 Loop: BẬT/TẮT]` |
+| **Bật / Tắt Vòng lặp A–B** | Phím `L` | Phím `L` | Nút `[🔁 AB: BẬT/TẮT]` |
+| **Bật / Tắt Xáo trộn (Shuffle)** | Phím `S` | Phím `S` | Nút `[🔀 Shuffle: BẬT/TẮT]` |
+| **Chế độ Lặp Tệp (Loop File)** | Phím `R` | Phím `R` | Nút `[🔁 File: Tắt ↔ 1 ↔ All]` |
 | **Ghim cửa sổ trên cùng (Pin on Top)** | Phím `P` | Phím `P` | Nút `[📌 Ghim / Unpin]` |
 | **Bật/Tắt Danh sách Thư mục (Sidebar)**| Phím `B` | Phím `B` | Nút `[📑 Danh sách (B)]` |
 | **Ẩn / Hiện thanh điều khiển** | Phím `H` | Phím `H` | Nút `[👁️ Ẩn/Hiện HUD]` |
@@ -213,3 +216,80 @@ Một thư mục làm việc thực tế thường chứa lẫn lộn cả ảnh
    - **Khi đang xem Ảnh:** Bấm `Mũi tên Phải (→)` hoặc `Cmd/Ctrl + →` đều chuyển sang file tiếp theo (`02.mp4`) vì ảnh không có dòng thời gian tua.
    - **Khi đã chuyển sang Video:** Mũi tên đơn lẻ `←` / `→` được ưu tiên làm nhiệm vụ **Tua thời gian (Seek ±1s)**. Do đó, để chuyển sang file tiếp theo (`03.jpg`), người dùng dùng tổ hợp phím **`Cmd + →` (macOS)** hoặc **`Ctrl + →` (Windows)**.
    - **Thao tác Chuột:** Nút bấm **`[File Tiếp ▶]`** và **`[◀ File Trước]`** trên thanh công cụ luôn luôn thực hiện chuyển file bất kể đang xem ảnh hay video, đảm bảo trải nghiệm bằng chuột liền mạch 100%.
+
+---
+
+## 9. Đặc tả Quy chuẩn Khung hình, Tỉ lệ & Cửa sổ Hiển thị (Viewport & Scaling Standards)
+
+Nhằm đảm bảo giao diện luôn **đẹp mắt, không méo hình, không vỡ hạt và không bị che khuất thanh công cụ**, hệ thống quy chuẩn xử lý mặc định (Default Behavior) cho 4 trường hợp kích thước media như sau:
+
+### Nguyên tắc Bất biến:
+1. **Giữ nguyên 100% Tỉ lệ Khung hình Gốc (Strict Aspect Ratio):** Tuyệt đối không bao giờ kéo giãn (stretch) làm méo hình ảnh hay video.
+2. **Căn giữa Tuyệt đối (Absolute Center Alignment):** Mọi media luôn được căn giữa trục ngang và trục dọc trong vùng hiển thị (Viewport).
+3. **Cửa sổ Ổn định (Stable Window Geometry):** Kích thước cửa sổ ứng dụng không tự động nhảy giật co rúm mỗi khi Next qua lại giữa ảnh ngang và ảnh dọc. Kích thước cửa sổ giữ nguyên theo lựa chọn của người dùng hoặc phiên mở trước.
+
+---
+
+### Bốn Trường hợp Kích thước & Quy chuẩn Hiển thị Mặc định:
+
+```text
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        MA TRẬN QUY CHUẨN HIỂN THỊ MEDIA V1                             │
+├─────────────────────┬─────────────────────────────────┬────────────────────────────────┤
+│ Kích thước Media    │ Khổ Ngang (Landscape - 16:9, 4:3)│ Khổ Dọc (Portrait - 9:16, 3:4) │
+├─────────────────────┼─────────────────────────────────┼────────────────────────────────┤
+│ 1. Size TO HƠN      │ Scale Down / Fit Window:        │ Fit Height / Pillarbox:        │
+│    Cửa sổ / Màn hình│ Tự động thu nhỏ vừa khít chiều  │ Thu nhỏ vừa khít chiều cao vùng│
+│    (4K, 8K, RAW...) │ ngang, không tràn viền, nhìn    │ xem, để trống nền xám đen 2 bên│
+│                     │ trọn vẹn 100% không mất góc.    │ trái/phải, không cần cuộn dọc. │
+├─────────────────────┼─────────────────────────────────┼────────────────────────────────┤
+│ 2. Size BÉ HƠN      │ 1:1 Actual Size (Center):       │ 1:1 Actual Size (Center):      │
+│    Cửa sổ / Màn hình│ Giữ nguyên kích thước gốc 100%, │ Giữ nguyên kích thước gốc 100%,│
+│    (Icon, 360p...)  │ căn giữa nền tối trầm `#0f1117`,│ căn giữa, KHÔNG kéo dãn to để  │
+│                     │ KHÔNG tự phóng to (Tránh vỡ hạt)│ tránh nhòe hình (Tránh blur).  │
+└─────────────────────┴─────────────────────────────────┴────────────────────────────────┘
+```
+
+#### Chi tiết Quy chuẩn cho từng Case:
+
+* **Case 1: Khổ ngang, size TO HƠN màn hình (ví dụ ảnh 4K/8K 6000x4000, video 4K mở trên màn Full HD hoặc cửa sổ 1200x800):**
+  - *Hành vi mặc định:* **Fit to Window (Scale Down)**.
+  - Ảnh/video tự động thu nhỏ theo tỉ lệ chuẩn sao cho cạnh dài nhất vừa chạm mép khung hiển thị. Người dùng nhìn thấy trọn vẹn 100% bố cục mà không bị che mất bất kỳ chi tiết nào.
+  - Vùng hiển thị được chừa khoảng đệm an toàn (safe-area padding) phía dưới để không bị thanh Action Bar / Control Bar đè lên nội dung.
+
+* **Case 2: Khổ ngang, size BÉ HƠN màn hình (ví dụ icon 256x256, ảnh 400x300, video 360p trên màn 2K/4K):**
+  - *Hành vi mặc định:* **Hiển thị 1:1 (Actual Size 100%) tại trung tâm**.
+  - **Quy tắc quan trọng: Tuyệt đối KHÔNG tự động phóng to (No Forced Upscale)**. Nếu phóng to một bức ảnh 200px ra toàn màn hình 4K, ảnh sẽ bị nhòe mờ, vỡ pixel và biến dạng hạt rất xấu.
+  - Không gian xung quanh hiển thị nền màu tối trầm `#0f1117` sang trọng và tạo chiều sâu.
+
+* **Case 3: Khổ dọc, size TO HƠN màn hình (ví dụ ảnh chụp chân dung điện thoại 1080x1920, video TikTok/Reels/Shorts):**
+  - *Hành vi mặc định:* **Fit Height (Vừa khít chiều cao)**.
+  - Cạnh đứng (chiều cao) tự động thu nhỏ vừa đúng chiều cao khung hiển thị (đã trừ đi Action Bar), cạnh ngang tự động co theo đúng tỉ lệ. Hai bên trái và phải hiển thị dải nền đen xám tự nhiên (Pillarbox).
+  - Đảm bảo người dùng xem được trọn vẹn từ đầu đến chân bức ảnh/video dọc mà không phải kéo thanh cuộn.
+
+* **Case 4: Khổ dọc, size BÉ HƠN màn hình (ví dụ ảnh screenshot điện thoại cũ 360x640):**
+  - *Hành vi mặc định:* **Hiển thị 1:1 (Actual Size) ở chính giữa**. Không upscale cưỡng bức để giữ nguyên độ sắc nét nguyên bản của tệp.
+
+### Triển khai Kỹ thuật trên CSS / React:
+```css
+/* Container vùng hiển thị */
+.media-viewport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #0f1117;
+}
+
+/* Phần tử Image / Video: Vừa khít nếu to, giữ nguyên 1:1 nếu bé */
+.media-content {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain; /* Đảm bảo không méo hình, không tràn viền */
+  margin: auto;
+}
+```
