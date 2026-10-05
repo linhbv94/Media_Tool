@@ -77,10 +77,9 @@ stateDiagram-v2
      - Bắn Toast: *"✓ Đã sao chép N tệp vào Clipboard"*.
    - **CẮT / DI CHUYỂN file đã đánh dấu (Cut Marked):** Khi bấm nút `[✂️ Cut Đã Mark (N)]` hoặc nhấn `Cmd/Ctrl + X`:
      - Gọi Tauri command `clipboard_files(paths, is_cut = true)`.
-     - Trên Windows: Thiết lập thêm thuộc tính `Preferred DropEffect = DROPEFFECT_MOVE` vào clipboard.
-     - Trên macOS: Ghi nhãn metadata di chuyển tệp vào Pasteboard.
-     - Khi người dùng sang Finder / Explorer nhấn Paste, các tệp vật lý sẽ được di chuyển (Move) sang thư mục đích.
-     - Bắn Toast: *"✂️ Đã cắt N tệp vào Clipboard (Sẵn sàng di chuyển)"*.
+     - **Trên Windows:** Thiết lập thuộc tính `Preferred DropEffect = DROPEFFECT_MOVE (0x2)` vào clipboard Win32. Khi sang File Explorer nhấn `Ctrl+V`, các tệp vật lý sẽ được di chuyển (Move) sang thư mục đích.
+     - **Trên macOS:** Do macOS Finder không hỗ trợ `Cmd+X` cho file (Apple quy chuẩn Move qua tổ hợp `Option + Cmd + V`), ứng dụng sẽ đưa mảng `NSURL` vào `NSPasteboard` kèm cờ Cut. Khi sang Finder, người dùng nhấn **`Option + Cmd + V`** để di chuyển các tệp đã cắt.
+     - Bắn Toast: *"✂️ Đã cắt N tệp vào Clipboard (Nhấn Option+Cmd+V để di chuyển)"*.
 
 ---
 
@@ -97,6 +96,10 @@ Khi một thư mục chứa lẫn lộn cả Ảnh (`.jpg`, `.png`), Video (`.mp
    - **Tại phân hệ Viewer (Ảnh):** Do không có timeline, phím `Mũi tên Trái / Phải` (`←` / `→`) hoặc `Cmd/Ctrl + ←` / `→` đều có tác dụng chuyển file trước / sau.
    - **Tại phân hệ Player (Video / Audio):** Phím `←` / `→` đảm nhiệm chức năng tua ±1s. Để chuyển sang file tiếp theo trong danh sách hỗn hợp, bắt buộc sử dụng **`Cmd + →` (macOS)** hoặc **`Ctrl + →` (Windows)**.
    - **Nút bấm trên UI:** Hai nút bấm **`[◀ File]`** và **`[File ▶]`** luôn cố định trên giao diện của cả Viewer và Player, giúp người dùng dùng chuột chuyển file liền mạch không cần nhớ phím tắt.
+4. **Cơ chế Chặn Xung đột Phím tắt (Keyboard Dispatcher Input Focus Guard):**
+   - Khi người dùng đang tương tác với ô nhập liệu (ví dụ: gõ số giây tua trong Cài đặt, đổi tên file) hoặc khi đang mở Hộp thoại Cài đặt (`isSettingsOpen == true`):
+   - Keyboard Dispatcher lập tức **tạm khóa toàn bộ phím tắt toàn cục** (`Space`, `M`, `P`, `H`, `B`, `[` / `]`, mũi tên...).
+   - Tránh hiện tượng vừa gõ số trong ô input vừa vô tình làm nhảy video, toggle HUD hay đánh dấu tệp ở nền dưới.
 
 ---
 
@@ -163,6 +166,9 @@ stateDiagram-v2
    - Nếu `currentTime > pointA`: Thiết lập thành công `pointB = currentTime`, tự động kích hoạt vòng lặp `isLoopActive = true`.
    - Nếu `currentTime ≤ pointA`: Bỏ qua hoặc gán `pointB = min(duration, pointA + 1.0)` để đảm bảo luôn thỏa mãn điều kiện `pointA < pointB`.
 3. Khi người dùng chủ động tua thời gian (`seek`) ra ngoài khoảng `[pointA, pointB]`: Tạm dừng vòng lặp hoặc tự động kéo con trỏ playback quay trở lại điểm A.
+4. **Xử lý Keyframe & Độ trễ Tua Video (Video Keyframe & FastSeek Optimization):**
+   - Đối với video có khoảng cách I-Frame (Keyframe) lớn (từ 2s - 5s): Khi lặp từ B về A, lệnh gán `currentTime = pointA` có thể bị khựng nhẹ nếu A không rơi trúng Keyframe.
+   - Ứng dụng ưu tiên gọi `video.fastSeek(pointA)` (nếu engine Webview hỗ trợ) để nhảy tới keyframe gần nhất trước khi render chính xác, đồng thời tận dụng Hardware Decoding của AVFoundation (macOS) và Media Foundation (Windows) để giảm thiểu độ trễ dựng khung hình xuống dưới 16ms (1 frame ở 60fps).
 
 ---
 
@@ -312,7 +318,7 @@ stateDiagram-v2
 ```
 
 ### B. Logic Kỹ thuật Chi tiết:
-1. **Liên kết Web Audio API `GainNode`:**
+1. **Liên kết Web Audio API `GainNode` & Xử lý Autoplay Policy:**
    - Khi phần tử `<video>` hoặc `<audio>` nạp source:
      ```typescript
      const audioCtx = new AudioContext();
@@ -320,6 +326,16 @@ stateDiagram-v2
      const gainNode = audioCtx.createGain();
      source.connect(gainNode);
      gainNode.connect(audioCtx.destination);
+
+     // Khắc phục chính sách Autoplay Policy của WebKit / WebView2:
+     // Nếu AudioContext bị suspended trước tương tác người dùng, tự động resume khi có gesture đầu tiên
+     const ensureAudioResumed = async () => {
+       if (audioCtx.state === 'suspended') {
+         await audioCtx.resume();
+       }
+     };
+     window.addEventListener('keydown', ensureAudioResumed, { once: true });
+     window.addEventListener('click', ensureAudioResumed, { once: true });
      ```
    - Khi chỉnh âm lượng:
      `gainNode.gain.setValueAtTime(is_muted ? 0.0 : volume, audioCtx.currentTime);`

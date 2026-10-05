@@ -24,6 +24,19 @@ Giao tiếp giữa giao diện người dùng (Frontend TypeScript/React) và nh
 └──────────────────────────────────────┘          └──────────────────────────────────────┘
 ```
 
+### 1.2 Cơ chế Nạp Media An Toàn & Tránh Lỗi CORS (`convertFileSrc`)
+Để tránh lỗi chặn truy cập hệ thống tệp cục bộ (`file:// protocol restriction`) và chính sách CSP của Webview:
+* **Không dùng trực tiếp URL `file://`:** Thẻ `<video>`, `<audio>` hoặc `<img>` không nạp đường dẫn tệp trực tiếp dạng `file:///Users/...`.
+* **Chuyển đổi qua Tauri Asset Protocol:**
+  ```typescript
+  import { convertFileSrc } from '@tauri-apps/api/core';
+
+  // Chuyển /Users/vic/Movies/video.mp4 thành asset://localhost/... (trên Mac) hoặc https://asset.localhost/... (trên Win)
+  const safeMediaSrc = convertFileSrc(item.path);
+  ```
+* **Cấu hình CSP trong `tauri.conf.json`:**
+  Khai báo `csp: "default-src 'self'; media-src 'self' asset: https://asset.localhost blob: data:; img-src 'self' asset: https://asset.localhost blob: data:;"` để đảm bảo stream video 4K/8K và nạp ảnh mượt mà 100%.
+
 ---
 
 ## 2. Danh mục Lệnh Tauri (IPC Commands Specification)
