@@ -87,13 +87,13 @@ Tương tự phân hệ Viewer: Thanh cửa sổ trên cùng giữ chuẩn thố
 │  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
 │  │ 01:14 ────────────────●───────[════════════════]──────── 04:32                   │  │ ◄─ Timeline với mốc [A] và [B]
 │  │                               ▲                ▲                                 │  │
-│  │ ──────────────────────────────────────────────────────────────────────────────── │  │
+│  │ ────────────────────────────────────────────────────────────────────────────────────────── │  │
 │  │ [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] │ [🔀 Shuffle] [🔁 File: Tắt] │ [Set A] [Set B] [🔁 AB: 45ms] │  │ ◄─ Hàng 1: Tua, Play, Shuffle, Loop File & Loop AB
-│  │ ──────────────────────────────────────────────────────────────────────────────── │  │
-│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu (M)]  │  [📦 Copy Mark (3)]  [✂️ Cut Mark (3)]  │  [⛶] │  │ ◄─ Hàng 2: Chuyển File, Đánh dấu, Copy/Cut & Fullscreen
-│  └──────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar (Mặc định HIỆN)
-│  🏷️ action_clip_02.mp4                                       [ 15 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
-└────────────────────────────────────────────────────────────────────────┘
+│  │ ────────────────────────────────────────────────────────────────────────────────────────── │  │
+│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu (M)]  │  [📦 Copy Mark (3)]  [✂️ Cut Mark (3)]  │ [🔊 80% ──●──] [⛶] │  │ ◄─ Hàng 2: Chuyển File, Mark, Copy/Cut, Volume & Fullscreen
+│  └──────────────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar (Mặc định HIỆN)
+│  🏷️ action_clip_02.mp4                                                           [ 15 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
+└────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -103,28 +103,28 @@ Tương tự phân hệ Viewer: Thanh cửa sổ trên cùng giữ chuẩn thố
 Khi mở file audio, giao diện giữ nguyên cấu trúc chuẩn: Window Bar phía trên, Card âm nhạc ở giữa, thanh điều khiển bên dưới và Footer đáy hiển thị tên file kèm số thứ tự.
 
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [●][▲][▼] media_tool                                  [📌 Ghim] [📑 DS]│ ◄─ Window Bar
-│                                                                        │
-│                 ┌───────────────────────────────────┐                  │
-│                 │          ┌─────────────┐          │                  │
-│                 │          │  BÌA ALBUM  │          │                  │
-│                 │          │ (Album Art) │          │                  │
-│                 │          └─────────────┘          │                  │
-│                 │      Counting Stars               │                  │
-│                 │      OneRepublic • Native (2013)  │                  │
-│                 └───────────────────────────────────┘                  │
-│                                                                        │
-│                 ┌────────────────────────────────────┐                 │
-│                 │  ✓ Đã sao chép 4 tệp vào Clipboard │                 │ ◄─ Toast Feedback
-│                 └────────────────────────────────────┘                 │
-│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ 00:45 ─────────────●──────────[═════════════]─────────── 04:17                   │  │ ◄─ Timeline
-│  │ [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] │ [🔀 Shuffle] [🔁 File: Tắt] │ [Set A] [Set B] [🔁 AB: 60ms] │  │ ◄─ Hàng 1: Tua, Play, Shuffle & Loop
-│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu (M)]  │  [📦 Copy Mark (4)]  [✂️ Cut Mark (4)]  │  [⛶] │  │ ◄─ Hàng 2: Chuyển File & Copy/Cut
-│  └──────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar
-│  🏷️ track_03_counting_stars.mp3                              [ 16 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
-└────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [●][▲][▼] media_tool                                                      [📌 Ghim] [📑 DS]│ ◄─ Window Bar
+│                                                                                            │
+│                     ┌───────────────────────────────────┐                                  │
+│                     │          ┌─────────────┐          │                                  │
+│                     │          │  BÌA ALBUM  │          │                                  │
+│                     │          │ (Album Art) │          │                                  │
+│                     │          └─────────────┘          │                                  │
+│                     │      Counting Stars               │                                  │
+│                     │      OneRepublic • Native (2013)  │                                  │
+│                     └───────────────────────────────────┘                                  │
+│                                                                                            │
+│                     ┌────────────────────────────────────┐                                 │
+│                     │  ✓ Đã sao chép 4 tệp vào Clipboard │                                 │ ◄─ Toast Feedback
+│                     └────────────────────────────────────┘                                 │
+│  ┌──────────────────────────────────────────────────────────────────────────────────────┐  │
+│  │ 00:45 ─────────────●──────────[═════════════]─────────── 04:17                       │  │ ◄─ Timeline
+│  │ [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] │ [🔀 Shuffle] [🔁 File: Tắt] │ [Set A] [Set B] │  │ ◄─ Hàng 1: Tua, Play, Shuffle & Loop
+│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu (M)]  │  [📦 Copy Mark (4)]  [✂️ Cut] │ [🔊 80% ──●──] [⛶]│  │ ◄─ Hàng 2: Chuyển File, Copy/Cut & Volume
+│  └──────────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar
+│  🏷️ track_03_counting_stars.mp3                                                  [ 16 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
+└────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -427,9 +427,12 @@ Khi người dùng click chuột phải vào vùng hiển thị ảnh hoặc vid
 │ ✂️ Cắt các tệp đã đánh dấu (3)  Cmd + Shift + X│
 ├───────────────────────────────────────────────┤
 │ ▶ Phát / Tạm dừng               Space         │ ◄─ Nhóm phát (chỉ có trên Video/Audio)
+│ 🔀 Trộn ngẫu nhiên (Shuffle)    S             │
+│ 🔁 Lặp tệp (Tắt / 1 / DS)       L             │
 │ [A] Đặt điểm lặp đầu A          [             │
 │ [B] Đặt điểm lặp cuối B         ]             │
 │ 🔁 Bật/Tắt Lặp đoạn A-B         \             │
+│ 🔊 Âm lượng                     80% (↑ / ↓)   │
 │ ⚡ Tốc độ phát                  1.0x    ▶     │
 ├───────────────────────────────────────────────┤
 │ 🔄 Xoay 90° sang phải           R             │ ◄─ Nhóm ảnh (chỉ có trên Viewer)
@@ -448,7 +451,7 @@ Khi người dùng click chuột phải vào vùng hiển thị ảnh hoặc vid
 ```
 
 * **Quy tắc hiển thị:**
-  - Menu tự động nhận diện loại tệp hiện tại: Nếu đang mở ảnh thì ẩn nhóm điều khiển Playback/Loop A-B và hiện nhóm Xoay/Lật ảnh; nếu đang mở video thì hiện đầy đủ nhóm Playback.
+  - Menu tự động nhận diện loại tệp hiện tại: Nếu đang mở ảnh thì ẩn nhóm điều khiển Playback/Loop/Volume và hiện nhóm Xoay/Lật ảnh; nếu đang mở video/audio thì hiện đầy đủ nhóm Playback.
   - Tự động kiểm tra mép màn hình: Nếu vị trí click chuột sát cạnh phải hoặc cạnh dưới cửa sổ, menu tự động đảo chiều hiển thị sang trái/lên trên để không bị che khuất.
 
 ---
@@ -457,17 +460,16 @@ Khi người dùng click chuột phải vào vùng hiển thị ảnh hoặc vid
 
 Khi bấm `[⚙️ Cài đặt]` trên Menu chuột phải hoặc nhấn tổ hợp phím kinh điển **`Cmd + ,`** (trên macOS) / **`Ctrl + ,`** (trên Windows), một popup kính mờ hiện đại nổi ở giữa màn hình.
 
+> **Lưu ý cốt lõi:** Hành vi **bấm nút đỏ [X] là tắt sạch ứng dụng ngay lập tức** là quy tắc mặc định cứng (Hardcoded Rule) của `media_tool`, không đưa tùy chọn này vào cài đặt để tránh người dùng vô tình tắt nhầm và để lại ứng dụng chạy ngầm trên thanh Dock gây tốn pin và RAM.
+
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │  ⚙️ Cài đặt media_tool                                             [✕] │
 ├─────────────────────────┬──────────────────────────────────────────────┤
 │ 🔘 Chung (General)      │ HÀNH VI CỬA SỔ & HỆ THỐNG                    │
 │ ▶ Trình phát (Playback) │                                              │
-│ 💾 Bộ nhớ & Cache       │ ☑ Thoát hẳn ứng dụng khi bấm nút đỏ [X]      │
-│ ⌨️ Phím tắt (Hotkeys)    │   (Tắt hẳn tiến trình, không để lại trên Dock)│
-│                         │                                              │
-│                         │ ☑ Luôn mở tệp mới trong cùng 1 cửa sổ        │
-│                         │   (Chế độ Single-Instance tái sử dụng tab)   │
+│ 💾 Bộ nhớ & Cache       │ ☑ Luôn mở tệp mới trong cùng 1 cửa sổ        │
+│ ⌨️ Phím tắt (Hotkeys)    │   (Chế độ Single-Instance tái sử dụng tab)   │
 │                         │                                              │
 │                         │ ☐ Tự động Ghim trên cùng (Pin) khi khởi động │
 │                         │                                              │
@@ -484,10 +486,10 @@ Khi bấm `[⚙️ Cài đặt]` trên Menu chuột phải hoặc nhấn tổ h�
 
 ### Nội dung các Tab Cài đặt:
 1. **Tab 1 — Chung (General):**
-   - **Thoát hẳn khi bấm nút [X] (Mặc định: BẬT):** Đảm bảo khi đóng cửa sổ là tắt ứng dụng hoàn toàn.
    - **Single Instance:** Tái sử dụng cửa sổ hiện tại khi click mở file từ ngoài Finder/Explorer.
    - **Tự động ghim (Pin on top):** Tự động bật chế độ Always-on-Top khi mở.
    - **Thời gian ẩn HUD:** Tùy chọn 1s, 2s, 3s hoặc Không bao giờ ẩn.
+   - **Chủ đề màu sắc:** Tối trầm (Slate `#0f1117`) hoặc Đen tuyền (Pure Black `#000000`).
 2. **Tab 2 — Trình phát (Playback):**
    - **Bước nhảy tua ngắn:** 1 giây (mặc định) / có thể chỉnh 2s, 3s.
    - **Bước nhảy tua dài:** 5 giây (mặc định) / có thể chỉnh 10s.
@@ -499,7 +501,7 @@ Khi bấm `[⚙️ Cài đặt]` trên Menu chuột phải hoặc nhấn tổ h�
    - Mức chiếm dụng RAM hiện tại: Ví dụ `38.4 MB (Trạng thái tối ưu)`.
    - Nút `[🧹 Giải phóng RAM ngay]`: Xóa sạch bộ đệm ảnh trong RAM để reset về 0MB.
 4. **Tab 4 — Phím tắt (Hotkeys Map):**
-   - Bảng tra cứu trực quan toàn bộ phím tắt thao tác nhanh (`Space`, `M`, `P`, `H`, `B`, `[`, `]`, `\`, `←`, `→`, `Cmd+C`, `Cmd+Shift+C`...).
+   - Bảng tra cứu trực quan toàn bộ phím tắt thao tác nhanh (`Space`, `M`, `P`, `H`, `B`, `[`, `]`, `\`, `←`, `→`, `↑`, `↓`, `Cmd+C`, `Cmd+Shift+C`...).
 
 ---
 
@@ -534,5 +536,54 @@ tauri::Builder::default()
   - Ngắt hoàn toàn tiến trình Webview và Rust process (`exit(0)`).
   - Dấu chấm tròn trên Dock của macOS **biến mất ngay tức thì**.
   - Không có bất kỳ tiến trình chạy ngầm nào lưu lại trong Activity Monitor (Mac) hay Task Manager (Win).
+
+---
+
+## 14. Đặc tả Hệ thống Điều khiển Âm lượng (Volume Control & OSD Indicator)
+
+Hệ thống điều khiển âm lượng được thiết kế tinh gọn, mượt mà và trực quan, hỗ trợ đầy đủ cả thao tác chuột, thanh trượt kéo thả, cuộn bánh xe và phím tắt.
+
+### 14.1. Vị trí & Cấu trúc Giao diện (UI)
+* **Vị trí trên Control Bar:** Đặt tại **Hàng 2**, ngay phía trước nút Toàn màn hình `[⛶]` và phía sau cụm Cut Mark:
+  `[◀ Trước] [Tiếp ▶] │ [☆ Đánh dấu] │ [📦 Copy] [✂️ Cut] │ [🔊 80% ──●──] [⛶]`
+* **Biểu tượng Loa động (Dynamic Speaker Icon - Lucide SVG):** Tự động đổi hình thái theo mức âm lượng hiện tại:
+  - `0%`: `🔇 VolumeX` (Đang tắt tiếng / Mute).
+  - `1% - 33%`: `🔈 Volume1` (Mức nhỏ).
+  - `34% - 66%`: `🔉 Volume2` (Mức vừa).
+  - `67% - 100%`: `🔊 Volume` (Mức to).
+* **Thanh trượt Mini Slider:**
+  - Chiều rộng cố định 64px, rãnh trượt mỏng 3px, nút kéo tròn (thumb) đường kính 10px.
+  - Khi rê chuột vào (hover), thanh trượt sáng lên màu xanh Cyan hoặc Emerald sang trọng.
+* **Bật / Tắt tiếng Nhanh (Mute Toggle):**
+  - Click chuột trực tiếp vào icon Loa: Tắt tiếng ngay lập tức (Volume = 0%).
+  - Click lại vào icon Loa: Khôi phục lại mức âm lượng trước khi tắt tiếng (ví dụ 80%).
+
+### 14.2. Thao tác Phím tắt & Cuộn Chuột / Trackpad
+1. **Phím Mũi tên (Arrow Keys):**
+   - Nhấn phím `↑` (Mũi tên Lên): Tăng âm lượng thêm **5%** (giới hạn tối đa 100%).
+   - Nhấn phím `↓` (Mũi tên Xuống): Giảm âm lượng bớt **5%** (giới hạn tối thiểu 0%).
+2. **Phím tắt Mute:** Tổ hợp phím **`Cmd + M`** (macOS) hoặc **`Ctrl + M`** (Windows) để bật/tắt tiếng nhanh mà không bị xung đột với phím `M` (dành cho tính năng Đánh dấu tệp).
+3. **Cuộn Chuột / Trackpad Cực Tiện:**
+   - Khi con trỏ chuột rê vào vùng hiển thị video hoặc rê lên cụm thanh âm lượng: Người dùng chỉ cần **cuộn con lăn chuột lên/xuống** (hoặc vuốt 2 ngón tay trên Trackpad) để tăng/giảm âm lượng một cách tự nhiên.
+
+### 14.3. Huy hiệu Âm lượng Nổi (Volume OSD Badge - On-Screen Display)
+Khi người dùng điều chỉnh âm lượng qua phím tắt hoặc cuộn chuột, một huy hiệu bán trong suốt sẽ xuất hiện tức thì ở chính giữa màn hình video để phản hồi trực quan mà người dùng không cần nhìn xuống thanh công cụ:
+
+```text
+┌───────────────────────────────────────┐
+│     🔊   85%                          │
+│     [██████████████████░░░░]          │
+└───────────────────────────────────────┘
+```
+
+* **Đặc tính OSD:**
+  - Nền đen mờ kính (`rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px)`), viền bo góc tròn 12px.
+  - Hiển thị thanh tiến trình trực quan kèm số % chính xác.
+  - Tự động mờ dần và biến mất sau **1 giây** không có thêm thao tác chỉnh âm lượng.
+
+### 14.4. Cơ chế Ghi nhớ Mức Âm lượng (Volume Persistence)
+* Mức âm lượng được lưu tự động vào `localStorage` của Webview (`media_tool_volume_level`).
+* Khi chuyển sang video/audio tiếp theo trong folder, hoặc khi tắt app đi mở lại, mức âm lượng được giữ nguyên vẹn như lần nghe gần nhất, tránh tình trạng bị giật mình vì âm lượng bị reset về 100% to đột ngột.
+
 
 
