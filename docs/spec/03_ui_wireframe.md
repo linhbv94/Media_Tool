@@ -135,7 +135,40 @@ Khi mở file audio, giao diện giữ nguyên thanh điều khiển đầy đ�
 
 ---
 
-## 5. Bảng Hợp đồng Phím tắt & Đối chiếu Nút bấm UI
+## 5. Wireframe Thanh Bên Phải — Danh sách Tệp Thư mục (Toggle Right Sidebar)
+
+Người dùng có thể bật/tắt thanh bên phải bằng nút bấm **`[📑 Danh sách (B)]`** trên Top Bar hoặc phím tắt **`B`** (hoặc `Cmd/Ctrl + B`). Thanh bên trượt ra mượt mà từ cạnh phải, chiếm khoảng 260px - 280px chiều rộng mà không làm gián đoạn phát video hay xem ảnh.
+
+```text
+┌───────────────────────────────────────────────────────────┬──────────────┐
+│ [●][▲][▼]                                                 │ 📁 Thư mục   │
+│ 🏷️ DSC_0842.JPG   [ 14 / 120 ]   [◀][▶]   [📌 Ghim (P)]   │ 120 tệp [✕]  │
+│                                                           ├──────────────┤
+│                                                           │ 🔍 Lọc nhanh │
+│                                                           ├──────────────┤
+│                                                           │ 🖼️ 01_raw.jpg│
+│                                                           │ 🖼️ 02_cam.png│
+│                   [ VÙNG XEM MEDIA ]                      │ ⭐ 03_sky.jpg│ ◄─ Tệp đã mark
+│                (Tự động co giãn theo khung)               │ ▶ 04_act.mp4 │
+│                                                           │ 🖼️ DSC_0842 ●│ ◄─ Tệp đang xem
+│                                                           │ 🎵 06_rec.mp3│
+│ ───────────────────────────────────────────────────────── │ 🖼️ 07_res.jpg│
+│ [▶ Phát]  [⏪ -5s]  [+5s ⏩]  [⭐ Đánh dấu]  [📦 Copy Đã Mark] │ 🖼️ 08_end.png│
+└───────────────────────────────────────────────────────────┴──────────────┘
+```
+
+### Các Đặc điểm & Tính năng của Right Sidebar:
+1. **Dữ liệu Sẵn có Tức thì (Zero Latency):** Danh sách tệp này đã nằm sẵn trong bộ nhớ RAM từ lệnh quét thư mục khởi tạo (`items: MediaItem[]`). Việc bật/tắt hoàn toàn là chuyển đổi hiển thị giao diện, không tốn thời gian quét lại đĩa.
+2. **Nhảy Tệp 1-Click (Instant File Jump):** Bấm chuột vào bất kỳ dòng nào trong danh sách sẽ lập tức chuyển ngay đến tệp đó (tự động đổi chế độ Viewer ↔ Player tương ứng).
+3. **Chỉ báo Trực quan Rõ nét:**
+   - **Tệp đang xem:** Được tô sáng nền màu xanh đậm kèm dấu chấm `●`.
+   - **Tệp đã đánh dấu:** Hiển thị biểu tượng ngôi sao vàng cam `⭐`.
+   - **Icon định dạng:** Phân biệt rõ ràng icon ảnh `🖼️`, video `▶`, audio `🎵`.
+4. **Ô Tìm kiếm & Lọc nhanh (Quick Search/Filter):** Cho phép gõ tên file để lọc nhanh danh sách khi thư mục có hàng trăm/hàng nghìn tệp.
+
+---
+
+## 6. Bảng Hợp đồng Phím tắt & Đối chiếu Nút bấm UI
 
 Mọi chức năng đều hỗ trợ song song cả **Phím tắt nhanh** lẫn **Nút bấm trực quan (Button UI)**:
 
@@ -153,13 +186,26 @@ Mọi chức năng đều hỗ trợ song song cả **Phím tắt nhanh** lẫn 
 | **Cut (Cắt/Move) các file Đã Mark** | `Cmd + X` | `Ctrl + X` | Nút `[✂️ Cut Đã Mark (N)]` |
 | **Đặt điểm lặp A / Điểm B** | Phím `[` / Phím `]` | Phím `[` / Phím `]` | Nút `[Set Điểm A]` / `[Set Điểm B]` |
 | **Bật / Tắt Vòng lặp A–B** | Phím `L` | Phím `L` | Nút `[🔁 Loop: BẬT/TẮT]` |
+| **Ghim cửa sổ trên cùng (Pin on Top)** | Phím `P` | Phím `P` | Nút `[📌 Ghim / Unpin]` |
+| **Bật/Tắt Danh sách Thư mục (Sidebar)**| Phím `B` | Phím `B` | Nút `[📑 Danh sách (B)]` |
 | **Ẩn / Hiện thanh điều khiển** | Phím `H` | Phím `H` | Nút `[👁️ Ẩn/Hiện HUD]` |
 | **Toàn màn hình (Fullscreen)** | `Cmd + Ctrl + F` | `F11` | Nút `[⛶ Toàn màn hình]` |
 | **Đóng / Thoát ứng dụng** | `Cmd + W` / `Esc` | `Alt + F4` / `Esc` | Nút tắt cửa sổ OS |
 
 ---
 
-## 6. Logic Điều phối Thư mục Hỗn hợp (Mixed Folder Dynamic Switching)
+## 7. Định dạng Icon Hệ thống (Icon System Standards)
+
+Toàn bộ icon hiển thị trên các nút bấm (Buttons) và thanh công cụ của ứng dụng thống nhất sử dụng **chuẩn định dạng SVG (Scalable Vector Graphics)** kết hợp thư viện **Lucide Icons** (`lucide-react`):
+- **Ưu điểm tuyệt đối:**
+  1. *Độ sắc nét vô hạn (Vector):* Hiển thị sắc nét 100% trên mọi loại màn hình từ Full HD thông thường đến màn hình Retina độ phân giải cao của Mac hay 4K Windows, không bao giờ bị vỡ hạt như PNG.
+  2. *Dung lượng siêu nhẹ:* Mỗi icon SVG chỉ nặng vài trăm bytes, không làm tăng dung lượng bundle.
+  3. *Tự động biến đổi màu theo trạng thái:* Kế thừa thuộc tính `currentColor` của CSS, tự động chuyển màu sáng/tối khi hover, click, disabled hoặc chuyển Dark Mode mượt mà.
+  4. *Không dùng PNG cho nút bấm:* Định dạng PNG/WebP chỉ dùng cho dữ liệu media nội dung (bìa album, ảnh người dùng), tuyệt đối không dùng làm icon nút bấm.
+
+---
+
+## 8. Logic Điều phối Thư mục Hỗn hợp (Mixed Folder Dynamic Switching)
 
 Một thư mục làm việc thực tế thường chứa lẫn lộn cả ảnh (`.jpg`, `.png`), video (`.mp4`, `.mov`) và âm thanh (`.mp3`).
 

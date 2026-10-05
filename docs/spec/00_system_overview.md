@@ -175,6 +175,15 @@ Nhằm đảm bảo sản phẩm đạt đúng tiêu chí **"Siêu nhẹ, Tốc 
   - Giúp tốc độ phát triển và kiểm thử vòng lặp diễn ra tức thì tại máy của Owner mà không bị gián đoạn.
   - Đảm bảo tính tương thích và sự đồng nhất 1:1 trên Windows 11 thông qua quy trình kiểm thử khói chuẩn hóa (18-step smoke test).
 
+### Quyết định 5: Chiến lược Kiểm soát Bộ nhớ & Không để lại Rác Cache (Zero-Disk-Cache & Clean-on-Exit)
+* **Đề xuất:** 
+  1. *Không sinh Thumbnail Cache lưu xuống ổ cứng:* Danh sách tệp trong Right Sidebar chỉ hiển thị icon vector SVG phân loại (`🖼️`, `▶`, `🎵`) và tên file, không giải mã hàng loạt ảnh thu nhỏ lưu xuống đĩa.
+  2. *Bộ nhớ trượt RAM 3-Slot (3-Slot Sliding Window Memory):* Trong RAM chỉ lưu tối đa 3 ảnh (`i-1`, `i`, `i+1`). Chuyển ảnh mới là hủy tham chiếu giải phóng ngay ảnh cũ (Garbage Collection).
+  3. *Tắt Disk Cache của Webview & Tự dọn khi Đóng App (Clean-on-Exit):* Cấu hình cờ tắt cache HTTP trong Tauri (`--disable-http-cache`). Khi tắt app (`on_window_event: Destroyed`), Rust tự động xóa sạch toàn bộ thư mục file tạm.
+* **Lý do đề xuất:**
+  - Các app viewer/player thông thường rất hay âm thầm tích tụ vài GB cache ảnh thu nhỏ (Thumbnails) và webview cache (`EBWebView` trên Windows, `WebKit` trên Mac), làm đầy ổ đĩa C:.
+  - Chiến lược này đảm bảo Media Tool luôn giữ đúng tôn chỉ **"Siêu nhẹ, Tốc độ cao, Không biến máy tính thành bãi rác"**.
+
 ---
 
 ## 7. Tiêu chuẩn Thực thi cho AI Execution Agent

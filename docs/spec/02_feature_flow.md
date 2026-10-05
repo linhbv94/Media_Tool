@@ -100,7 +100,7 @@ Khi một thư mục chứa lẫn lộn cả Ảnh (`.jpg`, `.png`), Video (`.mp
 
 ---
 
-## 3. Luồng Tính năng Phân hệ Player (Audio / Video Playback)
+## 4. Luồng Tính năng Phân hệ Player (Audio / Video Playback)
 
 ### A. Máy Trạng thái Playback (Playback State Machine)
 
@@ -135,7 +135,7 @@ $$\text{newTime} = \max(0, \min(\text{targetTime}, \text{duration}))$$
 
 ---
 
-## 4. Đặc tả Vòng lặp A–B Loop & Thuật toán Adaptive Audio Fade
+## 5. Đặc tả Vòng lặp A–B Loop & Thuật toán Adaptive Audio Fade
 
 Vòng lặp A–B cho phép người dùng lặp đi lặp lại một phân đoạn nhất định của video hoặc audio.
 
@@ -214,7 +214,7 @@ Ví dụ thực tế:
 
 ---
 
-## 5. Luồng Trích xuất & Hiển thị Metadata Âm thanh (Audio Metadata Pipeline)
+## 6. Luồng Trích xuất & Hiển thị Metadata Âm thanh (Audio Metadata Pipeline)
 
 Khi mở một tệp âm thanh (`.mp3`, `.flac`, `.wav`, `.m4a`), hệ thống đọc thông tin từ file theo quy trình Read-Only:
 
@@ -245,3 +245,48 @@ graph TD
 - Nếu trường `Album` bị rỗng: Bỏ trống hoặc ẩn dòng Album.
 - Nếu không có `Artwork`: Hiển thị khung tròn đồ họa đĩa than tối giản mang phong cách hiện đại.
 - Thiếu bất kỳ trường metadata nào cũng **tuyệt đối không được coi là lỗi** làm gián đoạn việc phát bài hát.
+
+---
+
+## 7. Cơ chế Quản lý Bộ nhớ, Bộ đệm RAM & Dọn dẹp Cache (Memory & Cache Lifecycle)
+
+### A. Bốn loại Cache Tiềm tàng & Rủi ro Phình to Ổ cứng:
+1. **Thumbnail Cache (Ảnh thu nhỏ):** Các app xem ảnh thông thường giải mã ảnh gốc và ghi file `.thumb` xuống đĩa. Khi duyệt thư mục 10.000 file, cache này có thể chiếm từ 2GB đến 5GB ổ cứng.
+2. **Webview Cache (`EBWebView` trên Windows, `WebKit` trên Mac):** Chứa HTTP cache, shader GPU và file đệm stream do Webview tự động ghi xuống đĩa.
+3. **Media Temporary Buffers:** Các đoạn video/audio buffer tạm thời khi seek tua liên tục.
+4. **Decoded Bitmaps trong RAM:** Mảng pixel giải mã của các bức ảnh độ phân giải cao (ảnh 48MP có thể chiếm tới 300MB RAM cho một file).
+
+### B. Kiến trúc Zero-Disk-Cache & Kiểm soát RAM Tối ưu của Media Tool:
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│               KIẾN TRÚC QUẢN LÝ BỘ NHỚ "ZERO-DISK-CACHE"               │
+├──────────────────────────────────┬─────────────────────────────────────┤
+│ 1. Không ghi Thumbnail ra đĩa    │ Sidebar dùng Icon SVG Vector nhẹ.   │
+│    (Zero Disk Thumbnails)        │ Tuyệt đối không sinh file cache đĩa.│
+├──────────────────────────────────┼─────────────────────────────────────┤
+│ 2. Cửa sổ trượt RAM 3-Slot       │ Chỉ giữ: [ i - 1 ] [ i ] [ i + 1 ]. │
+│    (3-Slot Sliding Window RAM)   │ Chuyển ảnh là hủy tham chiếu cũ ngay│
+├──────────────────────────────────┼─────────────────────────────────────┤
+│ 3. Vô hiệu hóa Disk Cache Webview│ Cấu hình Tauri: --disable-http-cache│
+│    (Webview Cache Suppression)   │ Không lưu buffer tĩnh vào ổ đĩa.    │
+├──────────────────────────────────┼─────────────────────────────────────┤
+│ 4. Tự dọn sạch khi đóng App      │ Hook vòng đời Rust: Destroyed Event │
+│    (Clean-on-Exit Lifecycle)     │ Xóa sạch mọi thư mục tạm trên OS.   │
+└──────────────────────────────────┴─────────────────────────────────────┘
+```
+
+### C. Cơ chế Dọn dẹp Phân định theo Hệ Điều hành (OS Differences):
+* **Trên macOS:**
+  - File cache hệ thống (nếu có phát sinh từ WebKit) bị giới hạn chặt chẽ trong `~/Library/Caches/<bundle_id>/`.
+  - Hệ điều hành macOS tự động kích hoạt tính năng **Purgeable Space** để thu hồi dung lượng khi ổ cứng Mac gần đầy.
+* **Trên Windows:**
+  - Cấu hình thư mục dữ liệu người dùng (UserDataFolder) của WebView2 về đúng đường dẫn chuyên biệt: `%LOCALAPPDATA%\media_tool\webview_data`.
+  - Thiết lập hook vòng đời thoát app trong Rust (`on_window_event: WindowEvent::Destroyed`):
+    ```rust
+    // Quét và xóa toàn bộ file tạm phát sinh khi người dùng đóng ứng dụng
+    if let Ok(temp_path) = app_handle.path().app_cache_dir() {
+        let _ = std::fs::remove_dir_all(&temp_path);
+    }
+    ```
+  - **Kết quả:** Đảm bảo cả trên Windows lẫn macOS, ứng dụng không bao giờ để lại rác tệp sau phiên làm việc, giữ ổ đĩa người dùng luôn sạch sẽ 100%.
