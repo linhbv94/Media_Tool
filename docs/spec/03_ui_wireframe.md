@@ -26,93 +26,84 @@
 
 ## 2. Wireframe Phân hệ Viewer (Image Viewer)
 
-Giao diện xem ảnh tập trung tối đa vào bức ảnh, đi kèm thanh công cụ điều khiển đầy đủ các nút bấm thao tác bằng chuột hoặc phím tắt.
+Giao diện xem ảnh tối giản, hiện đại và tập trung tối đa vào bức ảnh. Thanh thông tin tệp chuyển xuống dưới cùng, thanh công cụ gộp thành 1 hàng duy nhất và Toast phản hồi nổi ngay phía trên thanh công cụ.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ [●][▲][▼]  (media_tool)                                                │
-│                                                                        │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │ 🏷️ DSC_0842.JPG   [ 14 / 120 ]   [◀ File] [File ▶]  ⭐ [ĐÃ ĐÁNH DẤU]│  │ ◄─ Top Bar (Thông tin & Điều hướng)
-│  └──────────────────────────────────────────────────────────────────┘  │
+│ [●][▲][▼] media_tool                                  [📌 Ghim] [📑 DS]│ ◄─ Window Bar (Chuẩn cả 3 phân hệ)
 │                                                                        │
 │                                                                        │
 │                             [ BỨC ẢNH ]                                │
 │                   (Tự căn giữa, fit khít cửa sổ)                       │
 │                                                                        │
 │                                                                        │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │ [⭐ Đánh dấu (M)]  [📋 Copy Ảnh này (Cmd+C)]                       │  │
-│  │ ──────────────────────────────────────────────────────────────── │  │ ◄─ Bottom Action Bar
-│  │ [📦 Copy Đã Mark (4)]   [✂️ Cut Đã Mark (4)]   [⛶ Toàn màn hình]  │  │    (Đầy đủ nút bấm cho chuột)
-│  └──────────────────────────────────────────────────────────────────┘  │
-│                                                                        │
 │                 ┌────────────────────────────────────┐                 │
-│                 │  ✓ Đã sao chép 4 tệp vào Clipboard │                 │ ◄─ Toast Feedback
-│                 └────────────────────────────────────┘                 │
+│                 │  ✓ Đã sao chép 4 tệp vào Clipboard │                 │ ◄─ Toast Feedback (Tự biến mất sau 2s)
+│                 └────────────────────────────────────┘                 │    (Nổi lơ lửng phía trên Action Bar)
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ [◀ Trước] [Tiếp ▶]  [☆ Đánh dấu (M)]  [📦 Copy Mark (4)] [✂️ Cut] [⛶]│  │ ◄─ Bottom Action Bar (Gộp 1 hàng duy nhất)
+│  └──────────────────────────────────────────────────────────────────┘  │
+│  🏷️ DSC_0842.JPG                                            [ 14 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Thành phần Giao diện & Nút bấm Viewer:
-1. **Top Bar (Thanh thông tin & Điều hướng):**
-   - **Tên tệp (File Name):** Tên file ảnh đang mở (`DSC_0842.JPG`).
-   - **Chỉ số Vị trí (Index Counter):** `[ 14 / 120 ]` (vị trí hiện tại trên tổng file).
-   - **Nút điều hướng file:** Nút bấm `[◀ File Trước]` và `[File Tiếp ▶]` giúp bấm chuột chuyển file ngay lập tức.
-   - **Huy hiệu Đánh dấu:** Trạng thái `⭐ [ĐÃ ĐÁNH DẤU]` hoặc `[Chưa đánh dấu]`.
-2. **Bottom Action Bar (Thanh nút bấm hành động đầy đủ):**
-   - **Nút `[⭐ Đánh dấu (M)]`:** Bấm chuột để bật/tắt đánh dấu ảnh hiện tại.
-   - **Nút `[📋 Copy Ảnh này (Cmd+C)]`:** Chỉ sao chép duy nhất file ảnh hiện tại vào OS Clipboard.
-   - **Nút `[📦 Copy Đã Mark (N)]`:** Sao chép toàn bộ danh sách N file đã đánh dấu vào OS Clipboard.
-   - **Nút `[✂️ Cut Đã Mark (N)]`:** Đưa toàn bộ danh sách N file đã đánh dấu vào OS Clipboard với cờ Cut (Move) để di chuyển tệp khi paste ra ngoài Finder / Explorer.
-   - **Nút `[⛶ Toàn màn hình]`:** Bật/tắt chế độ full screen.
+1. **Window Bar (Thanh cửa sổ trên cùng — Thống nhất cho cả 3 phân hệ):**
+   - Góc trái: Cụm điều khiển cửa sổ OS `[●][▲][▼]` và tên ứng dụng `media_tool`.
+   - Góc phải: Nút ghim cửa sổ `[📌 Ghim]` và nút mở danh sách `[📑 DS]`.
+2. **Toast Feedback:**
+   - Đặt lơ lửng ngay **phía trên** Action Bar.
+   - Khi bấm Copy / Cut, Toast hiện ra thông báo kết quả trong 2 giây rồi tự mờ và biến mất, không chiếm diện tích cố định.
+3. **Bottom Action Bar (Gộp thành 1 hàng duy nhất):**
+   - **Nút điều hướng:** `[◀ Trước]` và `[Tiếp ▶]` chuyển file trực tiếp.
+   - **Nút Đánh dấu trực quan:** 
+     - Trạng thái chưa đánh dấu: Icon **outline** viền rỗng `☆ Đánh dấu (M)`.
+     - Trạng thái đã đánh dấu: Icon tự chuyển thành **fill** tô đặc màu vàng cam `★ Đã đánh dấu (M)`.
+   - **Nút `[📦 Copy Mark (N)]`:** Sao chép danh sách file đã đánh dấu ra OS Clipboard.
+   - **Nút `[✂️ Cut Mark (N)]`:** Cắt danh sách file đã đánh dấu để di chuyển (Move).
+   - **Nút `[⛶ Toàn màn hình]`:** Bật/tắt chế độ Fullscreen.
+   *(Nút sao chép ảnh hiện tại đã được loại bỏ trên giao diện để tránh rườm rà, người dùng chỉ cần nhấn phím tắt `Cmd+C` / `Ctrl+C`).*
+4. **Footer Dưới cùng (Thanh trạng thái tối giản):**
+   - Đặt ở đáy màn hình: Góc trái là **Tên tệp** (`DSC_0842.JPG`), góc phải là **Số thứ tự trong folder** (`[ 14 / 120 ]`).
 
 ---
 
 ## 3. Wireframe Phân hệ Player — Chế độ Video
 
-Mặc định hiển thị **Thanh điều khiển Đầy đủ (Full Persistent Control Bar)**. Người dùng có nút bấm hoặc phím tắt để bật/tắt (Toggle) ẩn hiện thanh điều khiển này khi muốn xem video thoáng mắt.
+Tương tự phân hệ Viewer: Thanh cửa sổ trên cùng giữ chuẩn thống nhất, thanh điều khiển phát gộp tinh gọn và Footer đáy hiển thị tên video kèm số thứ tự.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ [●][▲][▼]   action_clip_02.mp4                        [👁️ Ẩn/Hiện HUD] │
+│ [●][▲][▼] media_tool                   [📌 Ghim] [👁️ Ẩn HUD] [📑 DS]│ ◄─ Window Bar
 │                                                                        │
 │                                                                        │
 │                           [ VIDEO CONTENT ]                            │
 │                        (Khung hiển thị Video)                          │
 │                                                                        │
 │                                                                        │
+│                 ┌────────────────────────────────────┐                 │
+│                 │  ✓ Đã sao chép 3 tệp vào Clipboard │                 │ ◄─ Toast Feedback
+│                 └────────────────────────────────────┘                 │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │ 01:14 ────────────────●───────[════════════════]──────── 04:32   │  │ ◄─ Timeline với mốc [A] và [B]
 │  │                               ▲                ▲                 │  │
-│  │                            Điểm A           Điểm B               │  │
 │  │ ──────────────────────────────────────────────────────────────── │  │
-│  │ [◀ File]  [⏪ -5s]  [◀ -1s]  [▶ Phát / ⏸ Dừng]  [+1s ▶]  [+5s ⏩]  [File ▶] │  │ ◄─ Cụm nút Play/Seek/File
-│  │ ──────────────────────────────────────────────────────────────── │  │
-│  │ [Set Điểm A]  [Set Điểm B]  [🔁 Loop: BẬT (Fade: 45ms)]           │  │ ◄─ Cụm nút A-B Loop
-│  │ [⭐ Đánh dấu (M)]  [📦 Copy Đã Mark (3)]  [✂️ Cut Đã Mark (3)]     │  │ ◄─ Cụm nút Quản lý File
-│  └──────────────────────────────────────────────────────────────────┘  │ ◄─ Full Control Bar (Mặc định HIỆN)
+│  │ [◀] [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] [▶]                  │  │ ◄─ Hàng 1: Nút tua & play
+│  │ [Set A] [Set B] [🔁 Loop: 45ms]  [☆ Đánh dấu] [📦 Copy] [✂️ Cut] [⛶]│  │ ◄─ Hàng 2: A-B Loop & Quản lý file
+│  └──────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar (Mặc định HIỆN)
+│  🏷️ action_clip_02.mp4                                       [ 15 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
 └────────────────────────────────────────────────────────────────────────┘
 ```
-
-### Thành phần Giao diện & Tùy chọn Ẩn/Hiện Controls:
-1. **Nút `[👁️ Ẩn/Hiện HUD]` (Góc trên phải hoặc phím tắt `H`):**
-   - Chuyển đổi giữa 2 chế độ: **Luôn hiện thanh điều khiển (Persistent Full Control)** hoặc **Tự động ẩn sau 2 giây (Auto-hide)** khi xem phim.
-2. **Thanh Timeline Thông minh:** Hiển thị thời gian chạy, mốc A, mốc B và phân đoạn highlight lặp lại.
-3. **Cụm Nút bấm Đầy đủ trên UI (Full Mouse Controls):**
-   - **Điều hướng File:** `[◀ File Trước]`, `[File Tiếp ▶]`.
-   - **Tua thời gian:** `[⏪ -5s]`, `[◀ -1s]`, `[▶/⏸]`, `[+1s ▶]`, `[+5s ⏩]`.
-   - **Vòng lặp A-B:** Nút bấm `[Set Điểm A]`, `[Set Điểm B]`, nút bật/tắt `[🔁 Loop: BẬT/TẮT]`.
-   - **Đánh dấu & Xuất file:** Nút `[⭐ Đánh dấu]`, `[📦 Copy Đã Mark]`, `[✂️ Cut Đã Mark]`.
 
 ---
 
 ## 4. Wireframe Phân hệ Player — Chế độ Audio (Âm nhạc & Podcast)
 
-Khi mở file audio, giao diện giữ nguyên thanh điều khiển đầy đủ bên dưới, đồng thời trung tâm hiển thị Card âm nhạc với bìa đĩa (Album Art) và thông tin bài hát.
+Khi mở file audio, giao diện giữ nguyên cấu trúc chuẩn: Window Bar phía trên, Card âm nhạc ở giữa, thanh điều khiển bên dưới và Footer đáy hiển thị tên file kèm số thứ tự.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ [●][▲][▼]                                                              │
+│ [●][▲][▼] media_tool                                  [📌 Ghim] [📑 DS]│ ◄─ Window Bar
 │                                                                        │
 │                 ┌───────────────────────────────────┐                  │
 │                 │          ┌─────────────┐          │                  │
@@ -123,13 +114,15 @@ Khi mở file audio, giao diện giữ nguyên thanh điều khiển đầy đ�
 │                 │      OneRepublic • Native (2013)  │                  │
 │                 └───────────────────────────────────┘                  │
 │                                                                        │
+│                 ┌────────────────────────────────────┐                 │
+│                 │  ✓ Đã sao chép 4 tệp vào Clipboard │                 │ ◄─ Toast Feedback
+│                 └────────────────────────────────────┘                 │
 │  ┌──────────────────────────────────────────────────────────────────┐  │
 │  │ 00:45 ─────────────●──────────[═════════════]─────────── 04:17   │  │ ◄─ Timeline
-│  │                                                                  │  │
-│  │ [◀ File]  [⏪ -5s]  [◀ -1s]  [▶/⏸]  [+1s ▶]  [+5s ⏩]  [File ▶]    │  │ ◄─ Nút bấm Player
-│  │ [Set Điểm A]  [Set Điểm B]  [🔁 Loop: BẬT (Fade: 60ms)]          │  │ ◄─ Nút bấm A-B Loop
-│  │ [⭐ Đánh dấu (M)]  [📦 Copy Đã Mark (4)]  [✂️ Cut Đã Mark (4)]    │  │ ◄─ Nút bấm Copy/Cut
-│  └──────────────────────────────────────────────────────────────────┘  │ ◄─ Full Control Bar
+│  │ [◀] [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] [▶]                  │  │ ◄─ Nút Player
+│  │ [Set A] [Set B] [🔁 Loop: 60ms]  [☆ Đánh dấu] [📦 Copy] [✂️ Cut] [⛶]│  │ ◄─ Nút Loop & Copy/Cut
+│  └──────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar
+│  🏷️ track_03_counting_stars.mp3                              [ 16 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -180,10 +173,10 @@ Mọi chức năng đều hỗ trợ song song cả **Phím tắt nhanh** lẫn 
 | **Tua chính xác ±1 giây** | `Mũi tên Trái` / `Phải` | `Mũi tên Trái` / `Phải` | Nút `[◀ -1s]` / `[+1s ▶]` |
 | **Tua nhanh ±5 giây** | `Shift + Trái` / `Phải` | `Shift + Trái` / `Phải` | Nút `[⏪ -5s]` / `[+5s ⏩]` |
 | **Nhảy mốc timeline 0% → 90%** | Phím số `0` đến `9` | Phím số `0` đến `9` | Click trực tiếp vào vị trí trên Timeline |
-| **Đánh dấu / Bỏ đánh dấu file này** | Phím `M` | Phím `M` | Nút `[⭐ Đánh dấu (M)]` |
-| **Copy DUY NHẤT file đang xem** | `Cmd + C` | `Ctrl + C` | Nút `[📋 Copy Ảnh này]` |
-| **Copy TẤT CẢ các file Đã Mark** | `Cmd + Shift + C` | `Ctrl + Shift + C` | Nút `[📦 Copy Đã Mark (N)]` |
-| **Cut (Cắt/Move) các file Đã Mark** | `Cmd + X` | `Ctrl + X` | Nút `[✂️ Cut Đã Mark (N)]` |
+| **Đánh dấu / Bỏ đánh dấu file này** | Phím `M` | Phím `M` | Nút `[☆ Đánh dấu]` / `[★ Đã mark]` (Outline ↔ Fill) |
+| **Copy DUY NHẤT file đang xem** | `Cmd + C` | `Ctrl + C` | Phím tắt nhanh (Đã bỏ nút để tối giản UI) |
+| **Copy TẤT CẢ các file Đã Mark** | `Cmd + Shift + C` | `Ctrl + Shift + C` | Nút `[📦 Copy Mark (N)]` |
+| **Cut (Cắt/Move) các file Đã Mark** | `Cmd + X` | `Ctrl + X` | Nút `[✂️ Cut Mark (N)]` |
 | **Đặt điểm lặp A / Điểm B** | Phím `[` / Phím `]` | Phím `[` / Phím `]` | Nút `[Set Điểm A]` / `[Set Điểm B]` |
 | **Bật / Tắt Vòng lặp A–B** | Phím `L` | Phím `L` | Nút `[🔁 Loop: BẬT/TẮT]` |
 | **Ghim cửa sổ trên cùng (Pin on Top)** | Phím `P` | Phím `P` | Nút `[📌 Ghim / Unpin]` |
