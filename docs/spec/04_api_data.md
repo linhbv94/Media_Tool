@@ -140,6 +140,25 @@ Ghi trực tiếp danh sách đường dẫn tệp vào bộ nhớ tạm của h
 
 ---
 
+### 2.4 Lệnh: `set_always_on_top` (Pin on Top Window)
+Bật hoặc tắt chế độ luôn nổi trên cùng của cửa sổ ứng dụng (Pin on Top).
+
+* **TypeScript Signature:**
+  ```typescript
+  export async function setAlwaysOnTop(isPinned: boolean): Promise<boolean>;
+  ```
+
+* **Rust Command Signature:**
+  ```rust
+  #[tauri::command]
+  pub fn set_always_on_top(window: tauri::Window, is_pinned: bool) -> Result<bool, String> {
+      window.set_always_on_top(is_pinned).map_err(|e| e.to_string())?;
+      Ok(is_pinned)
+  }
+  ```
+
+---
+
 ## 3. Các Mô hình Dữ liệu TypeScript (Frontend Models)
 
 Toàn bộ các kiểu dữ liệu dùng chung trong thư mục `src/types/` được đặc tả như sau:
@@ -148,7 +167,10 @@ Toàn bộ các kiểu dữ liệu dùng chung trong thư mục `src/types/` đ�
 // 1. Phân loại định dạng Media
 export type MediaType = 'image' | 'video' | 'audio' | 'unknown';
 
-// 2. Thông tin một mục Media trong thư mục
+// 2. Chế độ lặp tệp
+export type LoopFileMode = 'off' | 'single' | 'all';
+
+// 3. Thông tin một mục Media trong thư mục
 export interface MediaItem {
   path: string;           // Đường dẫn tuyệt đối
   name: string;           // Tên file kèm đuôi mở rộng
@@ -157,7 +179,7 @@ export interface MediaItem {
   size_bytes: number;     // Kích thước tệp (bytes)
 }
 
-// 3. Phản hồi danh sách thư mục từ Rust Core
+// 4. Phản hồi danh sách thư mục từ Rust Core
 export interface MediaListResponse {
   parent_dir: string;
   current_index: number;
@@ -165,7 +187,7 @@ export interface MediaListResponse {
   items: MediaItem[];
 }
 
-// 4. Metadata âm thanh chi tiết
+// 5. Metadata âm thanh chi tiết
 export interface AudioMetadataResponse {
   title?: string;
   artist?: string;
@@ -178,7 +200,7 @@ export interface AudioMetadataResponse {
   artwork_data_url?: string; // Chuỗi Base64 Data URL nếu có bìa đĩa
 }
 
-// 5. Trạng thái Vòng lặp A-B Loop
+// 6. Trạng thái Vòng lặp A-B Loop
 export interface ABLoopState {
   point_a: number | null;     // Mốc thời gian A (giây)
   point_b: number | null;     // Mốc thời gian B (giây)
@@ -186,7 +208,34 @@ export interface ABLoopState {
   fade_duration_ms: number;   // Thời lượng fade tính toán (0 đến 100 ms)
 }
 
-// 6. Trạng thái Đánh dấu trong Phiên làm việc (Session Mark State)
+// 7. Trạng thái Playback Đầy đủ (Player State)
+export interface PlaybackState {
+  is_playing: boolean;
+  current_time: number;
+  duration: number;
+  volume: number;              // 0.0 đến 1.0 (mặc định 0.8)
+  is_muted: boolean;           // Đang tắt tiếng hay không
+  shuffle: boolean;            // Đang bật xáo trộn thứ tự
+  loop_file_mode: LoopFileMode;// 'off' | 'single' | 'all'
+  ab_loop: ABLoopState;
+  playback_rate: number;       // 1.0 (mặc định), 1.25, 1.5, 2.0...
+}
+
+// 8. Cấu hình Cài đặt Ứng dụng (App Settings Model)
+export interface AppSettings {
+  single_instance: boolean;      // Tái sử dụng cửa sổ (Mặc định: true)
+  auto_pin: boolean;             // Tự động ghim khi mở (Mặc định: false)
+  hud_hide_delay_ms: number;     // Thời gian ẩn HUD (Mặc định: 2000ms)
+  theme: 'slate' | 'black';      // Chủ đề màu sắc (Mặc định: 'slate')
+  seek_short_sec: number;        // Tua ngắn (Mặc định: 1.0s)
+  seek_long_sec: number;         // Tua dài (Mặc định: 5.0s)
+  ab_loop_crossfade_ms: number;  // Độ mượt A-B Loop (Mặc định: 45ms)
+  default_loop_file: LoopFileMode; // Lặp file mặc định (Mặc định: 'all')
+  autoplay_next: boolean;        // Tự phát khi next video (Mặc định: true)
+  volume: number;                // Mức âm lượng lưu trữ (Mặc định: 0.8)
+}
+
+// 9. Trạng thái Đánh dấu trong Phiên làm việc (Session Mark State)
 export interface MarkSessionState {
   marked_paths: Set<string>;  // Tập hợp các file đã được đánh dấu
   last_marked_path: string | null;
@@ -206,3 +255,8 @@ Hệ thống hỗ trợ 2 phương thức mở tệp:
      - Ứng dụng không mở thêm cửa sổ mới (giữ đúng nguyên tắc One App).
      - Đưa cửa sổ hiện tại lên tiêu điểm (focus window).
      - Phát sự kiện `app:open-file` kèm đường dẫn mới để Frontend tự động chuyển file ngay lập tức.
+3. **Thoát Sạch Khi Bấm Nút Đỏ [X] (Exit on Close Handler):**
+   - Lắng nghe `WindowEvent::CloseRequested` trên tầng Rust:
+     - Hủy buffer RAM ảnh 3-slot và giải phóng AudioContext.
+     - Gọi `window.app_handle().exit(0)` thoát hoàn toàn tiến trình, xóa sạch chấm tròn Dock trên macOS ngay lập tức.
+

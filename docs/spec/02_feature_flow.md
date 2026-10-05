@@ -290,3 +290,141 @@ graph TD
     }
     ```
   - **Kết quả:** Đảm bảo cả trên Windows lẫn macOS, ứng dụng không bao giờ để lại rác tệp sau phiên làm việc, giữ ổ đĩa người dùng luôn sạch sẽ 100%.
+
+---
+
+## 8. Luồng Điều khiển Âm lượng, Web Audio API GainNode & Huy hiệu OSD
+
+Hệ thống điều khiển âm lượng can thiệp qua luồng Web Audio API độc lập, đảm bảo độ mượt 60fps và không làm nghẽn tiến trình render chính.
+
+### A. Máy Trạng thái Âm lượng (Volume State Machine)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Unmuted: Khởi tạo (Đọc localStorage, mặc định 0.8)
+    
+    Unmuted --> VolumeAdjust: Nhấn Phím ↑/↓ hoặc Cuộn chuột
+    VolumeAdjust --> Unmuted: Cập nhật GainNode, Bắn Volume OSD (1s)
+    
+    Unmuted --> Muted: Click Icon Loa / Nhấn Cmd+M
+    Muted --> Unmuted: Click lại Icon Loa / Nhấn Cmd+M (Khôi phục mức cũ)
+    Muted --> VolumeAdjust: Nhấn Phím ↑ hoặc Cuộn lên (Tự động unmute)
+```
+
+### B. Logic Kỹ thuật Chi tiết:
+1. **Liên kết Web Audio API `GainNode`:**
+   - Khi phần tử `<video>` hoặc `<audio>` nạp source:
+     ```typescript
+     const audioCtx = new AudioContext();
+     const source = audioCtx.createMediaElementSource(mediaElement);
+     const gainNode = audioCtx.createGain();
+     source.connect(gainNode);
+     gainNode.connect(audioCtx.destination);
+     ```
+   - Khi chỉnh âm lượng:
+     `gainNode.gain.setValueAtTime(is_muted ? 0.0 : volume, audioCtx.currentTime);`
+2. **Quy tắc Tính toán & Chặn biên (Boundary Clamping):**
+   - Tăng: `newVolume = Math.min(1.0, volume + 0.05);`
+   - Giảm: `newVolume = Math.max(0.0, volume - 0.05);`
+3. **Cơ chế Volume OSD Timer:**
+   - Mỗi khi `volume` thay đổi qua phím tắt hoặc con lăn chuột:
+     - Giao diện bật `showVolumeOSD = true`.
+     - Xóa bỏ bộ đếm hẹn giờ cũ `clearTimeout(osdTimer)`.
+     - Kích hoạt hẹn giờ mới 1000ms: Sau 1 giây không có tương tác, `showVolumeOSD = false` (Fade out 200ms).
+4. **Lưu trữ Cấu hình (Persistence):**
+   - Mọi thay đổi `volume` đều ghi vào `localStorage.setItem('media_tool_volume', volume.toFixed(2))`.
+
+---
+
+## 9. Luồng Xáo Trộn (Shuffle) & Lặp Tệp (Loop File Modes)
+
+### A. Chế độ Lặp Tệp (Loop File Engine)
+Có 3 trạng thái luân phiên khi bấm nút hoặc nhấn phím tắt `R` (hoặc `L` trên menu chuột phải):
+* **`All` (Lặp toàn bộ - Mặc định):**
+  - Khi media hiện tại phát hết (`onended`): Tự động phát tiếp file tiếp theo.
+  - Khi chạm cuối danh sách: Quay trở lại file đầu tiên (hoặc phần tử đầu của mảng Shuffle).
+* **`Single` (Lặp 1 tệp duy nhất):**
+  - Khi media phát hết: `media.currentTime = 0; media.play();` (Không chuyển file).
+* **`Off` (Không lặp):**
+  - Khi media phát hết: Dừng lại ở frame cuối cùng, chuyển trạng thái về `Paused`.
+
+### B. Thuật toán Xáo Trộn Danh Sách (Fisher-Yates Shuffle Algorithm)
+Khi người dùng bật chế độ **`Shuffle` (Phím `S`)**:
+1. Hệ thống không làm xáo trộn mảng tệp gốc (để giữ nguyên thứ tự Natural Sort cho Right Sidebar).
+2. Thay vào đó, hệ thống sinh một mảng chỉ mục xáo trộn độc lập `shuffled_indices: number[]`:
+   ```typescript
+   function generateShuffleIndices(total: number, currentIndex: number): number[] {
+     const indices = Array.from({ length: total }, (_, i) => i);
+     // Đưa currentIndex ra ngoài để luôn phát đầu tiên
+     indices.splice(currentIndex, 1);
+     // Thuật toán Fisher-Yates shuffle
+     for (let i = indices.length - 1; i > 0; i--) {
+       const j = Math.floor(Math.random() * (i + 1));
+       [indices[i], indices[j]] = [indices[j], indices[i]];
+     }
+     return [currentIndex, ...indices];
+   }
+   ```
+3. Khi bấm `[Tiếp ▶]`: Tiến tới chỉ mục tiếp theo trong `shuffled_indices`.
+4. Khi tắt Shuffle: Con trỏ quay trở lại vị trí của file hiện tại trong mảng Natural Sort ban đầu mà không bị gián đoạn phát.
+
+---
+
+## 10. Luồng Vòng Đời Thoát Sạch trên macOS & Windows (`WindowEvent::CloseRequested`)
+
+Quy tắc phần mềm đặt ra: **Bấm nút đỏ [X] là thoát 100% ứng dụng ngay lập tức, dọn sạch RAM và không để lại biểu tượng chạy ngầm trên thanh Dock**.
+
+```mermaid
+sequenceDiagram
+    actor User as Người dùng
+    participant OS as macOS / Windows OS
+    participant Rust as Tauri Rust Backend
+    participant RAM as Memory & Cache Manager
+    
+    User->>OS: Click nút đỏ [X] hoặc bấm Alt+F4 / Cmd+W
+    OS->>Rust: Gửi sự kiện WindowEvent::CloseRequested
+    Note over Rust: Kích hoạt hook on_window_event
+    Rust->>RAM: Hủy 3-Slot Image Preload Buffer
+    Rust->>RAM: Ngắt kết nối Web Audio Context & Webview
+    Rust->>RAM: Dọn sạch file cache tạm (app_cache_dir)
+    Rust->>OS: Gọi window.app_handle().exit(0)
+    Note over OS: macOS gỡ bỏ dấu chấm tròn trên Dock<br/>Tiến trình biến mất 100% khỏi Activity Monitor
+```
+
+* **Mã hóa cứng (Hardcoded Rule):** 
+  - Hành vi này không cho phép người dùng cấu hình tắt trong Cài đặt nhằm bảo đảm ứng dụng luôn nhẹ, nhanh, mở lên là dùng và đóng là giải phóng toàn bộ tài nguyên cho máy.
+
+---
+
+## 11. Luồng Tự Động Ẩn / Hiện HUD & Chuyển Đổi Mini PiP Responsive
+
+### A. Bộ đếm Thời gian Ẩn HUD (Inactivity HUD Timer)
+* Trạng thái HUD bao gồm: Window Bar + Control Bar + Timeline + Footer.
+* Khi khởi động: HUD ở trạng thái HIỆN (`hudVisible = true`).
+* Logic bộ đếm:
+  ```typescript
+  let hudTimer: NodeJS.Timeout | null = null;
+
+  function resetHudTimer(delayMs: number = 2000) {
+    if (!hudVisible) setHudVisible(true);
+    if (hudTimer) clearTimeout(hudTimer);
+    
+    hudTimer = setTimeout(() => {
+      // Chỉ ẩn khi đang phát video/audio và không hover vào menu cài đặt/context menu
+      if (isPlaying && !isContextMenuOpen && !isSettingsOpen) {
+        setHudVisible(false);
+      }
+    }, delayMs);
+  }
+  ```
+* Bất kỳ sự kiện người dùng: `window.onmousemove`, `window.onkeydown`, `window.onclick` đều gọi hàm `resetHudTimer()`.
+
+### B. Chuyển Đổi Chế Độ Mini PiP Mode (`width < 500px` hoặc `height < 320px`)
+1. Giao diện lắng nghe sự kiện `ResizeObserver` hoặc `window.onresize`.
+2. Khi kích thước cửa sổ vượt qua ngưỡng biên:
+   - Tự động bật cờ `isMiniPip = true`.
+   - Thu gọn timeline thành vệt mỏng 3px.
+   - Thu gọn hàng điều khiển chỉ còn 3 nút: `[◀ Trước] [▶/⏸] [Tiếp ▶]`.
+   - Giảm thời gian `hudDelayMs` từ 2000ms xuống **1000ms**.
+   - Mặc định ở chế độ PiP: HUD ẩn 100%, chỉ hiện khi con trỏ chuột rê vào bên trong cửa sổ mini.
+

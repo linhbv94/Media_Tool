@@ -126,6 +126,69 @@ Kịch bản: Người dùng mở một tệp ảnh hoặc video bị hỏng d�
 
 ---
 
+### AC-13: Điều Khiển Âm Lượng & Huy Hiệu OSD (Volume & Mute Control)
+```gherkin
+Kịch bản: Tăng giảm âm lượng và bật tắt tiếng nhanh
+  Giả sử video đang phát ở mức âm lượng 80%
+  Khi người dùng nhấn phím Mũi tên Lên (hoặc cuộn con lăn chuột lên)
+  Thì âm lượng tăng lên 85%, GainNode cập nhật và huy hiệu Volume OSD hiện trên màn hình video
+  Và huy hiệu tự động biến mất sau 1 giây
+  Khi người dùng nhấn Cmd+M (Mac) hoặc Ctrl+M (Win) hoặc click icon Loa
+  Thì âm lượng chuyển về 0% (Mute) và icon chuyển thành VolumeX
+  Khi bấm Cmd/Ctrl+M lần nữa, âm lượng khôi phục lại 85%.
+```
+
+### AC-14: Xáo Trộn & Chế Độ Lặp Tệp (Shuffle & Loop File Modes)
+```gherkin
+Kịch bản: Chuyển đổi giữa các chế độ Lặp tệp và Bật Shuffle
+  Giả sử danh sách có 10 bài hát và người dùng đang phát bài cuối cùng (số 10)
+  Khi chế độ Loop File là "All" và bài số 10 phát hết
+  Thì trình phát tự động chuyển về bài số 1 và tiếp tục phát
+  Khi chuyển sang chế độ Loop File "1" và bài hát phát hết
+  Thì trình phát lặp lại chính bài đó từ 00:00
+  Khi bật chế độ Shuffle (phím S)
+  Thì thứ tự phát kế tiếp tuân theo mảng Fisher-Yates ngẫu nhiên nhưng danh sách Sidebar vẫn giữ thứ tự Natural Sort.
+```
+
+### AC-15: Thoát Sạch Ứng Dụng Khi Bấm Nút Đỏ [X] trên macOS (Zero-Residue Quit)
+```gherkin
+Kịch bản: Người dùng click nút đỏ [X] trên cửa sổ macOS
+  Giả sử ứng dụng đang mở ảnh hoặc video
+  Khi người dùng click vào nút đỏ [X] ở góc trên bên trái cửa sổ
+  Thì cửa sổ lập tức đóng lại, bộ nhớ RAM được giải phóng
+  Và dấu chấm tròn bên dưới icon media_tool trên thanh Dock biến mất ngay lập tức
+  Và không có bất kỳ tiến trình nào chạy ngầm trong Activity Monitor.
+```
+
+### AC-16: Chế Độ Mini PiP Responsive (Breakpoint < 500px)
+```gherkin
+Kịch bản: Người dùng co nhỏ cửa sổ về góc màn hình làm việc
+  Khi người dùng kéo co chiều rộng cửa sổ nhỏ hơn 500px hoặc chiều cao nhỏ hơn 320px
+  Thì giao diện tự động chuyển sang chế độ Mini PiP
+  Và cụm nút bấm thu gọn chỉ còn 3 nút lõi: [◀ Trước] [▶/⏸] [Tiếp ▶]
+  Và timeline co lại thành vạch siêu mảnh 3px sát đáy
+  Và cụm nút mặc định ẩn 100%, chỉ hiện mờ khi con trỏ chuột hover vào cửa sổ mini.
+```
+
+### AC-17: Menu Ngữ Cảnh Chuột Phải (Context Menu)
+```gherkin
+Kịch bản: Click chuột phải vào vùng media
+  Khi người dùng click chuột phải lên khung ảnh hoặc video
+  Thì menu ngữ cảnh kính mờ tối màu xuất hiện ngay tại vị trí con trỏ chuột
+  Và nếu đang xem video, menu hiển thị các mục Playback, Shuffle, Loop File, Loop AB, Volume
+  Và nếu đang xem ảnh, menu hiển thị các mục Xoay ảnh, Lật ảnh, Sao chép tệp.
+```
+
+### AC-18: Ghim Cửa Sổ Luôn Nổi Trên Cùng (Always on Top Pinning)
+```gherkin
+Kịch bản: Bật chế độ ghim cửa sổ
+  Khi người dùng nhấn phím P hoặc bấm nút [📌 Ghim] trên Window Bar
+  Thì cửa sổ ứng dụng chuyển sang trạng thái Always-on-Top
+  Và khi người dùng click tương tác với các ứng dụng khác (Browser, VS Code), cửa sổ media_tool vẫn luôn nổi trên cùng không bị che mất.
+```
+
+---
+
 ## 2. Ma trận Trường hợp Biên (Edge Cases Matrix)
 
 | STT | Trường hợp Biên (Edge Case) | Hành vi Dự kiến của Hệ thống | Mức độ Ưu tiên |
@@ -140,10 +203,12 @@ Kịch bản: Người dùng mở một tệp ảnh hoặc video bị hỏng d�
 | **E-08** | Thư mục chỉ chứa duy nhất 1 bức ảnh. | Bấm Mũi tên Trái/Phải không đổi ảnh, không gây lỗi index out of bounds. | Trung bình |
 | **E-09** | Thư mục chứa 3.000 file ảnh. | Chỉ nạp ảnh kế tiếp và ảnh trước đó vào RAM (Lazy/Lightweight cache), không tải hàng loạt. | Rất cao |
 | **E-10** | Người dùng tua thời gian (`Seek`) ra ngoài phân đoạn A–B khi đang bật Loop. | Tự động kéo playback quay trở về mốc điểm A để tiếp tục chu kỳ lặp. | Trung bình |
+| **E-11** | Người dùng cuộn chuột điều chỉnh âm lượng vượt quá 100% hoặc dưới 0%. | Chặn biên an toàn: `clamp(vol, 0.0, 1.0)`, không phát sinh lỗi Web Audio API. | Cao |
+| **E-12** | Mở video dọc có chiều ngang hẹp hơn 400px. | Cụm Control Bar neo theo độ rộng cửa sổ (`min-width: 520px`), không bị bóp nghẹt. | Cao |
 
 ---
 
-## 3. Danh mục Kiểm tra Kiểm thử Khói (18-Step Smoke Test Checklist)
+## 3. Danh mục Kiểm tra Kiểm thử Khói (22-Step Smoke Test Checklist)
 
 Quy trình kiểm thử khói bắt buộc thực hiện trên cả **Windows 11 (x64)** và **macOS (Apple Silicon)** trước khi bàn giao:
 
@@ -161,7 +226,12 @@ Quy trình kiểm thử khói bắt buộc thực hiện trên cả **Windows 11
 - [ ] **Bước 12:** Nhấn Shift + Mũi tên Trái/Phải để tua 5 giây.
 - [ ] **Bước 13:** Nhấn `[` để đặt điểm A, cho video chạy tiếp rồi nhấn `]` để đặt điểm B.
 - [ ] **Bước 14:** Xác nhận video tự động lặp lại giữa A và B mà không bị dừng hình.
-- [ ] **Bước 15:** Mở một bài hát MP3 có thẻ ID3 và bìa đĩa; xác nhận Title, Artist và Artwork hiển thị đẹp mắt.
-- [ ] **Bước 16:** Đặt A-B loop trên file MP3; đeo tai nghe kiểm tra tiếng chuyển đoạn có mượt mà, không bị tiếng bụp.
-- [ ] **Bước 17:** Mở thử một file văn bản `.txt` hoặc file hỏng; kiểm tra thông báo lỗi hiển thị an toàn, app không crash.
-- [ ] **Bước 18:** Đóng ứng dụng và mở lại; kiểm tra ứng dụng khởi động lại sạch sẽ và ổn định.
+- [ ] **Bước 15:** Nhấn phím `↑` / `↓` hoặc cuộn chuột trên video; xác nhận huy hiệu Volume OSD hiện mượt mà.
+- [ ] **Bước 16:** Bật / Tắt Shuffle (`S`) và Loop File (`R`); kiểm tra logic chuyển bài khi hết file.
+- [ ] **Bước 17:** Click chuột phải lên video; xác nhận Context Menu hiển thị đầy đủ tính năng.
+- [ ] **Bước 18:** Thu nhỏ cửa sổ dưới 500px; xác nhận giao diện chuyển sang Mini PiP 3 nút gọn gàng.
+- [ ] **Bước 19:** Nhấn phím `P` ghim cửa sổ; click app khác xác nhận cửa sổ vẫn luôn nổi trên cùng.
+- [ ] **Bước 20:** Mở bài hát MP3 có thẻ ID3 và bìa đĩa; xác nhận Title, Artist và Artwork hiển thị đẹp mắt.
+- [ ] **Bước 21:** Mở thử một file văn bản `.txt` hoặc file hỏng; kiểm tra thông báo lỗi hiển thị an toàn, app không crash.
+- [ ] **Bước 22:** Click nút đỏ `[X]` trên macOS; xác nhận cửa sổ đóng và dấu chấm tròn trên thanh Dock biến mất hoàn toàn.
+

@@ -50,7 +50,9 @@ Hệ thống được thiết kế theo mô hình 3 tầng phân định ranh gi
 │  - Render hình ảnh tối ưu        │  - Trình phát Video / Audio         │
 │  - Duyệt lùi / tới siêu tốc      │  - Seek theo tỉ lệ 0–9 & ±1s, ±5s   │
 │  - Đánh dấu file (Mark / Unmark) │  - Thiết lập vòng lặp A–B Loop      │
-│  - Copy file references ra OS    │  - Adaptive Audio Fade khi lặp đoạn │
+│  - Copy / Cut file references OS │  - Adaptive Audio Fade khi lặp đoạn │
+│  - Xoay / Lật / Phóng to thu nhỏ │  - Volume Control qua GainNode & OSD│
+│  - Context Menu chuột phải       │  - Shuffle & Loop File (All/1/Off)  │
 │                                  │  - Đọc & hiển thị Audio Metadata    │
 ├──────────────────────────────────┴─────────────────────────────────────┤
 │                    Shared Core (Lõi dùng chung)                        │
@@ -58,6 +60,8 @@ Hệ thống được thiết kế theo mô hình 3 tầng phân định ranh gi
 │  - Thuật toán sắp xếp tên file tự nhiên (Natural Sorting)              │
 │  - Trạng thái đánh dấu phiên làm việc (Session Mark State: Set<Path>)  │
 │  - Hệ thống xử lý phím tắt thống nhất (Keyboard Dispatcher)            │
+│  - Chế độ Ghim trên cùng (Pin on Top) & Responsive Mini PiP Mode       │
+│  - Thoát sạch hoàn toàn khi bấm [X] (Không chạy ngầm trên macOS Dock) │
 │  - Quản lý vòng đời ứng dụng & sự kiện mở file từ OS (Open-with)       │
 ├────────────────────────────────────────────────────────────────────────┤
 │                 Platform Adapters (Ranh giới Hệ điều hành)             │
