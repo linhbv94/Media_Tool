@@ -30,7 +30,7 @@ Giao diện xem ảnh tối giản, hiện đại và tập trung tối đa vào
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ [●][▲][▼] media_tool                                  [📌 Ghim] [📑 DS]│ ◄─ Window Bar (Chuẩn cả 3 phân hệ)
+│ [●][▲][▼] media_tool                   [📌 Ghim] [👁️ Ẩn HUD] [📑 DS]│ ◄─ Window Bar (Chuẩn cả 3 phân hệ)
 │                                                                        │
 │                                                                        │
 │                             [ BỨC ẢNH ]                                │
@@ -293,3 +293,123 @@ Nhằm đảm bảo giao diện luôn **đẹp mắt, không méo hình, không 
   margin: auto;
 }
 ```
+
+---
+
+## 10. Đặc tả Chi tiết: Khổ Dọc Hẹp, Cơ chế HUD Floating & Responsive Mini PiP Mode
+
+Phần này quy định chi tiết 4 trường hợp đặc thù về hành vi hiển thị và layout nhằm đảm bảo trải nghiệm người dùng luôn mượt mà, không giật lag và không bị vỡ giao diện ở mọi kích thước cửa sổ.
+
+### 10.1. Case Media Khổ Dọc có Chiều Rộng Bé Hơn Cụm Tính Năng
+
+**Vấn đề:** Khi mở ảnh/video dọc (ví dụ tỉ lệ 9:16 như Reels/TikTok hoặc ảnh chân dung), chiều rộng thực tế của video có thể chỉ đạt 320px - 420px, trong khi cụm Control Bar / Action Bar đầy đủ cần tối thiểu 620px - 700px để hiển thị các nút bấm.
+
+**Quy chuẩn thiết kế:**
+1. **Neo vào Cửa sổ (Window-docked), KHÔNG neo vào Media Element:**
+   - Cụm Control Bar / Action Bar được định vị neo theo **Cửa sổ ứng dụng (Application Window)** chứ KHÔNG bám theo kích thước của thẻ `<video>` hay `<img>`.
+   - Cửa sổ ứng dụng luôn có kích thước tối thiểu an toàn (`min-width: 520px; min-height: 380px`).
+2. **Căn giữa và Dải đệm hai bên (Pillarbox):**
+   - Video/Ảnh khổ dọc đứng gọn gàng ở chính giữa màn hình.
+   - Hai khoảng trống hai bên hiển thị nền tối trầm `#0f1117`.
+   - Thanh Control Bar dạng kính mờ (Glassmorphism) nằm nổi ngang ở đáy cửa sổ, căn giữa theo chiều rộng cửa sổ (`max-width: 760px; width: calc(100% - 32px)`). Nhờ đó, các nút bấm không bao giờ bị bóp méo, co rúm hay tràn viền bất kể video dọc có hẹp đến đâu.
+
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│ [●][▲][▼] media_tool                   [📌 Ghim] [👁️ Ẩn HUD] [📑 DS]│
+│                                                                        │
+│   Khoảng đệm        ┌──────────────────────┐        Khoảng đệm         │
+│   nền tối đen       │                      │        nền tối đen        │
+│   (Pillarbox)       │      VIDEO DỌC       │        (Pillarbox)        │
+│                     │       (9 : 16)       │                           │
+│                     │                      │                           │
+│                     │                      │                           │
+│  ┌──────────────────┴──────────────────────┴────────────────────────┐  │
+│  │ 00:15 ──────●────────────────────────────── 00:58                │  │ ◄─ Control Bar nổi đè nhẹ
+│  │ [⏪] [◀] [▶/⏸] [▶] [⏩] │ [🔀] [🔁 File] │ [Set A] [Set B] [🔁 AB] │  │    ngang đáy cửa sổ,
+│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu]  │  [📦 Copy]  [✂️ Cut]  │ [⛶]│  │    không bị bó hẹp theo video
+│  └──────────────────────────────────────────────────────────────────┘  │
+│  🏷️ tiktok_dance_trend.mp4                                   [ 5 / 120 ]│
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 10.2. Định nghĩa Toàn diện về Ẩn / Hiện HUD (Áp dụng Đồng nhất cho Cả Viewer & Player)
+
+**Vấn đề:** Nhiều ứng dụng chỉ ẩn thanh timeline mà quên mất thanh điều hướng hoặc thanh trạng thái, gây mất tập trung. Cần định nghĩa rạch ròi các thành phần cấu thành HUD.
+
+**Quy chuẩn Thành phần thuộc HUD:**
+HUD (Heads-Up Display) là **toàn bộ lớp giao diện điều khiển phủ lên trên nội dung media**. Khi thực hiện thao tác **Ẩn HUD** (nhấn phím tắt `H`, click nút `[👁️ Ẩn HUD]` trên Window Bar, hoặc tự động ẩn sau 2 giây người dùng không di chuột), **toàn bộ các thành phần sau sẽ mờ dần (Fade Out 250ms) và biến mất 100%**:
+1. **Window Bar:** Thanh tiêu đề phía trên cùng (bao gồm cả nút Ghim, Danh sách, Ẩn HUD).
+2. **Control Bar / Action Bar:** 
+   - Với **Player:** Ẩn toàn bộ Timeline, Hàng 1 (Tua, Play, Shuffle, Loop File, Loop AB) và Hàng 2 (Chuyển File, Mark, Copy, Cut, Fullscreen).
+   - Với **Viewer:** Ẩn toàn bộ Bottom Action Bar (Chuyển File, Mark, Copy, Cut, Fullscreen).
+3. **Footer Đáy:** Ẩn dòng thông tin Tên tệp và Bộ đếm số thứ tự `[ 14 / 120 ]`.
+4. **Toast Feedback:** Nếu đang hiển thị cũng tự động mờ ẩn.
+5. **Con trỏ chuột (Mouse Cursor):** Tự động chuyển thành `cursor: none` để không chắn tầm nhìn.
+
+**Kích hoạt Hiện HUD trở lại:**
+- Chỉ cần người dùng **di chuyển chuột** trong phạm vi cửa sổ, hoặc **nhấn phím bất kỳ** (như `Space`, `H`, mũi tên), hoặc click chuột, toàn bộ HUD sẽ lập tức mờ hiện trở lại (`opacity: 1`, transition `150ms ease-out`).
+- Khi chuột dừng di chuyển quá 2 giây, HUD lại tự động mờ ẩn.
+
+---
+
+### 10.3. Cơ chế Nổi Độc lập (Floating Overlay) — Không Đẩy / Không Co Giật Video
+
+**Vấn đề:** Nếu thanh HUD nằm theo luồng tài liệu thông thường (Document Flow) dạng Block/Flex, mỗi khi HUD hiện ra hay ẩn đi sẽ khiến khung video bị co lại hoặc dãn ra đột ngột (Layout Shift), gây hiện tượng giật hình, méo khung hình hoặc chớp nháy rất khó chịu.
+
+**Giải pháp Kỹ thuật: Floating Overlay (Lớp phủ bán trong suốt):**
+1. **Viewport Media chiếm 100% cố định:**
+   - Khung chứa Video/Ảnh luôn chiếm trọn **100% chiều rộng và 100% chiều cao** của cửa sổ (`width: 100%; height: 100%; position: absolute; inset: 0; z-index: 1`).
+   - Kích thước hiển thị của video được tính toán cố định dựa trên kích thước cửa sổ hiện tại, **hoàn toàn độc lập** với trạng thái ẩn hay hiện của HUD.
+2. **HUD là Lớp Nổi Lơ Lửng (z-index: 10):**
+   - Window Bar: `position: absolute; top: 0; left: 0; width: 100%;` với nền dốc mờ đen nhẹ `linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)`.
+   - Control Bar: `position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);` sử dụng phong cách Glassmorphism (`background: rgba(22, 27, 34, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;`).
+   - Footer: `position: absolute; bottom: 8px; left: 0; width: 100%;`.
+3. **Kết luận Trực quan:**
+   - **Khi HUD hiện:** HUD chỉ nhẹ nhàng phủ lên phía trên mép dưới của video dưới dạng kính mờ xuyên thấu, **tuyệt đối KHÔNG đẩy video bé lại**.
+   - **Khi HUD ẩn:** HUD mờ dần biến mất, video đã và đang hiển thị ở kích thước tối ưu nhất từ trước, **không gian không bị kéo giật hay thay đổi kích thước đột ngột**. Trải nghiệm xem liền mạch 100%.
+
+---
+
+### 10.4. Cơ chế Responsive Mini PiP Mode khi Người dùng Thu nhỏ Cửa sổ
+
+**Vấn đề:** Người dùng thường có thói quen thu nhỏ cửa sổ video về một góc màn hình (dạng Picture-in-Picture - kích thước rất bé, ví dụ 320x180 hoặc 400x250) để vừa làm việc khác vừa theo dõi video/nghe nhạc. Nếu để nguyên 2 hàng nút bấm với hơn 10 nút thì giao diện sẽ che kín 90% diện tích video.
+
+**Quy chuẩn Chuyển đổi Tự động (Responsive Breakpoints):**
+Hệ thống sử dụng CSS Container Queries hoặc Window Resize Listener để tự động chuyển sang **Chế độ Mini PiP** khi kích thước cửa sổ rơi vào ngưỡng:
+* **Ngưỡng Breakpoint Mini:** Chiều rộng `width < 500px` HOẶC chiều cao `height < 320px`.
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ [●][▲][▼]                                     [📌 Ghim] │ ◄─ Top Bar tinh giản (Chỉ giữ nút đóng/ghim)
+│                                                         │
+│                                                         │
+│                      [ VIDEO PiP ]                      │
+│                                                         │
+│                                                         │
+│  ┌───────────────────────────────────────────────────┐  │
+│  │ 01:14 ──────────────●─────────────────── 04:32    │  │ ◄─ Micro Timeline thanh mảnh (cao 3px)
+│  │           [◀ Trước]   [ ▶ / ⏸ ]   [Tiếp ▶]         │  │ ◄─ Control Bar rút gọn về 1 hàng duy nhất
+│  └───────────────────────────────────────────────────┘  │    (Chỉ hiện khi Hover chuột)
+└─────────────────────────────────────────────────────────┘
+```
+
+**Chi tiết Thích ứng trong Chế độ Mini PiP:**
+1. **Rút gọn Thanh điều khiển về 3 Nút Cốt lõi Nhất:**
+   - Tạm ẩn toàn bộ các nút nâng cao: Shuffle, Loop AB, Copy Mark, Cut Mark, Fullscreen, Footer tên file.
+   - Chỉ giữ lại duy nhất 3 nút điều khiển cơ bản:
+     * `[◀ Trước]` (hoặc phím tắt `Cmd+←` / `Ctrl+←`): Lùi về file trước.
+     * `[ ▶ / ⏸ ]` (hoặc phím tắt `Space`): Tạm dừng / Tiếp tục phát.
+     * `[Tiếp ▶]` (hoặc phím tắt `Cmd+→` / `Ctrl+→`): Chuyển sang file tiếp theo.
+2. **Timeline Thu gọn (Micro Progress Bar):**
+   - Biến thành một đường mảnh 3px sát phía trên cụm 3 nút hoặc sát đáy cửa sổ, có màu xanh nổi bật để người dùng vẫn nhìn rõ tiến độ mà không che mất video.
+3. **Ưu tiên Tối đa cho Nội dung (Hover-Only Visibility):**
+   - Trong chế độ Mini PiP, thanh điều khiển mặc định **ẨN HOÀN TOÀN** để nhường 100% diện tích cửa sổ cho video.
+   - Chỉ khi con trỏ chuột hover vào trong cửa sổ mini thì cụm 3 nút mới hiện mờ lên.
+   - Thời gian tự động ẩn HUD được rút ngắn xuống **1 giây** (thay vì 2 giây như cửa sổ lớn).
+4. **Giữ lại Nút Ghim Cửa sổ `[📌 Ghim (P)]`:**
+   - Nút ghim trên Window Bar vẫn được ưu tiên giữ lại để người dùng có thể kích hoạt nhanh tính năng Ghim luôn nổi trên các ứng dụng khác (Always-on-Top), biến cửa sổ thành PiP thực thụ của hệ điều hành.
+5. **Phím tắt Toàn năng Vẫn Hoạt động 100%:**
+   - Dù các nút Copy, Cut, Mark, Loop AB bị ẩn trên UI Mini PiP, người dùng vẫn có thể bấm phím tắt (`M` để đánh dấu, `Cmd+C` / `Ctrl+C` để copy, `[` / `]` để set A-B) hoàn toàn bình thường mà không gặp bất kỳ trở ngại nào.
+
