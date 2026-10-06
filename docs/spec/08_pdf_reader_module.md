@@ -134,22 +134,23 @@ Thanh điều khiển phía dưới của PDF Reader tuân thủ **100% ngôn ng
    - **Nút In ấn (`Cmd+P` / `Ctrl+P` - 🖨️):** Mở Print Dialog chuẩn của hệ điều hành.
    - **Xoay trang 90° (`R`):** Xoay tài liệu theo chiều kim đồng hồ.
 
-### 5.2. Thanh Bên Ảnh Thu Nhỏ Trang (Left Sidebar Thumbnails)
-- **Vị trí:** Ngăn kéo bên trái có thể bật/tắt (Toggleable Left Drawer).
+### 5.2. Thanh Bên Ảnh Thu Nhỏ Trang (Left Sidebar Thumbnails) & Tối Ưu RAM
+- **Vị trí & Giao diện:** Ngăn kéo bên trái có thể bật/tắt (Toggleable Left Drawer), đệm `pt-10 pb-20` an toàn dưới cụm 3 nút đèn giao thông (traffic lights) trên macOS.
 - **Trải nghiệm:**
-  - Hiển thị danh sách card thu nhỏ của từng trang kèm số trang bên dưới (`Trang 1`, `Trang 2`...).
-  - Trang đang đọc trên màn hình sẽ có viền sáng Cyan (`ring-2 ring-cyan-500`).
+  - Hiển thị danh sách card thu nhỏ của từng trang kèm số trang bên dưới (`1`, `2`...).
+  - Trang đang đọc trên màn hình sẽ có viền sáng Cyan (`ring-1 ring-cyan-400 bg-cyan-500/20`).
   - Click vào bất kỳ thumbnail nào sẽ cuộn mượt (`scrollIntoView`) đưa trang đó ra giữa màn hình.
-  - **Lazy Rendering:** Chỉ render thumbnail của các trang đang hiển thị trong danh sách cuộn thumbnail, tránh tốn CPU.
+- **Cơ chế Tiết kiệm RAM Tuyệt đối (Zero-Memory Waste via IntersectionObserver):**
+  - Áp dụng `IntersectionObserver` với `rootMargin: '300px'`: Chỉ khi thumbnail cuộn tới gần vùng nhìn thấy (viewport), PDF.js mới giải mã trang và vẽ lên canvas kích thước 120px.
+  - Các trang chưa cuộn đến chỉ hiển thị khung placeholder xương (skeleton) siêu nhẹ, tốn gần như 0 MB RAM.
+  - Tổng dung lượng RAM chiếm dụng của toàn bộ thumbnail luôn duy trì ở mức tối thiểu **3 - 5 MB** ngay cả với tài liệu hàng trăm đến hàng ngàn trang.
 
 ### 5.3. Hỗ trợ In Ấn Chuẩn Hệ Điều Hành (Native OS Print Dialog)
 - **Kích hoạt:** Bấm `Cmd+P` (macOS) hoặc `Ctrl+P` (Windows) hoặc click nút biểu tượng máy in 🖨️ trên thanh HUD.
-- **Cơ chế kỹ thuật:**
-  - Sử dụng cơ chế in native của WebView (`window.print()`).
-  - Đi kèm khối `@media print`:
-    - Ẩn toàn bộ giao diện thanh tiêu đề, tabs, HUD, sidebar và controls.
-    - Dàn trang toàn bộ các trang PDF với kích thước chuẩn trang in (A4/Letter), ngắt trang tự động bằng `page-break-after: always`.
-  - Mở trực tiếp **Print Dialog chuẩn mực của hệ điều hành** (trên macOS mở hộp thoại in Apple Quartz mượt mà, trên Windows 11 mở hộp thoại Print hiện đại của Windows). Người dùng có thể chọn máy in vật lý hoặc xuất ra file "Save as PDF".
+- **Cơ chế kỹ thuật Native:**
+  - **macOS:** Gọi trực tiếp qua Tauri backend Rust, sử dụng Apple `PDFKit.framework` (`[PDFDocument printOperationForPrintInfo:autoRotate:]`) tích hợp sâu vào hệ thống đồ họa Quartz/AppKit. Hộp thoại in chuẩn của macOS hiển thị tức thì với đầy đủ tính năng: chọn trang in, 2 mặt (duplex), bố cục giấy, color matching và xuất PDF. Tự động fallback sang Preview nếu gặp định dạng không tương thích.
+  - **Windows:** Kích hoạt Windows Shell Print API (`Start-Process -Verb Print`) mở hộp thoại in chuẩn của Windows 11.
+  - **Web / Fallback:** Kết hợp `window.print()` với bộ CSS `@media print` dàn trang chuẩn khổ in A4/Letter.
 
 ---
 

@@ -176,10 +176,35 @@ const PdfThumbnailItem: React.FC<PdfThumbnailItemProps> = ({
   isCurrent,
   onClick,
 }) => {
+  const containerRef = useRef<HTMLButtonElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isInView, setIsInView] = useState(false);
   const [rendered, setRendered] = useState(false);
 
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+            observer.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: '300px' }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isInView) return;
+
     let cancelled = false;
     let renderTask: any = null;
 
@@ -223,10 +248,11 @@ const PdfThumbnailItem: React.FC<PdfThumbnailItemProps> = ({
       cancelled = true;
       if (renderTask) renderTask.cancel();
     };
-  }, [pdfDoc, pageNum]);
+  }, [isInView, pdfDoc, pageNum]);
 
   return (
     <button
+      ref={containerRef}
       onClick={onClick}
       className={`w-full text-center p-1.5 rounded-lg transition-all group flex flex-col items-center border ${
         isCurrent

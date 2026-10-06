@@ -87,15 +87,22 @@ pub fn print_file(window: tauri::Window, file_path: String) -> Result<(), String
             };
             let shared_print_info: id = msg_send![ns_print_info_cls, sharedPrintInfo];
 
-            let print_op: id = msg_send![pdf_doc, printOperationWithPrintInfo: shared_print_info autoRotate: YES];
-            if print_op == nil {
-                return Err("Failed to create print operation".into());
+            let sel_print = sel!(printOperationForPrintInfo:autoRotate:);
+            let responds: BOOL = msg_send![pdf_doc, respondsToSelector: sel_print];
+            if responds == YES {
+                let print_op: id = msg_send![pdf_doc, printOperationForPrintInfo: shared_print_info autoRotate: YES];
+                if print_op != nil {
+                    let _: () = msg_send![print_op, setShowsPrintPanel: YES];
+                    let _: () = msg_send![print_op, setShowsProgressPanel: YES];
+                    let _: BOOL = msg_send![print_op, runOperation];
+                    return Ok(());
+                }
             }
 
-            let _: () = msg_send![print_op, setShowsPrintPanel: YES];
-            let _: () = msg_send![print_op, setShowsProgressPanel: YES];
-
-            let _: BOOL = msg_send![print_op, runOperation];
+            // Fallback: open in macOS Preview
+            let _ = std::process::Command::new("open")
+                .args(&["-a", "Preview", &file_path])
+                .spawn();
         }
         Ok(())
     }
