@@ -185,3 +185,10 @@ pub fn get_directory_media(file_path: String) -> Result<MediaListResponse, Strin
         items,
     })
 }
+
+#[tauri::command]
+pub fn read_file_binary(file_path: String) -> Result<tauri::ipc::Response, String> {
+    std::fs::read(&file_path)
+        .map(tauri::ipc::Response::new)
+        .map_err(|e| format!("Failed to read file: {}", e))
+}

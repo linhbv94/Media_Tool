@@ -270,5 +270,27 @@ export async function createMediaWindow(label: string, title: string): Promise<b
   return false;
 }
 
+/**
+ * Read a local file directly as raw ArrayBuffer (zero-CORS, high performance)
+ */
+export async function readFileBinary(filePath: string): Promise<ArrayBuffer> {
+  if (
+    isTauriEnvironment() &&
+    !filePath.startsWith('blob:') &&
+    !filePath.startsWith('http:') &&
+    !filePath.startsWith('https:') &&
+    !filePath.startsWith('data:')
+  ) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const res = await invoke<ArrayBuffer | Uint8Array | number[]>('read_file_binary', { filePath });
+    if (res instanceof ArrayBuffer) return res;
+    if (res instanceof Uint8Array) return res.buffer as ArrayBuffer;
+    if (Array.isArray(res)) return new Uint8Array(res).buffer as ArrayBuffer;
+    return res as ArrayBuffer;
+  }
+  const res = await fetch(filePath);
+  return await res.arrayBuffer();
+}
+
 
 

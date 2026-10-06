@@ -118,7 +118,8 @@ pub fn run() {
             commands::dialog::open_folder_dialog,
             commands::dialog::get_initial_media_file,
             commands::dialog::log_frontend,
-            commands::window::create_media_window
+            commands::window::create_media_window,
+            commands::fs_scan::read_file_binary
         ])
         .build(tauri::generate_context!())
         .expect("error while building media_tool");

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
-import { convertFileSrc } from '@tauri-apps/api/core';
 import { MediaItem, AppLanguage } from '../types';
 import { t } from '../services/i18n';
+import { readFileBinary } from '../services/tauri';
 import {
   ChevronLeft,
   ChevronRight,
@@ -190,22 +190,27 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   // Load PDF file when path changes
   useEffect(() => {
     let isCancelled = false;
+    let currentLoadingTask: pdfjsLib.PDFDocumentLoadingTask | null = null;
+
     setLoading(true);
     setError(null);
     setCurrentPage(1);
     setPageInput('1');
 
-    const fileUrl = convertFileSrc(item.path);
+    readFileBinary(item.path)
+      .then((arrayBuffer) => {
+        if (isCancelled) return;
+        const loadingTask = pdfjsLib.getDocument({
+          data: new Uint8Array(arrayBuffer),
+          cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/cmaps/',
+          cMapPacked: true,
+        });
+        currentLoadingTask = loadingTask;
 
-    const loadingTask = pdfjsLib.getDocument({
-      url: fileUrl,
-      cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/cmaps/',
-      cMapPacked: true,
-    });
-
-    loadingTask.promise
+        return loadingTask.promise;
+      })
       .then((doc) => {
-        if (!isCancelled) {
+        if (!isCancelled && doc) {
           setPdfDoc(doc);
           setTotalPages(doc.numPages);
           setLoading(false);
@@ -221,7 +226,9 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
     return () => {
       isCancelled = true;
-      loadingTask.destroy().catch(console.warn);
+      if (currentLoadingTask) {
+        currentLoadingTask.destroy().catch(console.warn);
+      }
     };
   }, [item.path, i18n.pdf_error]);
 
