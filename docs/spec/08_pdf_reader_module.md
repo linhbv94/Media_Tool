@@ -247,6 +247,7 @@ Bổ sung khai báo file association để macOS (Finder) và Windows (File Expl
 
 ### 📌 Danh mục Backlog (Chuyển sang tương lai khi có nhu cầu cao):
 * **Tìm kiếm văn bản trong PDF (Search Text / PDFFindController):** Lưu vào Backlog, sẽ thực hiện khi người dùng có nhu cầu tra cứu chuyên sâu.
+* **Tối ưu Hộp thoại In In-App (Native Print Dialog Modal for macOS):** Tinh chỉnh `NSPrintOperation` gắn sheet trực tiếp vào cửa sổ App (In-App Print Dialog) thay vì chuyển tiếp an toàn qua Preview.
 * **Chỉnh sửa nội dung PDF, thêm chú thích (Annotation), highlight bút vẽ, chữ ký số.**
 * **Điền biểu mẫu PDF Form tương tác (Interactive Form Filling).**
 * **Chuyển đổi định dạng PDF sang Word/Excel.**
