@@ -27,6 +27,8 @@ Toàn bộ tài liệu đặc tả chuẩn hóa phục vụ việc triển khai 
    **Kịch bản Trình diễn Nghiệm thu (DoD Playbook):** Hướng dẫn thiết lập bộ file mẫu `fixtures/` và kịch bản demo 3 hồi tuần tự chứng minh đáp ứng 100% Definition of Done trước khi bàn giao.
 8. 📑 [07_folder_tabs_multi_window.md](docs/spec/07_folder_tabs_multi_window.md) (`_spec7_folder_tabs_multi_window`):  
    **Quản lý Tab Thư mục & Đa Cửa sổ (v1.1.0):** Mô hình App → Windows → Tabs → Folder Sessions, phát âm thanh ngầm toàn cục (Global Playback), tái sử dụng tab cùng thư mục, di chuyển session sang cửa sổ mới (Move to New Window) phục vụ so sánh media side-by-side, và danh mục Backlog Detachable Tabs.
+9. 📖 [08_pdf_reader_module.md](docs/spec/08_pdf_reader_module.md) (`_spec8_pdf_reader_module`):  
+   **Module Đọc PDF - Media Type thứ tư (v1.2.0):** Đặc tả tích hợp PDF thành định dạng thứ 4 bên cạnh Image, Video, Audio. Kiến trúc render Mozilla `pdfjs-dist` Retina Canvas, cơ chế phát nhạc ngầm khi đọc sách, HUD điều hướng trang, zoom mượt, Dark Mode Invert và tiêu chuẩn nghiệm thu QA.
 
 ---
 
