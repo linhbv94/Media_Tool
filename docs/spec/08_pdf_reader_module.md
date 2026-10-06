@@ -25,7 +25,7 @@ VXMedia Core Architecture
  ├── 1. Image Viewer   (Zoom, Pan, Rotate, Spacebar Mark)
  ├── 2. Video Player   (Timeline, Volume, Seek, Auto-hide HUD)
  ├── 3. Audio Player   (A–B Loop, ID3 Metadata, Global Background Engine)
- └── 4. PDF Reader     (Cuộn dọc liên tục, Retina Zoom, Thumbnails, Text Search, Native Print)
+ └── 4. PDF Reader     (Cuộn dọc liên tục, Retina Zoom, Thumbnails, Native OS Print)
 ```
 
 ---
@@ -45,7 +45,6 @@ Module PDF kế thừa 100% kiến trúc 4 tầng: `App → Windows → Tabs →
           ├── Sidebar: file1.pdf, file2.pdf, diagram.png
           └── Viewport: <PdfViewer /> hiển thị tài liệu
                 ├── Left Thumbnail Drawer (Thanh ảnh thu nhỏ)
-                ├── Text Search Bar (Cmd+F)
                 └── MiniAudioPill (Bật / Pause / Next nhạc góc dưới)
 ```
 
@@ -85,9 +84,6 @@ export interface PdfSessionState {
   rotation: number;                     // Xoay trang: 0 | 90 | 180 | 270 độ
   invertColor: boolean;                 // Đảo màu thông minh (Dark Mode cho PDF trắng)
   isThumbnailOpen: boolean;             // Bật/tắt thanh thumbnail bên trái
-  searchQuery: string;                  // Từ khóa tìm kiếm hiện tại
-  searchMatchIndex: number;             // Vị trí kết quả tìm kiếm đang focus
-  searchTotalMatches: number;           // Tổng số kết quả tìm thấy
   scrollTop: number;                    // Vị trí cuộn pixel
 }
 ```
@@ -101,7 +97,7 @@ export interface PdfSessionState {
 - **Cơ chế hoạt động:**
   1. Frontend đọc file PDF qua giao thức `asset://` cục bộ hoặc fetch array buffer từ Tauri backend.
   2. `pdfjs-dist` phân tích cấu trúc PDF và dựng từng trang ra phần tử `<canvas>` bằng Web Worker nền (`pdf.worker.min.mjs`), hoàn toàn không làm đơ luồng giao diện chính.
-  3. Dựng kèm một lớp văn bản trong suốt (`textLayer`) đặt khớp tuyệt đối phía trên Canvas để cho phép người dùng bôi đen, sao chép văn bản (`Cmd+C` / `Ctrl+C`) và đánh dấu highlight kết quả tìm kiếm.
+  3. Dựng kèm một lớp văn bản trong suốt (`textLayer`) đặt khớp tuyệt đối phía trên Canvas để cho phép người dùng bôi đen, sao chép văn bản (`Cmd+C` / `Ctrl+C`).
 
 ### 4.2. Render Trang Ảo & Cuộn Dọc Liên Tục (Continuous Virtual Scrolling)
 - **Cuộn dọc liên tục (Continuous Scroll):** Các trang được bố trí nối tiếp nhau theo chiều dọc trong container có `overflow-y-auto`, tạo trải nghiệm lướt đọc mượt mà như xem web.
@@ -110,34 +106,33 @@ export interface PdfSessionState {
 
 ---
 
-## 5. Thiết kế Giao diện (UI Wireframe) & HUD Điều khiển
+## 5. Thiết kế Giao diện (UI Wireframe) & Chuẩn hóa Thanh Điều khiển
 
-### 5.1. Bố cục Tổng thể Khung nhìn PDF (`PdfViewer`)
+### 5.1. Quy chuẩn Nhất quán Thanh Điều khiển Dưới (Shared Control Bar Visual Contract)
+Thanh điều khiển phía dưới của PDF Reader tuân thủ **100% ngôn ngữ thiết kế thị giác (Visual Language)** của Viewer ảnh và Video Player:
+- Cùng container kính mờ: `glass-panel rounded-2xl p-2.5 shadow-2xl max-w-4xl w-full`
+- Tự động ẩn hiện đồng bộ với trạng thái HUD chung (`H`).
 
 ```text
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ [TitleBar / Tabs]  Tab 1: Nhạc (Playing) │ Tab 2: Tai_Lieu.pdf          [H][B]│
-├──────┬───────────────────────────────────────────────────────────────┬───────┤
-│ THUMB│                                              ┌──────────────┐ │ (Tùy  │
-│ [X]  │                                              │ Search [1/8] │ │ chọn  │
-│      │                   ┌───────────────────────┐  │ [◄] [►] [X]  │ │ Side- │
-│ [ 1] │                   │                       │  └──────────────┘ │ bar   │
-│ ┌──┐ │                   │       TRANG 1         │                   │ Danh  │
-│ └──┘ │                   │   Nội dung tài liệu   │                   │ sách  │
-│      │                   │                       │                   │ File) │
-│ [ 2] │                   └───────────────────────┘                   │       │
-│ ┌──┐ │                   ┌───────────────────────┐                   │       │
-│ └──┘ │                   │       TRANG 2         │                   │       │
-│      │                   └───────────────────────┘                   │       │
-├──────┴───────────────────────────────────────────────────────────────┴───────┤
-│   ┌──────────────────────────────────────────────────────────────────────┐   │
-│   │ [Thmb] [◄ 1/48 ►] │ [-] 100% [+] │ [Vừa Ngang] │ [In 🖨️] │ [Xoay]   │   │
-│   └──────────────────────────────────────────────────────────────────────┘   │
-│                                           ┌──────────────────────────────┐   │
-│                                           │ 🎵 Bài hát... [⏯] [⏭] [Tab] │   │
-│                                           └──────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [◄ Trước] [Tiếp ►] [Thmb] │ 🏷️ Tai_Lieu.pdf [Trang 1 / 48] │ [-] 100% [+] [W] [I] [🖨️ In] [↻]  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+#### Bố cục 3 Cụm Chuẩn mực:
+1. **Cụm Bên Trái (Left Group - Vị trí cố định như Viewer/Player):**
+   - **Nút Prev File (`ChevronLeft`) & Next File (`ChevronRight`):** Giữ nguyên đúng vị trí góc trái như Viewer/Player, dùng để chuyển sang tệp trước / tệp kế tiếp trong thư mục hiện tại.
+   - **Nút Bật/Tắt Thumbnails (`PanelLeft`):** Ngay cạnh nút chuyển file, cho phép đóng/mở nhanh ngăn kéo ảnh thu nhỏ bên trái.
+2. **Cụm Ở Giữa (Center Group - Thông tin Tệp & Trang):**
+   - Tên tệp tin hiển thị font mono kèm icon: `🏷️ filename.pdf`
+   - Bộ điều hướng trang: `Trang [ 1 ] / 48` (người dùng có thể gõ số trang trực tiếp và nhấn Enter để nhảy tới trang).
+3. **Cụm Bên Phải (Right Group - Công cụ Đọc & In ấn):**
+   - **Đặc thù PDF:** Loại bỏ nút Đánh dấu (`Mark`) và nút Toàn màn hình (`Fullscreen`) để nhường chỗ cho các thao tác đọc tài liệu.
+   - **Bộ Zoom:** Nút `[-]`, ô tỷ lệ `100%`, nút `[+]`.
+   - **Vừa chiều ngang (`W` - Fit Width):** Canh lề vừa khít màn hình.
+   - **Chế độ Ban đêm (`I` - Invert):** Đảo màu nền giấy trắng thành đen chống mỏi mắt.
+   - **Nút In ấn (`Cmd+P` / `Ctrl+P` - 🖨️):** Mở Print Dialog chuẩn của hệ điều hành.
+   - **Xoay trang 90° (`R`):** Xoay tài liệu theo chiều kim đồng hồ.
 
 ### 5.2. Thanh Bên Ảnh Thu Nhỏ Trang (Left Sidebar Thumbnails)
 - **Vị trí:** Ngăn kéo bên trái có thể bật/tắt (Toggleable Left Drawer).
@@ -147,17 +142,7 @@ export interface PdfSessionState {
   - Click vào bất kỳ thumbnail nào sẽ cuộn mượt (`scrollIntoView`) đưa trang đó ra giữa màn hình.
   - **Lazy Rendering:** Chỉ render thumbnail của các trang đang hiển thị trong danh sách cuộn thumbnail, tránh tốn CPU.
 
-### 5.3. Hộp Thoại Tìm Kiếm Văn Bản Nổi (Floating Search Bar)
-- **Kích hoạt:** Bấm `Cmd+F` (macOS) hoặc `Ctrl+F` (Windows).
-- **Giao diện:** Hộp thoại kính mờ nhỏ gọn xuất hiện ở góc trên bên phải của tài liệu.
-- **Chức năng:**
-  - Ô nhập từ khóa (Search Input) với cơ chế debounce 200ms.
-  - Badge đếm kết quả: `[ 3 / 18 ]` (kết quả hiện tại / tổng số kết quả).
-  - Nút chuyển `◄` (Prev match) và `►` (Next match).
-  - Tự động cuộn đến trang chứa từ khóa và bôi màu vàng nổi bật (`highlight-match`).
-  - Phím `Enter` nhảy đến kết quả tiếp theo, `Shift+Enter` nhảy về kết quả trước, `Esc` đóng thanh tìm kiếm.
-
-### 5.4. Hỗ trợ In Ấn Chuẩn Hệ Điều Hành (Native OS Print Dialog)
+### 5.3. Hỗ trợ In Ấn Chuẩn Hệ Điều Hành (Native OS Print Dialog)
 - **Kích hoạt:** Bấm `Cmd+P` (macOS) hoặc `Ctrl+P` (Windows) hoặc click nút biểu tượng máy in 🖨️ trên thanh HUD.
 - **Cơ chế kỹ thuật:**
   - Sử dụng cơ chế in native của WebView (`window.print()`).
@@ -174,11 +159,12 @@ Tương thích chuẩn mực trên cả macOS và Windows 11:
 
 | Tác vụ | Phím tắt macOS | Phím tắt Windows 11 | Ghi chú |
 | :--- | :--- | :--- | :--- |
-| **Tìm kiếm văn bản** | `Cmd + F` | `Ctrl + F` | Mở hộp thoại Search |
 | **In tài liệu (Print)** | `Cmd + P` | `Ctrl + P` | Mở Print Dialog chuẩn OS |
 | **Bật/Tắt Thumbnails** | `T` hoặc `Cmd + Alt + 1` | `T` hoặc `Ctrl + Alt + 1` | Hiện/ẩn thanh ảnh thu nhỏ bên trái |
-| **Trang kế tiếp** | `PageDown` / `J` / `Mũi tên xuống` | `PageDown` / `J` / `Down Arrow` | Cuộn đến trang sau |
-| **Trang trước** | `PageUp` / `K` / `Mũi tên lên` | `PageUp` / `K` / `Up Arrow` | Cuộn về trang trước |
+| **Tệp tiếp theo trong folder** | `Mũi tên phải` | `Right Arrow` | Chuyển file kế tiếp trong thư mục |
+| **Tệp trước trong folder** | `Mũi tên trái` | `Left Arrow` | Chuyển file trước trong thư mục |
+| **Trang kế tiếp trong PDF** | `PageDown` / `J` / `Mũi tên xuống` | `PageDown` / `J` / `Down Arrow` | Cuộn đến trang sau của tài liệu |
+| **Trang trước trong PDF** | `PageUp` / `K` / `Mũi tên lên` | `PageUp` / `K` / `Up Arrow` | Cuộn về trang trước của tài liệu |
 | **Đầu tài liệu** | `Home` / `Cmd + Mũi tên lên` | `Home` / `Ctrl + Home` | Nhảy về trang 1 |
 | **Cuối tài liệu** | `End` / `Cmd + Mũi tên xuống` | `End` / `Ctrl + End` | Nhảy đến trang cuối |
 | **Phóng to (Zoom In)** | `Cmd + =` hoặc `+` | `Ctrl + =` hoặc `+` | Tăng 15% |
@@ -190,32 +176,13 @@ Tương thích chuẩn mực trên cả macOS và Windows 11:
 | **Bật/Tắt Dark Mode** | `I` | `I` | Invert màu giấy đọc đêm |
 | **Ẩn / Hiện HUD** | `H` | `H` | Toàn quyền tập trung đọc |
 | **Ghim Cửa sổ On-Top** | `P` | `P` | Vừa đọc tài liệu vừa code |
-| **Danh sách Tệp (Sidebar)** | `B` / `L` | `B` / `L` | Xem các file khác trong thư mục |
+| **Danh sách Tệp (Sidebar)** | `B` / `L` | `B` / `L` | Xem danh sách file trong thư mục |
 
 ---
 
-## 7. Phân tích Độ Phức tạp & Đánh giá Effort (Feature Effort Matrix)
+## 7. Hợp đồng Backend & Hệ Điều hành (Backend & OS Integration)
 
-Phân tích chuyên sâu trả lời câu hỏi: **"Trong các tính năng yêu cầu, có cái nào effort cao không?"**
-
-| Tính năng | Mức độ Effort | Đánh giá Kỹ thuật & Rủi ro | Giải pháp Khả thi Tối ưu |
-| :--- | :---: | :--- | :--- |
-| **1. Mở PDF từ Finder / Open** | 🟢 **Rất Thấp** (0.5 ngày) | Hạ tầng `fileAssociations`, `RunEvent::Opened` và lệnh mở thư mục trong Tauri đã hoàn thiện 100%. | Chỉ cần thêm đuôi `.pdf` vào bộ lọc và gọi mở tab tương ứng. |
-| **2. Render trang Retina sắc nét** | 🟢 **Thấp** (0.5 ngày) | `pdfjs-dist` hỗ trợ sẵn tham số `viewport.scale = scale * window.devicePixelRatio`. | Cực kỳ sắc nét, chạy mượt trên cả Mac Retina và màn hình 4K. |
-| **3. Scroll dọc liên tục** | 🟢 **Thấp** (0.5 - 1 ngày) | Dùng container `overflow-y-auto` xếp các thẻ `<canvas>` theo chiều dọc. | Áp dụng `IntersectionObserver` để theo dõi trang đang xem. |
-| **4. Zoom +/-, Fit Width, Fit Page** | 🟡 **Thấp - Vừa** (0.5 ngày) | Tính toán tỷ lệ `viewport.width / container.width`. | Hoàn toàn tương tự cơ chế Zoom/Fit đã làm bên module Viewer ảnh. |
-| **5. Page Number & Jump to Page** | 🟢 **Thấp** (0.5 ngày) | Nhập số trang → gọi `document.getElementById('page-N').scrollIntoView()`. | Rất đơn giản, không có rủi ro kỹ thuật. |
-| **6. Hỗ trợ In dùng Print Dialog OS** | 🟡 **Vừa** (1 ngày) | Gọi `window.print()` mở hộp thoại native của OS. Thách thức: cần style `@media print` dàn trang sạch sẽ. | Ẩn toàn bộ HUD/Tabs bằng CSS print, in trực tiếp nội dung canvas. |
-| **7. Left Sidebar Thumbnails (Bật/tắt)** | 🟡 **Vừa** (1.5 ngày) | Cần render canvas kích thước nhỏ (`scale: 0.2`). Nếu tài liệu 500 trang mà vẽ hết cùng lúc sẽ ngốn CPU. | **Giải pháp:** Lazy render thumbnails (chỉ render các ô đang cuộn tới trong drawer bên trái). |
-| **8. Search Text (Tìm kiếm Văn bản)** | 🔴 **Cao nhất trong danh sách** (2 - 3 ngày) | `pdfjs-dist` hỗ trợ trích xuất text qua `getTextContent()`, nhưng việc highlight chuỗi nằm rải rác giữa nhiều dòng, căn tọa độ text layer và quản lý chỉ mục kết quả (`[3/18]`) đòi hỏi logic phức tạp nhất. | **Giải pháp V1:** Tận dụng thư viện con `PDFFindController` đi kèm `pdfjs-dist` để không phải tự viết thuật toán tìm kiếm từ đầu. |
-
-> **Kết luận về Effort:** Hầu hết 7 tính năng đầu đều ở mức **Thấp đến Vừa**. Duy nhất tính năng **Search Text** là có độ phức tạp cao hơn cả do liên quan đến phân tách chuỗi đa dòng và căn chỉnh DOM textLayer. Tuy nhiên, việc tận dụng bộ `PDFFindController` của Mozilla giúp giảm thời gian triển khai xuống mức hoàn toàn kiểm soát được.
-
----
-
-## 8. Hợp đồng Backend & Hệ Điều hành (Backend & OS Integration)
-
-### 8.1. Cập nhật Bộ quét Tệp Rust (`src-tauri/src/commands/fs_scan.rs`)
+### 7.1. Cập nhật Bộ quét Tệp Rust (`src-tauri/src/commands/fs_scan.rs`)
 Thêm phần mở rộng `.pdf` vào danh sách nhận diện media:
 
 ```rust
@@ -234,7 +201,7 @@ pub fn classify_media_type(ext: &str) -> Option<&'static str> {
 }
 ```
 
-### 8.2. Cấu hình Đăng ký Đuôi Tệp Hệ điều hành (`tauri.conf.json`)
+### 7.2. Cấu hình Đăng ký Đuôi Tệp Hệ điều hành (`tauri.conf.json`)
 Bổ sung khai báo file association để macOS (Finder) và Windows (File Explorer) có thể liên kết tính năng "Open With" trực tiếp với VXMedia:
 
 ```json
@@ -248,7 +215,7 @@ Bổ sung khai báo file association để macOS (Finder) và Windows (File Expl
 
 ---
 
-## 9. Tiêu chuẩn Nghiệm thu QA (Acceptance Criteria)
+## 8. Tiêu chuẩn Nghiệm thu QA (Acceptance Criteria)
 
 - **AC-PDF-01 (Mở tệp đơn lẻ):** Mở ứng dụng với tham số đường dẫn file `.pdf`, ứng dụng tự động hiển thị tab đọc PDF và render trang 1 sắc nét.
 - **AC-PDF-02 (Duyệt thư mục hỗn hợp):** Mở một thư mục chứa cả ảnh, video, nhạc và PDF; Sidebar hiển thị đầy đủ icon màu đỏ phân biệt cho các tệp PDF; click vào tệp PDF nào sẽ hoán đổi giao diện sang chế độ đọc PDF của tệp đó.
@@ -259,26 +226,26 @@ Bổ sung khai báo file association để macOS (Finder) và Windows (File Expl
 - **AC-PDF-07 (Chế độ Ban đêm Invert):** Bật chế độ Invert biến nền trắng thành nền tối dễ chịu, chống mỏi mắt.
 - **AC-PDF-08 (Thanh Thumbnails bên trái):** Bấm phím `T` bật/tắt ngăn kéo ảnh thu nhỏ; click vào thumbnail bất kỳ cuộn ngay đến trang tương ứng; trang đang đọc có viền sáng viền Cyan.
 - **AC-PDF-09 (In ấn chuẩn OS):** Bấm `Cmd+P` / `Ctrl+P` mở hộp thoại Print chuẩn của hệ điều hành; trang in sạch sẽ không dính thanh công cụ hay HUD.
-- **AC-PDF-10 (Tìm kiếm Văn bản):** Bấm `Cmd+F` / `Ctrl+F` mở thanh tìm kiếm; gõ từ khóa tự động highlight kết quả và nhảy đến vị trí kết quả đầu tiên; bấm Enter chuyển sang kết quả tiếp theo.
+- **AC-PDF-10 (Thanh Điều khiển Nhất quán & Chuyển File):** Thanh điều khiển khớp hoàn toàn visual với Viewer/Player; vị trí nút Prev/Next file giữ nguyên ở góc trái; không có nút Mark và Fullscreen.
 - **AC-PDF-11 (Giải phóng Bộ nhớ):** Đóng tab PDF hoặc thoát app giải phóng toàn bộ Worker và bộ nhớ đệm Canvas, không rò rỉ RAM (Zero Leak).
 
 ---
 
-## 10. Ranh giới Phạm vi Triển khai (Scope Boundary)
+## 9. Ranh giới Phạm vi Triển khai (Scope Boundary)
 
-### Trong phạm vi V1.2.0 (In-Scope):
+### Trong phạm vi V1.2.0 (In-Scope - Triển khai ngay):
 * Hiển thị tài liệu PDF với hiệu năng cao theo cơ chế cuộn dọc liên tục (Continuous Scroll).
+* Thanh điều khiển đồng bộ visual với Viewer/Player (nút chuyển file giữ nguyên vị trí góc trái, bỏ Mark và Fullscreen).
 * Zoom mượt Retina, Fit Width, Fit Page, xoay trang 90°.
 * Text Selection & Copy to Clipboard.
 * Bộ điều hướng trang, nhảy trang bằng số.
-* Ngăn kéo ảnh thu nhỏ bên trái (Left Sidebar Thumbnails) có thể bật/tắt.
-* Tìm kiếm văn bản nổi (Floating Text Search Bar) với điều hướng Next/Prev.
+* Ngăn kéo ảnh thu nhỏ bên trái (Left Sidebar Thumbnails) có thể bật/tắt (`T`).
 * In ấn tài liệu qua Print Dialog chuẩn của OS (`Cmd+P` / `Ctrl+P`).
 * Tích hợp thanh Sidebar danh sách tệp và thanh MiniAudioPill phát nhạc toàn cục.
 * Hỗ trợ đầy đủ phím tắt trên macOS và Windows 11.
 
-### Ngoài phạm vi V1.2.0 (Out-of-Scope / Để lại tương lai):
-* Chỉnh sửa nội dung PDF, thêm chú thích (Annotation), vẽ bút màu, thêm chữ ký số.
-* Điền biểu mẫu PDF Form tương tác (Interactive Form Filling).
-* Chuyển đổi định dạng PDF sang Word/Excel.
-* Mã hóa hoặc gỡ mật khẩu file PDF bảo vệ bản quyền phức tạp.
+### 📌 Danh mục Backlog (Chuyển sang tương lai khi có nhu cầu cao):
+* **Tìm kiếm văn bản trong PDF (Search Text / PDFFindController):** Lưu vào Backlog, sẽ thực hiện khi người dùng có nhu cầu tra cứu chuyên sâu.
+* **Chỉnh sửa nội dung PDF, thêm chú thích (Annotation), highlight bút vẽ, chữ ký số.**
+* **Điền biểu mẫu PDF Form tương tác (Interactive Form Filling).**
+* **Chuyển đổi định dạng PDF sang Word/Excel.**
