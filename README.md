@@ -3,7 +3,7 @@
 Ứng dụng desktop cá nhân siêu nhẹ, đa nền tảng (Windows 11+ & macOS Apple Silicon), phục vụ duyệt và chọn lọc ảnh tốc độ cao, đồng thời phát video và âm thanh với khả năng kiểm soát phím tắt chuẩn xác và tính năng lặp đoạn A–B Loop kèm hạ/tăng âm thích ứng (Adaptive Audio Fade).
 
 > **Tôn chỉ:** *One App, One Codebase, Two Modules: Viewer + Player trên Shared Core thống nhất.*  
-> **Phiên bản hiện tại:** `v1.1.1` — Xem chi tiết tại [docs/version_management.md](docs/version_management.md)
+> **Phiên bản hiện tại:** `v1.2.0` — Xem chi tiết tại [docs/version_management.md](docs/version_management.md)
 
 ---
 

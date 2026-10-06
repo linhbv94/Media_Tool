@@ -1,5 +1,5 @@
 // 1. Phân loại định dạng Media
-export type MediaType = 'image' | 'video' | 'audio' | 'unknown';
+export type MediaType = 'image' | 'video' | 'audio' | 'pdf' | 'unknown';
 
 // 2. Chế độ lặp tệp
 export type LoopFileMode = 'off' | 'single' | 'all';

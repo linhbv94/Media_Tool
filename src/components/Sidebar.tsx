@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { MediaItem, AppLanguage } from '../types';
 import { t } from '../services/i18n';
-import { X, Search, Image as ImageIcon, Video, Music, Star } from 'lucide-react';
+import { X, Search, Image as ImageIcon, Video, Music, Star, FileText } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -88,6 +88,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return <Video className="w-4 h-4 text-cyan-500 dark:text-cyan-400 shrink-0" />;
       case 'audio':
         return <Music className="w-4 h-4 text-amber-500 dark:text-amber-400 shrink-0" />;
+      case 'pdf':
+        return <FileText className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0" />;
       default:
         return <ImageIcon className="w-4 h-4 text-slate-400 shrink-0" />;
     }

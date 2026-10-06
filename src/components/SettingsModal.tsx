@@ -505,7 +505,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         {i18n.about_app_name}
                       </h3>
                       <span className="px-2 py-0.5 text-[11px] font-mono font-semibold bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 rounded-full border border-cyan-300 dark:border-cyan-500/30">
-                        v1.1.1
+                        v1.2.0
                       </span>
                     </div>
                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">

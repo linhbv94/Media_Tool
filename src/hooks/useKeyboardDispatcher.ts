@@ -137,7 +137,7 @@ export function useKeyboardDispatcher({
       // 5. NAVIGATION / SEEK ARROWS
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (mediaType === 'image') {
+        if (mediaType === 'image' || mediaType === 'pdf') {
           onPrev();
         } else {
           onSeekRelative(e.shiftKey ? -5.0 : -1.0);
@@ -146,7 +146,7 @@ export function useKeyboardDispatcher({
       }
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (mediaType === 'image') {
+        if (mediaType === 'image' || mediaType === 'pdf') {
           onNext();
         } else {
           onSeekRelative(e.shiftKey ? 5.0 : 1.0);

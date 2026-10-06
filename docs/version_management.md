@@ -2,7 +2,7 @@
 
 > **Tài liệu:** `docs/version_management.md`  
 > **Dự án:** VXMedia (`media_tool`)  
-> **Phiên bản hiện tại:** `v1.1.1`  
+> **Phiên bản hiện tại:** `v1.2.0`  
 > **Quy chuẩn:** Tuân thủ Semantic Versioning (SemVer 2.0.0) & Hướng dẫn [AGENTS.md](../AGENTS.md)  
 
 ---
@@ -12,7 +12,7 @@
 Hệ thống áp dụng định dạng chuẩn: **`MAJOR.MINOR.PATCH`**
 
 ```text
-v1.1.1
+v1.2.0
  │ │ └── PATCH: Sửa lỗi (Bug fixes), vá bảo mật, tinh chỉnh nhỏ không đổi giao diện lớn.
  │ └──── MINOR: Bổ sung tính năng mới, mở rộng hỗ trợ OS mà vẫn giữ tương thích ngược.
  └────── MAJOR: Thay đổi kiến trúc lớn, phá vỡ tính tương thích ngược (Breaking Changes).
@@ -49,12 +49,28 @@ Phát triển / Fix bug ──► Build kiểm thử (Dev) ──► Chạy QA S
      ```
      *Output:* `src-tauri/target/release/bundle/nsis/VXMedia_x64-setup.exe`
 3. **Tiêu chuẩn Nghiệm thu Đầu ra (Release Gate):**
-   - Đạt 100% các tiêu chí chấp thuận trong [docs/spec/05_qa_acceptance.md](spec/05_qa_acceptance.md) và [docs/spec/07_folder_tabs_multi_window.md](spec/07_folder_tabs_multi_window.md).
+   - Đạt 100% các tiêu chí chấp thuận trong [docs/spec/05_qa_acceptance.md](spec/05_qa_acceptance.md), [docs/spec/07_folder_tabs_multi_window.md](spec/07_folder_tabs_multi_window.md) và [docs/spec/08_pdf_reader_module.md](spec/08_pdf_reader_module.md).
    - Kiểm tra Zero-Residue Quit: Thoát app sạch sẽ không giữ lại tiến trình ngầm chiếm dụng CPU/RAM.
 
 ---
 
 ## 3. Lịch sử Phiên bản (Changelog & Milestones)
+
+### 🌟 v1.2.0 — Module Đọc PDF Siêu tốc, In ấn Native & Ngăn kéo Ảnh Thu nhỏ
+*Ngày phát hành:* 2026-10-06  
+*Trọng tâm:* Nâng cấp VXMedia thành Workspace Content Viewer toàn diện với việc tích hợp **PDF thành Media Type thứ 4** bình đẳng cùng Image, Video và Audio.
+
+#### 📖 Trình đọc PDF Hiệu năng cao (PDF Reader Module):
+- **Lõi Mozilla `pdfjs-dist`:** Tích hợp Web Worker nền giải mã và dựng từng trang ra phần tử Canvas độ nét cao nhân với `window.devicePixelRatio` (sắc nét hoàn hảo trên màn hình Retina và 4K).
+- **Cuộn dọc liên tục (Continuous Scroll):** Lướt đọc các trang nối tiếp mượt mà, tối ưu DOM ảo hóa giúp RAM luôn duy trì dưới 80 MB.
+- **Thanh Điều khiển Nhất quán Thị giác (Visual Contract Alignment):**
+  - Giữ nguyên container kính mờ `glass-panel rounded-2xl p-2.5` đồng bộ với Viewer ảnh và Video Player.
+  - Vị trí nút Prev/Next file giữ nguyên ở góc trái, loại bỏ nút Mark và Fullscreen để nhường không gian cho các công cụ đọc tài liệu.
+  - Ô nhập số trang trực tiếp: gõ số trang và nhấn Enter để nhảy tới trang tức thì.
+  - Phóng to/thu nhỏ (+/-), vừa chiều ngang (`W` - Fit Width), xoay 90° (`R`), và chế độ đảo màu đọc đêm (`I` - Invert Dark Mode).
+- **Ngăn kéo Ảnh Thu nhỏ Bên trái (Left Sidebar Thumbnails):** Bấm phím `T` để bật/tắt drawer ảnh thu nhỏ các trang; click vào trang nào lập tức cuộn mượt đến trang đó; trang hiện tại được viền sáng Cyan.
+- **In ấn Chuẩn Hệ Điều Hành (Native OS Print):** Bấm `Cmd+P` / `Ctrl+P` hoặc click icon máy in 🖨️ mở trực tiếp Print Dialog của OS; CSS `@media print` dàn trang sạch sẽ chỉ in nội dung tài liệu.
+- **Đồng bộ Âm thanh Nền Toàn cục:** Đang phát nhạc ở tab Audio, chuyển sang tab đọc PDF nhạc vẫn phát êm đềm liên tục, thanh `MiniAudioPill` cho phép điều khiển nhạc ở góc dưới.
 
 ### 🌟 v1.1.1 — Tự động Cuộn Danh sách Item Đang chọn & Hỗ trợ Giới thiệu Song ngữ Đa nền tảng
 *Ngày phát hành:* 2026-10-06  

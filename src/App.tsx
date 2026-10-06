@@ -27,6 +27,7 @@ import { WindowBar } from './components/WindowBar';
 import { TabBar } from './components/TabBar';
 import { Viewer } from './components/Viewer';
 import { Player } from './components/Player';
+import { PdfViewer } from './components/PdfViewer';
 import { MiniAudioPill } from './components/MiniAudioPill';
 import { Sidebar } from './components/Sidebar';
 import { ContextMenu } from './components/ContextMenu';
@@ -867,6 +868,43 @@ export const App: React.FC = () => {
             onToggleFullscreen={handleToggleFullscreen}
           />
           {/* Mini Audio Pill when browsing images with background music loaded */}
+          {globalAudio.item && activeSession?.id !== globalAudio.originSessionId && (
+            <MiniAudioPill
+              isPlaying={globalAudio.isPlaying}
+              item={globalAudio.item}
+              currentTime={globalAudio.currentTime}
+              duration={globalAudio.duration}
+              onTogglePlay={() => {
+                if (sharedAudioRef.current) {
+                  if (sharedAudioRef.current.paused) {
+                    sharedAudioRef.current.play().catch(console.warn);
+                  } else {
+                    sharedAudioRef.current.pause();
+                  }
+                }
+              }}
+              onNextTrack={handleAudioNext}
+              onJumpToAudioSession={() => {
+                if (globalAudio.originSessionId) {
+                  setActiveSessionId(globalAudio.originSessionId);
+                }
+              }}
+            />
+          )}
+        </>
+      ) : currentItem && currentItem.media_type === 'pdf' ? (
+        <>
+          <PdfViewer
+            item={currentItem}
+            currentIndex={currentIndex}
+            totalCount={items.length}
+            hudVisible={hudVisible}
+            language={settings.language || 'vi'}
+            isMiniPip={isMiniPip}
+            onPrev={handlePrev}
+            onNext={handleNext}
+          />
+          {/* Mini Audio Pill when reading PDF with background music loaded */}
           {globalAudio.item && activeSession?.id !== globalAudio.originSessionId && (
             <MiniAudioPill
               isPlaying={globalAudio.isPlaying}

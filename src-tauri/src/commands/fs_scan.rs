@@ -9,6 +9,7 @@ pub enum MediaType {
     Image,
     Video,
     Audio,
+    Pdf,
     Unknown,
 }
 
@@ -93,6 +94,7 @@ fn classify_extension(ext: &str) -> MediaType {
         "jpg" | "jpeg" | "png" | "webp" | "gif" | "avif" | "bmp" | "svg" | "ico" => MediaType::Image,
         "mp4" | "mov" | "webm" | "mkv" | "avi" | "wmv" | "flv" | "m4v" => MediaType::Video,
         "mp3" | "wav" | "flac" | "m4a" | "ogg" | "aac" | "wma" | "aiff" => MediaType::Audio,
+        "pdf" => MediaType::Pdf,
         _ => MediaType::Unknown,
     }
 }
