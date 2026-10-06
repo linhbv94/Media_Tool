@@ -254,6 +254,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         </button>
 
         <button
+          data-toggle-sidebar="true"
           onClick={() => {
             onToggleSidebar();
             onClose();

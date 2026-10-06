@@ -25,6 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const i18n = t(language);
   const [searchQuery, setSearchQuery] = useState('');
   const currentItemRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -35,6 +36,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
       .map((item, originalIndex) => ({ item, originalIndex }))
       .filter(({ item }) => item.name.toLowerCase().includes(q));
   }, [items, searchQuery]);
+
+  // Click-outside listener: clicking anywhere outside the sidebar (e.g. image/video viewer) closes the sidebar
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (e: MouseEvent) => {
+      if (panelRef.current && panelRef.current.contains(e.target as Node)) {
+        return;
+      }
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-toggle-sidebar]')) {
+        return;
+      }
+      onClose();
+    };
+
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handlePointerDown);
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, [isOpen, onClose]);
 
   // Auto-scroll list to active item when opened or active index changes
   useEffect(() => {
@@ -68,7 +94,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="absolute top-0 right-0 bottom-0 w-72 glass-panel border-l border-slate-200 dark:border-white/10 z-40 flex flex-col shadow-2xl transition-transform duration-300 animate-in slide-in-from-right">
+    <>
+      {/* Invisible backdrop to capture clicks on media / canvas area */}
+      <div
+        className="fixed inset-0 z-30 bg-transparent"
+        onClick={onClose}
+      />
+      <div
+        ref={panelRef}
+        className="absolute top-0 right-0 bottom-0 w-72 glass-panel border-l border-slate-200 dark:border-white/10 z-40 flex flex-col shadow-2xl transition-transform duration-300 animate-in slide-in-from-right"
+      >
       {/* Header */}
       <div className="h-12 px-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50/70 dark:bg-black/20">
         <div className="flex items-center gap-2">
@@ -140,5 +175,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
     </div>
+    </>
   );
 };

@@ -60,9 +60,10 @@ Phát triển / Fix bug ──► Build kiểm thử (Dev) ──► Chạy QA S
 *Ngày phát hành:* 2026-10-06  
 *Trọng tâm:* Tinh chỉnh trải nghiệm duyệt danh sách (Sidebar Auto-scroll), hỗ trợ hộp thoại Giới thiệu (About) song ngữ Việt - Anh đa nền tảng, thích ứng tối ưu cho Windows không có thanh MenuBar chuẩn macOS.
 
-#### 🎯 Tự động Cuộn Danh sách tới Item Đang chọn (Sidebar Auto-scroll):
-- Khi đang mở xem một item và bật mở danh sách (`Sidebar`), danh sách sẽ tự động cuộn mượt mà (`scrollIntoView` block `center`) đến đúng vị trí của item đang chọn thay vì luôn hiển thị từ đầu danh sách.
-- Hỗ trợ cuộn tự động cả khi chuyển bài/chuyển ảnh trong lúc danh sách đang mở.
+#### 🎯 Trải nghiệm Danh sách & Thao tác Chuột Tự nhiên:
+- **Tự động Cuộn Danh sách tới Item Đang chọn (Sidebar Auto-scroll):** Khi đang mở xem một item và bật mở danh sách (`Sidebar`), danh sách sẽ tự động cuộn mượt mà (`scrollIntoView` block `center`) đến đúng vị trí của item đang chọn thay vì luôn hiển thị từ đầu danh sách. Hỗ trợ bám sát con trỏ khi chuyển bài.
+- **Đóng Danh sách khi Click ra ngoài (Click-outside Dismiss):** Khi đang bật danh sách, người dùng có thể nhấp chuột bất kỳ đâu ra ngoài thanh danh sách (như vùng hiển thị ảnh, video hoặc khung nền) để đóng danh sách ngay lập tức mà không bắt buộc phải bấm nút [X].
+- **Hiển thị Nút HUD khi Rê Chuột (Hover-Reveal HUD Button):** Khi HUD đang bị ẩn (`H`), toàn bộ giao diện thanh tiêu đề và thông tin media ẩn hoàn toàn. Tuy nhiên, khi người dùng rê chuột lên đúng vùng tọa độ của nút HUD ở góc trên bên phải, riêng nút HUD sẽ mượt mà hiện lên (`EyeOff` kèm viền sáng Cyan) để người dùng có thể nhấp chuột hiện lại HUD một cách trực quan bằng chuột mà không bắt buộc phải dùng phím bấm `H`. Khi rời chuột ra ngoài, nút tự động ẩn đi.
 
 #### 🌐 Giới thiệu (About) Song ngữ & Thích ứng Giao diện Windows:
 - **macOS MenuBar:** Menu hệ thống native `VXMedia > About VXMedia` được cập nhật đầy đủ credit song ngữ (Tiếng Việt & English), nêu bật triết lý định vị của ứng dụng và thông tin tác giả `by Viet Linh Bui`.

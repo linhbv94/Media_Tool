@@ -60,12 +60,16 @@ export const WindowBar: React.FC<WindowBarProps> = ({
           : isMac
           ? 'h-7 pl-[82px] pr-3'
           : 'h-8 pl-3 pr-3'
-      } flex items-center justify-between z-40 transition-opacity duration-200 select-none bg-gradient-to-b from-black/80 via-black/45 to-transparent ${
-        hudVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      } flex items-center justify-between z-40 transition-colors duration-200 select-none ${
+        hudVisible
+          ? 'bg-gradient-to-b from-black/80 via-black/45 to-transparent pointer-events-auto'
+          : 'bg-transparent pointer-events-none'
       }`}
     >
       {/* Left: App Name, Tabs, and Quick Open Actions */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[calc(100%-260px)]">
+      <div className={`flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[calc(100%-260px)] transition-opacity duration-200 ${
+        hudVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}>
         {!isMiniPip && (
           <span className="text-xs font-semibold tracking-wider font-mono opacity-90 text-slate-200 flex items-center leading-none shrink-0">
             {i18n.app_title}
@@ -112,6 +116,8 @@ export const WindowBar: React.FC<WindowBarProps> = ({
           onClick={onTogglePin}
           title={isPinned ? 'Bỏ ghim (P)' : 'Ghim trên cùng (P)'}
           className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all leading-none ${
+            hudVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          } ${
             isPinned
               ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/50 shadow-sm'
               : 'text-slate-200 hover:text-white hover:bg-white/15 border border-transparent'
@@ -125,7 +131,9 @@ export const WindowBar: React.FC<WindowBarProps> = ({
           <button
             onClick={() => closeWindow()}
             title="Đóng cửa sổ"
-            className="p-1 rounded text-slate-300 hover:text-white hover:bg-rose-500/80 transition-all leading-none"
+            className={`p-1 rounded text-slate-300 hover:text-white hover:bg-rose-500/80 transition-all leading-none ${
+              hudVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -133,30 +141,36 @@ export const WindowBar: React.FC<WindowBarProps> = ({
 
         {!isMiniPip && (
           <>
-            {/* Toggle HUD Button */}
+            {/* Toggle HUD Button - When HUD is hidden, this button stays at its exact coordinates and reveals itself on hover */}
             <button
               onClick={onToggleHud}
               disabled={isAutoHide}
+              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
               title={
                 isAutoHide
                   ? (language === 'vi' ? 'Đang bật tự động ẩn HUD (Cài đặt)' : 'HUD auto-hide is enabled (Settings)')
                   : (hudVisible ? 'Ẩn HUD (H)' : 'Hiện HUD (H)')
               }
-              className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-transparent transition-all leading-none ${
+              className={`flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-medium transition-all duration-150 leading-none pointer-events-auto ${
                 isAutoHide
                   ? 'opacity-30 cursor-not-allowed text-slate-400'
-                  : 'text-slate-200 hover:text-white hover:bg-white/15'
+                  : hudVisible
+                  ? 'text-slate-200 hover:text-white hover:bg-white/15 border border-transparent opacity-100'
+                  : 'opacity-0 hover:opacity-100 bg-slate-900/90 hover:bg-slate-900 text-cyan-300 hover:text-cyan-200 border border-cyan-500/40 backdrop-blur-md shadow-lg shadow-black/50'
               }`}
             >
-              {hudVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+              {hudVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 text-cyan-400" />}
               <span>{i18n.hud}</span>
             </button>
 
             {/* Toggle Sidebar Button */}
             <button
               onClick={onToggleSidebar}
+              data-toggle-sidebar="true"
               title="Danh sách tệp (B)"
               className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all leading-none ${
+                hudVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+              } ${
                 isSidebarOpen
                   ? 'bg-cyan-500/30 text-cyan-200 border border-cyan-400/50 shadow-sm'
                   : 'text-slate-200 hover:text-white hover:bg-white/15 border border-transparent'
@@ -170,7 +184,9 @@ export const WindowBar: React.FC<WindowBarProps> = ({
             <button
               onClick={onOpenSettings}
               title={i18n.settings}
-              className="p-1 rounded text-slate-200 hover:text-white hover:bg-white/15 border border-transparent transition-all leading-none"
+              className={`p-1 rounded text-slate-200 hover:text-white hover:bg-white/15 border border-transparent transition-all leading-none ${
+                hudVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+              }`}
             >
               <Settings className="w-3.5 h-3.5" />
             </button>
