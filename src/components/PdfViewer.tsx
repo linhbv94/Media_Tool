@@ -3,7 +3,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 import { MediaItem, AppLanguage } from '../types';
 import { t } from '../services/i18n';
-import { readFileBinary } from '../services/tauri';
+import { readFileBinary, printFile } from '../services/tauri';
 import {
   ChevronLeft,
   ChevronRight,
@@ -163,6 +163,90 @@ const PageRenderItem: React.FC<PageRenderItemProps> = ({
   );
 };
 
+interface PdfThumbnailItemProps {
+  pdfDoc: pdfjsLib.PDFDocumentProxy;
+  pageNum: number;
+  isCurrent: boolean;
+  onClick: () => void;
+}
+
+const PdfThumbnailItem: React.FC<PdfThumbnailItemProps> = ({
+  pdfDoc,
+  pageNum,
+  isCurrent,
+  onClick,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [rendered, setRendered] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    let renderTask: any = null;
+
+    pdfDoc.getPage(pageNum).then((page) => {
+      if (cancelled) return;
+      const unscaledVp = page.getViewport({ scale: 1 });
+      const targetWidth = 120;
+      const thumbScale = targetWidth / unscaledVp.width;
+      const vp = page.getViewport({ scale: thumbScale });
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(vp.width * dpr);
+      canvas.height = Math.floor(vp.height * dpr);
+      canvas.style.width = `${Math.floor(vp.width)}px`;
+      canvas.style.height = `${Math.floor(vp.height)}px`;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      renderTask = page.render({
+        canvasContext: ctx,
+        canvas: canvas,
+        viewport: vp,
+      });
+
+      renderTask.promise
+        .then(() => {
+          if (!cancelled) setRendered(true);
+        })
+        .catch((err: any) => {
+          if (err?.name !== 'RenderingCancelledException') {
+            console.warn(`Thumb ${pageNum} error:`, err);
+          }
+        });
+    }).catch(console.warn);
+
+    return () => {
+      cancelled = true;
+      if (renderTask) renderTask.cancel();
+    };
+  }, [pdfDoc, pageNum]);
+
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-center p-1.5 rounded-lg transition-all group flex flex-col items-center border ${
+        isCurrent
+          ? 'bg-cyan-500/20 border-cyan-400 text-cyan-200 shadow-md ring-1 ring-cyan-400'
+          : 'bg-white/5 border-transparent hover:border-white/20 text-slate-300 hover:bg-white/10'
+      }`}
+    >
+      <div className="relative w-full overflow-hidden rounded bg-slate-800 shadow-sm flex items-center justify-center min-h-[120px]">
+        <canvas ref={canvasRef} className="block mx-auto max-w-full h-auto shadow" />
+        {!rendered && (
+          <div className="absolute inset-0 flex items-center justify-center text-slate-500 text-[10px] font-mono">
+            {pageNum}
+          </div>
+        )}
+      </div>
+      <span className="text-[10px] mt-1 font-mono font-medium">{pageNum}</span>
+    </button>
+  );
+};
+
 export const PdfViewer: React.FC<PdfViewerProps> = ({
   item,
   currentIndex,
@@ -184,6 +268,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   const [rotation, setRotation] = useState<number>(0);
   const [invertColor, setInvertColor] = useState<boolean>(false);
   const [isThumbnailsOpen, setIsThumbnailsOpen] = useState<boolean>(false);
+  const [isFitWidth, setIsFitWidth] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -247,17 +332,36 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     }
   };
 
-  const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.15, 3.5));
-  const handleZoomOut = () => setScale((prev) => Math.max(prev - 0.15, 0.4));
-  const handleResetZoom = () => setScale(1.0);
+  const handleZoomIn = () => {
+    setScale((prev) => Math.min(prev + 0.15, 3.5));
+    setIsFitWidth(false);
+  };
+  const handleZoomOut = () => {
+    setScale((prev) => Math.max(prev - 0.15, 0.4));
+    setIsFitWidth(false);
+  };
+  const handleResetZoom = () => {
+    setScale(1.0);
+    setIsFitWidth(false);
+  };
 
-  const handleFitWidth = () => {
+  const handleToggleFit = () => {
     if (!containerRef.current || !pdfDoc) return;
-    pdfDoc.getPage(1).then((page) => {
+    pdfDoc.getPage(currentPage || 1).then((page) => {
       const vp = page.getViewport({ scale: 1, rotation });
-      const availableWidth = containerRef.current!.clientWidth - (isThumbnailsOpen ? 180 : 40);
-      const newScale = Math.max(availableWidth / vp.width, 0.4);
-      setScale(Number(newScale.toFixed(2)));
+      if (!isFitWidth) {
+        // Switch to Fit Width
+        const availableWidth = containerRef.current!.clientWidth - (isThumbnailsOpen ? 190 : 48);
+        const newScale = Math.max(availableWidth / vp.width, 0.4);
+        setScale(Number(newScale.toFixed(2)));
+        setIsFitWidth(true);
+      } else {
+        // Switch to Fit Height (Full page visible vertically)
+        const availableHeight = containerRef.current!.clientHeight - 80;
+        const newScale = Math.max(availableHeight / vp.height, 0.3);
+        setScale(Number(newScale.toFixed(2)));
+        setIsFitWidth(false);
+      }
     });
   };
 
@@ -265,8 +369,13 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
     setRotation((prev) => (prev + 90) % 360);
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    try {
+      await printFile(item.path);
+    } catch (e) {
+      console.warn('Native print failed, falling back to window.print():', e);
+      window.print();
+    }
   };
 
   // Keyboard events for PDF actions
@@ -285,7 +394,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
         setInvertColor((prev) => !prev);
       } else if (e.key === 'w' || e.key === 'W') {
         e.preventDefault();
-        handleFitWidth();
+        handleToggleFit();
       } else if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
         handleRotate();
@@ -313,43 +422,34 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage, totalPages, isThumbnailsOpen, rotation, pdfDoc]);
+  }, [currentPage, totalPages, isThumbnailsOpen, rotation, pdfDoc, isFitWidth, item.path]);
 
   return (
     <div className="relative w-full h-full flex flex-col bg-slate-900/40 select-text overflow-hidden">
       {/* Main View Area */}
       <div className="relative flex-1 flex w-full h-full overflow-hidden">
-        {/* Left Thumbnails Drawer */}
+        {/* Left Thumbnails Drawer: pt-10 pushes header cleanly below macOS window buttons */}
         {isThumbnailsOpen && pdfDoc && (
-          <div className="w-40 shrink-0 h-full border-r border-slate-200/20 dark:border-white/10 bg-slate-900/80 backdrop-blur-md overflow-y-auto p-2.5 space-y-3 z-20 transition-all">
-            <div className="flex items-center justify-between text-xs text-slate-400 font-semibold px-1 pb-1 border-b border-white/10">
-              <span>{i18n.pdf_thumbnails}</span>
+          <div className="w-44 shrink-0 h-full border-r border-slate-200/20 dark:border-white/10 bg-slate-900/90 backdrop-blur-md overflow-y-auto px-2.5 pt-10 pb-20 space-y-3 z-20 transition-all select-none">
+            <div className="flex items-center justify-between text-xs text-slate-400 font-semibold px-1 pb-2 border-b border-white/10 sticky top-0 bg-slate-900/95 backdrop-blur-sm z-10">
+              <span>{i18n.pdf_thumbnails} ({totalPages})</span>
               <button
                 onClick={() => setIsThumbnailsOpen(false)}
-                className="hover:text-white p-0.5 rounded"
+                className="hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
+                title="Đóng"
               >
                 ✕
               </button>
             </div>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => {
-              const isCurrent = pNum === currentPage;
-              return (
-                <button
-                  key={pNum}
-                  onClick={() => handleJumpToPage(pNum)}
-                  className={`w-full text-center p-1.5 rounded-lg transition-all ${
-                    isCurrent
-                      ? 'bg-cyan-500/20 border-2 border-cyan-400 text-cyan-200 shadow-md'
-                      : 'bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10'
-                  }`}
-                >
-                  <div className="w-full aspect-3/4 bg-slate-800 rounded flex items-center justify-center text-xs font-mono">
-                    📄 {pNum}
-                  </div>
-                  <span className="text-[10px] mt-1 block font-mono">Trang {pNum}</span>
-                </button>
-              );
-            })}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pNum) => (
+              <PdfThumbnailItem
+                key={pNum}
+                pdfDoc={pdfDoc}
+                pageNum={pNum}
+                isCurrent={pNum === currentPage}
+                onClick={() => handleJumpToPage(pNum)}
+              />
+            ))}
           </div>
         )}
 
@@ -390,7 +490,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
         </div>
       </div>
 
-      {/* Floating Bottom Action Bar (Identical Visual Design Language to Viewer & Player) */}
+      {/* Floating Bottom Action Bar (Locked Height h-12 with Zero Layout-Shift Borders) */}
       <div
         className={`absolute bottom-3 left-0 right-0 z-30 transition-all duration-200 pointer-events-none ${
           hudVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
@@ -422,13 +522,13 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
               </button>
             </div>
           ) : (
-            <div className="glass-panel rounded-2xl p-2.5 flex items-center justify-between gap-3 max-w-4xl w-full shadow-2xl pointer-events-auto text-xs">
+            <div className="glass-panel rounded-2xl px-3 h-12 flex items-center justify-between gap-3 max-w-4xl w-full shadow-2xl pointer-events-auto text-xs box-border">
               {/* Left Group: Prev / Next file (Exact same position as Viewer/Player) + Thumbnail toggle */}
               <div className="flex items-center gap-1 shrink-0">
                 <button
                   onClick={onPrev}
                   title={`${i18n.file_prev} (←)`}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  className="h-8 flex items-center gap-1 px-2.5 rounded-lg border border-transparent text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   <span>{i18n.file_prev}</span>
@@ -436,7 +536,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
                 <button
                   onClick={onNext}
                   title={`${i18n.file_next} (→)`}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  className="h-8 flex items-center gap-1 px-2.5 rounded-lg border border-transparent text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                 >
                   <span>{i18n.file_next}</span>
                   <ChevronRight className="w-4 h-4" />
@@ -447,10 +547,10 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
                 <button
                   onClick={() => setIsThumbnailsOpen((prev) => !prev)}
                   title={`${i18n.pdf_thumbnails} (T)`}
-                  className={`p-1.5 rounded-lg transition-colors ${
+                  className={`h-8 w-8 flex items-center justify-center rounded-lg border transition-colors ${
                     isThumbnailsOpen
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                      : 'text-slate-600 dark:text-slate-300 hover:text-white hover:bg-white/10'
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                      : 'text-slate-600 dark:text-slate-300 border-transparent hover:text-white hover:bg-white/10'
                   }`}
                 >
                   <PanelLeft className="w-4 h-4" />
@@ -492,7 +592,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
               {/* Right Group: Zoom, Fit, Invert, Print, Rotate (No Mark, No Fullscreen) */}
               <div className="flex items-center gap-1 shrink-0">
                 {/* Zoom Controls */}
-                <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-white/5 rounded-lg p-0.5 border border-slate-200 dark:border-white/10">
+                <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-white/5 rounded-lg p-0.5 border border-slate-200 dark:border-white/10 h-8">
                   <button
                     onClick={handleZoomOut}
                     title={i18n.pdf_zoom_out}
@@ -516,11 +616,15 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
                   </button>
                 </div>
 
-                {/* Fit Width */}
+                {/* Fit Width <-> Fit Page Toggle */}
                 <button
-                  onClick={handleFitWidth}
-                  title={i18n.pdf_fit_width}
-                  className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                  onClick={handleToggleFit}
+                  title={isFitWidth ? i18n.pdf_fit_page : i18n.pdf_fit_width}
+                  className={`h-8 w-8 flex items-center justify-center rounded-lg border transition-colors ${
+                    isFitWidth
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                      : 'text-slate-600 dark:text-slate-300 border-transparent hover:text-white hover:bg-white/10'
+                  }`}
                 >
                   <Maximize2 className="w-4 h-4" />
                 </button>
@@ -529,10 +633,10 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
                 <button
                   onClick={() => setInvertColor((prev) => !prev)}
                   title={i18n.pdf_invert}
-                  className={`p-1.5 rounded-lg transition-colors ${
+                  className={`h-8 w-8 flex items-center justify-center rounded-lg border transition-colors ${
                     invertColor
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                      : 'text-slate-600 dark:text-slate-300 hover:text-white hover:bg-white/10'
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                      : 'text-slate-600 dark:text-slate-300 border-transparent hover:text-white hover:bg-white/10'
                   }`}
                 >
                   <SunMoon className="w-4 h-4" />
@@ -542,7 +646,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
                 <button
                   onClick={handlePrint}
                   title={i18n.pdf_print}
-                  className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                  className="h-8 w-8 flex items-center justify-center rounded-lg border border-transparent text-slate-600 dark:text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <Printer className="w-4 h-4" />
                 </button>
@@ -551,7 +655,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
                 <button
                   onClick={handleRotate}
                   title={`${i18n.rotate} (R)`}
-                  className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                  className="h-8 w-8 flex items-center justify-center rounded-lg border border-transparent text-slate-600 dark:text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
                 >
                   <RotateCw className="w-4 h-4" />
                 </button>

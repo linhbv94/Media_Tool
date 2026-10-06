@@ -718,13 +718,13 @@ export const Player: React.FC<PlayerProps> = ({
               </div>
 
               {/* ROW 2: PREV/NEXT FILE (LEFT) │ INFO TÊN FILE & STT (CENTER) │ MARK & FULLSCREEN (RIGHT) */}
-              <div className="flex items-center justify-between gap-3 pt-1 border-t border-slate-200 dark:border-white/5 text-xs">
+              <div className="h-9 flex items-center justify-between gap-3 pt-1 border-t border-slate-200 dark:border-white/5 text-xs">
                 {/* Left: Prev / Next File */}
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={onPrev}
                     title={`${i18n.file_prev} (Cmd/Ctrl + ←)`}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                    className="h-8 flex items-center gap-1 px-2.5 rounded-lg border border-transparent text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                     <span>{i18n.file_prev}</span>
@@ -733,7 +733,7 @@ export const Player: React.FC<PlayerProps> = ({
                   <button
                     onClick={onNext}
                     title={`${i18n.file_next} (Cmd/Ctrl + →)`}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                    className="h-8 flex items-center gap-1 px-2.5 rounded-lg border border-transparent text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                   >
                     <span>{i18n.file_next}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -741,7 +741,7 @@ export const Player: React.FC<PlayerProps> = ({
                 </div>
 
                 {/* Center: File Info (Tên file & Số thứ tự) */}
-                <div className="flex-1 flex items-center justify-center gap-2 min-w-0 px-2 font-mono text-[11px]">
+                <div className="flex-1 flex items-center justify-center gap-2 min-w-0 px-2 font-mono text-[11px] h-8">
                   <span className="truncate max-w-[260px] md:max-w-md text-slate-800 dark:text-slate-200 font-semibold">
                     🏷️ {item.name}
                   </span>
@@ -755,10 +755,10 @@ export const Player: React.FC<PlayerProps> = ({
                   <button
                     onClick={onToggleMark}
                     title={`${i18n.mark} (M)`}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`h-8 flex items-center gap-1 px-2.5 rounded-lg text-xs font-semibold border transition-all ${
                       isMarked
-                        ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40 shadow-xs'
-                        : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
+                        ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-500/40 shadow-xs'
+                        : 'text-slate-700 dark:text-slate-300 border-transparent hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                   >
                     <Star
@@ -774,7 +774,7 @@ export const Player: React.FC<PlayerProps> = ({
                       <button
                         onClick={onCopyMarked}
                         title="Sao chép các tệp đã đánh dấu (Cmd+Shift+C)"
-                        className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-500/10 hover:bg-cyan-100 dark:hover:bg-cyan-500/20 border border-cyan-300 dark:border-cyan-500/30 transition-all"
+                        className="h-8 flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-500/10 hover:bg-cyan-100 dark:hover:bg-cyan-500/20 border border-cyan-300 dark:border-cyan-500/30 transition-all"
                       >
                         <Copy className="w-3 h-3" />
                         <span>Copy ({markedCount})</span>
@@ -783,7 +783,7 @@ export const Player: React.FC<PlayerProps> = ({
                       <button
                         onClick={onCutMarked}
                         title="Cắt các tệp đã đánh dấu (Cmd+Shift+X)"
-                        className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 border border-rose-300 dark:border-rose-500/30 transition-all"
+                        className="h-8 flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 border border-rose-300 dark:border-rose-500/30 transition-all"
                       >
                         <Scissors className="w-3 h-3" />
                         <span>Cut</span>
@@ -795,7 +795,7 @@ export const Player: React.FC<PlayerProps> = ({
                   <button
                     onClick={onToggleFullscreen}
                     title={`${i18n.fullscreen} (F)`}
-                    className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                    className="h-8 w-8 flex items-center justify-center rounded-lg border border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                   >
                     <Maximize2 className="w-4 h-4" />
                   </button>

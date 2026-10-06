@@ -292,5 +292,22 @@ export async function readFileBinary(filePath: string): Promise<ArrayBuffer> {
   return await res.arrayBuffer();
 }
 
+/**
+ * Print a document via OS standard Print dialog
+ */
+export async function printFile(filePath: string): Promise<boolean> {
+  if (isTauriEnvironment()) {
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      await invoke('print_file', { filePath });
+      return true;
+    } catch (e) {
+      console.warn('print_file IPC error:', e);
+    }
+  }
+  window.print();
+  return true;
+}
+
 
 
