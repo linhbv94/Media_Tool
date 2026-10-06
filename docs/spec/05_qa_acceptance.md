@@ -160,14 +160,34 @@ Kịch bản: Người dùng click nút đỏ [X] trên cửa sổ macOS
   Và không có bất kỳ tiến trình nào chạy ngầm trong Activity Monitor.
 ```
 
-### AC-16: Chế Độ Mini PiP Responsive (Breakpoint < 500px)
+### AC-16: Chế Độ Mini PiP Responsive (Breakpoint < 500px, Cross-Platform)
 ```gherkin
 Kịch bản: Người dùng co nhỏ cửa sổ về góc màn hình làm việc
   Khi người dùng kéo co chiều rộng cửa sổ nhỏ hơn 500px hoặc chiều cao nhỏ hơn 320px
   Thì giao diện tự động chuyển sang chế độ Mini PiP
-  Và cụm nút bấm thu gọn chỉ còn 3 nút lõi: [◀ Trước] [▶/⏸] [Tiếp ▶]
-  Và timeline co lại thành vạch siêu mảnh 3px sát đáy
-  Và cụm nút mặc định ẩn 100%, chỉ hiện mờ khi con trỏ chuột hover vào cửa sổ mini.
+  Và 3 nút system traffic lights (macOS) hoặc titlebar (Windows) tự động ẩn hoàn toàn (borderless)
+  Và cụm nút chuyển thành viên thuốc kính mờ (Frosted Pill) siêu nhỏ gọn ở đáy cửa sổ:
+    - Nếu là Player (Video/Audio): Gồm 3 nút [◀] [▶/⏸] [▶]
+    - Nếu là Viewer (Ảnh): Gồm [◀] [ X / Y ] [▶]
+  Và thanh timeline co lại thành đường hairline siêu mảnh 2px sát mép đáy cửa sổ
+  Và cụm pill mặc định ẩn mượt mà, chỉ hiện khi con trỏ chuột hover vào cửa sổ mini
+  Và góc trên bên phải cung cấp nút Ghim [📌] và nút Đóng [✕] nhanh.
+```
+
+### AC-16b: Logic Điều Khiển HUD Độc Lập & Chống Choán Mắt
+```gherkin
+Kịch bản 1: Cài đặt HUD tự động ẩn sau X giây (delay > 0)
+  Khi cài đặt hud_hide_delay_ms > 0
+  Thì HUD tự động hiện khi di chuột và tự động biến mất sau X giây không tương tác
+  Và nút ẩn HUD thủ công trên WindowBar bị vô hiệu hóa mờ (disabled) kèm chú thích giải thích.
+
+Kịch bản 2: Cài đặt không bao giờ tự ẩn HUD (delay = 0)
+  Khi cài đặt hud_hide_delay_ms = 0
+  Và người dùng nhấn phím H hoặc click nút Ẩn HUD thủ công
+  Thì HUD biến mất hoàn toàn
+  Và khi người dùng di chuột hoặc click chuột, HUD tuyệt đối KHÔNG tự động hiện lại
+  Và con trỏ chuột vẫn hiển thị bình thường trong ứng dụng (không bị ẩn con trỏ)
+  Và HUD chỉ hiện lại khi người dùng nhấn lại phím H hoặc click chuột phải chọn "Ẩn / Hiện HUD".
 ```
 
 ### AC-17: Menu Ngữ Cảnh Chuột Phải (Context Menu)
@@ -185,6 +205,52 @@ Kịch bản: Bật chế độ ghim cửa sổ
   Khi người dùng nhấn phím P hoặc bấm nút [📌 Ghim] trên Window Bar
   Thì cửa sổ ứng dụng chuyển sang trạng thái Always-on-Top
   Và khi người dùng click tương tác với các ứng dụng khác (Browser, VS Code), cửa sổ media_tool vẫn luôn nổi trên cùng không bị che mất.
+```
+
+### AC-19: Chế độ Giao diện Thích ứng OS & Tùy chỉnh Theme (Adaptive Dark/Light & Color Theme)
+```gherkin
+Kịch bản: Chuyển đổi Color Theme và kiểm tra thích ứng OS
+  Khi người dùng mở Cài đặt (Cmd+,) và chọn mục "Giao diện & Màu sắc"
+  Thì hệ thống cung cấp 4 lựa chọn: Thích ứng OS (Hệ thống - Mặc định), Tối trầm (Slate #0f1117), Sáng dịu (Light Clean), Đen tuyền (Pure Black #000000)
+  Và khi chọn "Thích ứng OS": ứng dụng tự động lắng nghe MediaQuery prefers-color-scheme của hệ điều hành, đổi sang Light khi OS bật Light mode và Dark khi OS bật Dark mode
+  Và khi chọn "Đen tuyền": nền ứng dụng lập tức chuyển sang #000000 thuần cho trải nghiệm xem phim OLED.
+```
+
+### AC-20: Chuyển đổi Đa ngôn ngữ Tiếng Việt / Tiếng Anh (Bilingual English / Vietnamese Switcher)
+```gherkin
+Kịch bản: Đổi ngôn ngữ giao diện
+  Khi người dùng mở Cài đặt (Cmd+,) và chuyển sang tab "Chung (General)"
+  Và thay đổi Ngôn ngữ từ "Tiếng Việt" sang "English"
+  Thì toàn bộ nhãn HUD, nút điều khiển (Play/Pause, Rewind, Forward, Loop, Mark, Fullscreen), Context Menu, Sidebar danh sách tệp và thông báo Toast lập tức chuyển sang Tiếng Anh
+  Và cài đặt ngôn ngữ được lưu bền vững vào localStorage / config.
+```
+
+### AC-21: Bố cục Thanh Điều Khiển HUD 2 Hàng Mới (2-Row HUD Layout)
+```gherkin
+Kịch bản: Kiểm tra căn lề và các cụm nút trên Control Bar 2 hàng
+  Khi phát video hoặc audio, thanh Control Bar hiển thị 2 hàng nút:
+  - Hàng 1 (Playback & Volume): Cụm Play/Pause, tua <<, <, >, >>, Shuffle, Repeat, A, B, Loop AB được căn lề trái (justify-start); thanh âm lượng (icon loa + slider) căn lề phải (justify-end).
+  - Hàng 2 (File Navigation & Status): Nút Prev File, Next File căn lề trái (justify-start); thẻ thông tin tệp (🏷️ tên tệp, số thứ tự) nằm chính giữa (justify-center); các nút Đánh dấu (Mark) và Toàn màn hình (Fullscreen) căn lề phải (justify-end).
+  - Hoàn toàn loại bỏ thanh footer tách rời dưới đáy màn hình.
+```
+
+### AC-22: Lưu Trữ Cấu Hình & Trạng Thái Bền Vững (Settings & Repeat Mode Persistence)
+```gherkin
+Kịch bản: Chuyển chế độ lặp (Repeat 1) và khởi động lại ứng dụng
+  Khi người dùng nhấn phím L hoặc bấm biểu tượng Repeat trên thanh điều khiển sang chế độ "Lặp 1 tệp" (Repeat 1)
+  Và người dùng thoát hoàn toàn ứng dụng (Cmd+Q hoặc bấm nút đỏ [X])
+  Khi người dùng mở lại VXMedia
+  Thì chế độ lặp vẫn được phục hồi nguyên vẹn là "Lặp 1 tệp" (Repeat 1) từ localStorage
+  Và khi người dùng thay đổi "Chế độ lặp mặc định" trong Cài đặt (Cmd+,), giá trị được đồng bộ tức thì.
+```
+
+### AC-23: Khởi Chạy Tự Động Từ Finder / Explorer ("Open With" Cold-Start Resolution)
+```gherkin
+Kịch bản: Chuột phải vào file media chọn Open With -> VXMedia
+  Khi ứng dụng đang đóng hoàn toàn
+  Và người dùng chọn tệp video/ảnh trong Finder hoặc Explorer, chuột phải chọn "Open With" -> VXMedia
+  Thì ứng dụng khởi chạy và nạp ngay lập tức tệp được chọn cùng toàn bộ danh sách tệp trong cùng thư mục
+  Và tệp được phát/hiển thị ngay, không bị kẹt ở trạng thái trống hoặc phải bấm mở thủ công.
 ```
 
 ---
@@ -208,7 +274,7 @@ Kịch bản: Bật chế độ ghim cửa sổ
 
 ---
 
-## 3. Danh mục Kiểm tra Kiểm thử Khói (22-Step Smoke Test Checklist)
+## 3. Danh mục Kiểm tra Kiểm thử Khói (25-Step Smoke Test Checklist)
 
 Quy trình kiểm thử khói bắt buộc thực hiện trên cả **Windows 11 (x64)** và **macOS (Apple Silicon)** trước khi bàn giao:
 
@@ -222,16 +288,19 @@ Quy trình kiểm thử khói bắt buộc thực hiện trên cả **Windows 11
 - [ ] **Bước 8:** Mở một video MP4; kiểm tra video tự động phát hoặc phát khi bấm `Space`.
 - [ ] **Bước 9:** Nhấn phím `Space` để Tạm dừng (Pause) và Phát lại (Play).
 - [ ] **Bước 10:** Nhấn phím `1`, `5`, `9` để kiểm tra nhảy timeline tới 10%, 50%, 90%.
-- [ ] **Bước 11:** Nhấn Mũi tên Trái/Phải để tua lùi/tới 1 giây; kiểm tra không bị lỗi khi tua về 0 giây.
-- [ ] **Bước 12:** Nhấn Shift + Mũi tên Trái/Phải để tua 5 giây.
-- [ ] **Bước 13:** Nhấn `[` để đặt điểm A, cho video chạy tiếp rồi nhấn `]` để đặt điểm B.
-- [ ] **Bước 14:** Xác nhận video tự động lặp lại giữa A và B mà không bị dừng hình.
-- [ ] **Bước 15:** Nhấn phím `↑` / `↓` hoặc cuộn chuột trên video; xác nhận huy hiệu Volume OSD hiện mượt mà.
-- [ ] **Bước 16:** Bật / Tắt Shuffle (`S`) và Loop File (`R`); kiểm tra logic chuyển bài khi hết file.
-- [ ] **Bước 17:** Click chuột phải lên video; xác nhận Context Menu hiển thị đầy đủ tính năng.
-- [ ] **Bước 18:** Thu nhỏ cửa sổ dưới 500px; xác nhận giao diện chuyển sang Mini PiP 3 nút gọn gàng.
-- [ ] **Bước 19:** Nhấn phím `P` ghim cửa sổ; click app khác xác nhận cửa sổ vẫn luôn nổi trên cùng.
-- [ ] **Bước 20:** Mở bài hát MP3 có thẻ ID3 và bìa đĩa; xác nhận Title, Artist và Artwork hiển thị đẹp mắt.
-- [ ] **Bước 21:** Mở thử một file văn bản `.txt` hoặc file hỏng; kiểm tra thông báo lỗi hiển thị an toàn, app không crash.
-- [ ] **Bước 22:** Click nút đỏ `[X]` trên macOS; xác nhận cửa sổ đóng và dấu chấm tròn trên thanh Dock biến mất hoàn toàn.
+- [ ] **Bước 11:** Nhấn Mũi tên Trái/Phải để tua lùi/tới 1 giây (`<`, `>`); kiểm tra không bị lỗi khi tua về 0 giây.
+- [ ] **Bước 12:** Nhấn `<<` hoặc `>>` (Shift + Mũi tên Trái/Phải) để tua 5 giây.
+- [ ] **Bước 13:** Kiểm tra hàng 2 của Control Bar: Nút Prev/Next File bên trái, thẻ tên tệp [15/120] ở chính giữa, nút Mark và Fullscreen bên phải.
+- [ ] **Bước 14:** Nhấn `[` để đặt điểm A, cho video chạy tiếp rồi nhấn `]` để đặt điểm B.
+- [ ] **Bước 15:** Xác nhận video tự động lặp lại giữa A và B mà không bị dừng hình.
+- [ ] **Bước 16:** Nhấn phím `↑` / `↓` hoặc cuộn chuột trên video; xác nhận huy hiệu Volume OSD hiện mượt mà.
+- [ ] **Bước 17:** Bật / Tắt Shuffle (`S`) và Loop File (`R`); kiểm tra logic chuyển bài khi hết file.
+- [ ] **Bước 18:** Click chuột phải lên video; xác nhận Context Menu hiển thị đầy đủ tính năng.
+- [ ] **Bước 19:** Thu nhỏ cửa sổ dưới 500px; xác nhận giao diện chuyển sang Mini PiP 3 nút gọn gàng.
+- [ ] **Bước 20:** Nhấn phím `P` ghim cửa sổ; click app khác xác nhận cửa sổ vẫn luôn nổi trên cùng.
+- [ ] **Bước 21:** Mở bài hát MP3 có thẻ ID3 và bìa đĩa; xác nhận Title, Artist và Artwork hiển thị đẹp mắt.
+- [ ] **Bước 22:** Nhấn `Cmd+,` mở Settings, chuyển theme sang Light mode và Pure Black mode; kiểm tra giao diện đổi màu mượt mà.
+- [ ] **Bước 23:** Trong Settings, đổi Ngôn ngữ sang English; kiểm tra các nút HUD, Context menu và Toast đổi sang tiếng Anh.
+- [ ] **Bước 24:** Mở thử một file văn bản `.txt` hoặc file hỏng; kiểm tra thông báo lỗi hiển thị an toàn, app không crash.
+- [ ] **Bước 25:** Click nút đỏ `[X]` trên macOS; xác nhận cửa sổ đóng và dấu chấm tròn trên thanh Dock biến mất hoàn toàn.
 

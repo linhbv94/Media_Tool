@@ -172,6 +172,22 @@ Bật hoặc tắt chế độ luôn nổi trên cùng của cửa sổ ứng d�
 
 ---
 
+### 2.5 Nhóm Lệnh Hộp Thoại & Nạp Tệp Hệ Thống (`dialog`)
+1. **Lệnh `open_file_dialog`:** Mở hộp thoại chọn tệp media bản địa của OS (`rfd` / Cocoa NSOpenPanel).
+   * **TypeScript Signature:** `export async function openFileDialog(): Promise<string | null>;`
+   * **Rust Signature:** `pub async fn open_file_dialog() -> Result<Option<String>, String>;`
+2. **Lệnh `open_folder_dialog`:** Mở hộp thoại chọn thư mục chứa media.
+   * **TypeScript Signature:** `export async function openFolderDialog(): Promise<string | null>;`
+   * **Rust Signature:** `pub async fn open_folder_dialog() -> Result<Option<String>, String>;`
+3. **Lệnh `get_initial_media_file`:** Đọc đường dẫn tệp được truyền qua tham số dòng lệnh CLI (`std::env::args()`) khi khởi động ứng dụng qua *Open With*.
+   * **TypeScript Signature:** `export async function getInitialMediaFile(): Promise<string | null>;`
+   * **Rust Signature:** `pub fn get_initial_media_file() -> Option<String>;`
+4. **Hệ thống Sự kiện (Tauri Events):**
+   * `open-media-file`: Phát từ Rust khi macOS nhận sự kiện mở file khi app đang chạy (`RunEvent::Opened { urls }`).
+   * `trigger-open-file` & `trigger-open-folder`: Phát khi người dùng chọn menu *File* trên Menu Bar hệ thống hoặc bấm `Cmd+O` / `Cmd+Shift+O`.
+
+---
+
 ## 3. Các Mô hình Dữ liệu TypeScript (Frontend Models)
 
 Toàn bộ các kiểu dữ liệu dùng chung trong thư mục `src/types/` được đặc tả như sau:
@@ -234,12 +250,16 @@ export interface PlaybackState {
   playback_rate: number;       // 1.0 (mặc định), 1.25, 1.5, 2.0...
 }
 
+export type ThemeMode = 'system' | 'dark' | 'light' | 'black';
+export type AppLanguage = 'vi' | 'en';
+
 // 8. Cấu hình Cài đặt Ứng dụng (App Settings Model)
 export interface AppSettings {
   single_instance: boolean;      // Tái sử dụng cửa sổ (Mặc định: true)
   auto_pin: boolean;             // Tự động ghim khi mở (Mặc định: false)
   hud_hide_delay_ms: number;     // Thời gian ẩn HUD (Mặc định: 2000ms)
-  theme: 'slate' | 'black';      // Chủ đề màu sắc (Mặc định: 'slate')
+  theme: ThemeMode;              // Chủ đề màu sắc (Mặc định: 'system' - Thích ứng theo OS)
+  language: AppLanguage;         // Ngôn ngữ giao diện (Mặc định: 'vi' - Tiếng Việt / 'en' - English)
   seek_short_sec: number;        // Tua ngắn (Mặc định: 1.0s)
   seek_long_sec: number;         // Tua dài (Mặc định: 5.0s)
   ab_loop_crossfade_ms: number;  // Độ mượt A-B Loop (Mặc định: 45ms)
@@ -257,19 +277,29 @@ export interface MarkSessionState {
 
 ---
 
-## 4. Quản lý Vòng đời & Xử lý Tham số Khởi chạy (App Lifecycle & Args)
+## 4. Quản lý Vòng đời, Khởi chạy & Lưu trữ Cấu hình (App Lifecycle & Persistence)
 
-Hệ thống hỗ trợ 2 phương thức mở tệp:
-1. **Khởi chạy từ dòng lệnh / File Association (Cold Start):**
-   - Khi người dùng click đúp file từ OS, đường dẫn file được truyền vào biến dòng lệnh `std::env::args()[1]`.
-   - Rust Core nạp file và khởi tạo cửa sổ chính.
-2. **Kéo thả hoặc Mở file khi ứng dụng đang chạy (Hot Switch / Single Instance):**
-   - Áp dụng plugin `tauri-plugin-single-instance`. Khi một file mới được click đúp trong lúc Media Tool đã mở:
-     - Ứng dụng không mở thêm cửa sổ mới (giữ đúng nguyên tắc One App).
-     - Đưa cửa sổ hiện tại lên tiêu điểm (focus window).
-     - Phát sự kiện `app:open-file` kèm đường dẫn mới để Frontend tự động chuyển file ngay lập tức.
-3. **Thoát Sạch Khi Bấm Nút Đỏ [X] (Exit on Close Handler):**
-   - Lắng nghe `WindowEvent::CloseRequested` trên tầng Rust:
-     - Hủy buffer RAM ảnh 3-slot và giải phóng AudioContext.
-     - Gọi `window.app_handle().exit(0)` thoát hoàn toàn tiến trình, xóa sạch chấm tròn Dock trên macOS ngay lập tức.
+### 4.1 Khởi chạy từ File Association / "Open With" (Cold Start & Warm Switch)
+Hệ thống xử lý tương thích 100% cả macOS và Windows 11 qua kiến trúc Dual-Channel:
+1. **Cold Start (Ứng dụng chưa mở):**
+   - **macOS:** Hệ điều hành gửi AppleEvents (`kAEOpenDocuments`) qua `tauri::RunEvent::Opened { urls }`. Rust Backend bắt sự kiện này trong `app.run()`, lưu vào trạng thái thread-safe `InitialMediaState(Mutex<Option<String>>)`. Khi Frontend React khởi tạo (`App.tsx` mount), React gọi command `get_initial_media_file()` để lấy đường dẫn và load ngay lập tức mà không bị mất sự kiện (khắc phục hoàn toàn race condition).
+   - **Windows:** Hệ điều hành truyền đường dẫn qua tham số dòng lệnh `std::env::args()`. Hàm `get_initial_media_file()` phân tích args, chuẩn hóa path và trả về cho React.
+2. **Warm Switch (Ứng dụng đang chạy):**
+   - Khi người dùng click "Open With" hoặc kéo tệp vào icon Dock/Taskbar, sự kiện `RunEvent::Opened` trên Rust phát event `open-media-file` đến webview, đồng thời gọi `win.unminimize()` và `win.set_focus()` để đưa cửa sổ lên trên cùng.
+   - Frontend `listenOpenMediaFile` nhận payload đường dẫn và gọi `handleLoadPath` chuyển đổi file/thư mục mượt mà.
+
+### 4.2 Lưu trữ Cấu hình & Trạng thái Người dùng (Config Persistence)
+Toàn bộ cấu hình và trạng thái của ứng dụng được lưu trữ an toàn trong Webview LocalStorage của hệ điều hành:
+- **Vị trí lưu trữ vật lý trên ổ cứng:**
+  - **macOS:** `~/Library/Application Support/com.vxmedia.desktop/WebKit/WebsiteData/Default/LocalStorage/`
+  - **Windows 11:** `%APPDATA%\com.vxmedia.desktop\EBWebView\Default\Local Storage\`
+- **Các khóa cấu hình chính:**
+  - `media_tool_settings`: Lưu toàn bộ cài đặt hệ thống (`AppSettings`) gồm chủ đề, ngôn ngữ, bước tua, thời gian ẩn HUD, độ mượt A-B fade, v.v.
+  - `media_tool_loop_file`: Lưu chế độ lặp file hiện tại (`'all'` | `'single'` | `'off'`). Khi người dùng bấm đổi chế độ lặp (hoặc phím `L`), trạng thái được ghi đè tức thì để duy trì chính xác ở lần mở app kế tiếp.
+  - `media_tool_volume`: Lưu mức âm lượng gần nhất (`0.0` - `1.0`).
+
+### 4.3 Thoát Sạch Khi Bấm Nút Đỏ [X] (Zero-Residue Quit):
+- Lắng nghe `WindowEvent::CloseRequested` trên tầng Rust:
+  - Hủy buffer RAM ảnh 3-slot và giải phóng AudioContext.
+  - Gọi `window.app_handle().exit(0)` thoát hoàn toàn tiến trình, xóa sạch chấm tròn Dock trên macOS ngay lập tức.
 

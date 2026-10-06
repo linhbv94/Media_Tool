@@ -1,0 +1,216 @@
+import { AppLanguage } from '../types';
+
+export const TRANSLATIONS = {
+  vi: {
+    // Window Bar
+    app_title: 'VXMedia',
+    pin: 'Ghim',
+    pinned: 'Đã ghim',
+    hud: 'HUD',
+    folder_list: 'DS (B)',
+    settings: 'Cài đặt (Cmd+,)',
+    open_file: 'Mở tệp (Cmd+O)',
+    open_folder: 'Mở thư mục (Cmd+Shift+O)',
+    drag_drop_hint: 'Kéo thả tệp hoặc thư mục vào đây',
+
+    // Player & Viewer Navigation
+    file_prev: 'File Trước',
+    file_next: 'File Tiếp',
+    prev: 'Trước',
+    next: 'Tiếp',
+    play: 'Phát',
+    pause: 'Tạm dừng',
+    play_pause: 'Phát / Dừng (Space)',
+    rewind_5s: 'Lùi 5s (Shift + ←)',
+    rewind_1s: 'Lùi 1s (←)',
+    forward_1s: 'Tới 1s (→)',
+    forward_5s: 'Tới 5s (Shift + →)',
+
+    // Controls
+    shuffle: 'Xáo trộn thứ tự phát (S)',
+    loop_file: 'Lặp tệp: Tắt ↔ 1 ↔ All (L/R)',
+    loop_off: 'Tắt',
+    set_a: 'Đặt mốc A ([)',
+    set_b: 'Đặt mốc B (])',
+    toggle_ab: 'Bật/Tắt Lặp A-B (\\)',
+    mark: 'Đánh dấu',
+    marked: 'Đã mark',
+    copy_mark: 'Copy Mark',
+    cut_mark: 'Cut',
+    fullscreen: 'Toàn màn hình',
+    rotate: 'Xoay 90° (R)',
+
+    // Toast
+    toast_copied_current: '✓ Đã sao chép tệp hiện tại vào Clipboard',
+    toast_copied_n: (n: number) => `✓ Đã sao chép ${n} tệp vào Clipboard`,
+    toast_cut_n: (n: number) => `✂️ Đã cắt ${n} tệp vào Clipboard (Nhấn Option+Cmd+V để di chuyển)`,
+
+    // Sidebar
+    file_list: 'Danh sách tệp',
+    quick_filter: 'Lọc nhanh (gõ tên)...',
+    no_files_found: 'Không tìm thấy tệp phù hợp',
+
+    // Error & Empty
+    no_media_opened: 'Chưa mở tệp nào',
+    corrupted_format: 'Không thể hiển thị định dạng này',
+    corrupted_desc: 'Tệp có thể bị hỏng dữ liệu hoặc không được hỗ trợ bởi hệ điều hành.',
+
+    // Settings Modal
+    settings_title: '⚙️ Cài đặt VXMedia',
+    tab_general: 'Chung (General)',
+    tab_playback: 'Trình phát (Playback)',
+    tab_cache: 'Bộ nhớ & Cache',
+    tab_hotkeys: 'Phím tắt (Hotkeys)',
+
+    // Settings Fields
+    sec_window_behavior: 'HÀNH VI CỬA SỔ & HỆ THỐNG',
+    single_instance: 'Luôn mở tệp mới trong cùng 1 cửa sổ',
+    single_instance_desc: 'Tái sử dụng tab khi click đúp mở tệp từ OS Finder/Explorer.',
+    auto_pin: 'Tự động Ghim trên cùng (Pin on top) khi khởi động',
+    hud_hide_delay: 'Thời gian Tự động Ẩn HUD',
+    hud_1s: '1 giây (Siêu nhanh)',
+    hud_2s: '2 giây (Mặc định)',
+    hud_3s: '3 giây',
+    hud_never: 'Không bao giờ ẩn',
+
+    sec_theme_colors: 'GIAO DIỆN & MÀU SẮC',
+    theme_system: 'Thích ứng OS (Hệ thống - Mặc định)',
+    theme_dark: 'Tối trầm (Slate #0f1117)',
+    theme_light: 'Sáng dịu (Light Clean)',
+    theme_black: 'Đen tuyền (Pure Black #000000)',
+
+    sec_language: 'NGÔN NGỮ (LANGUAGE)',
+    lang_vi: 'Tiếng Việt',
+    lang_en: 'English',
+
+    sec_seek_steps: 'BƯỚC NHẢY TUA THỜI GIAN',
+    seek_short: 'Tua ngắn (Mũi tên ← / →):',
+    seek_long: 'Tua dài (Shift + Mũi tên):',
+    sec_ab_fade: 'Độ Mượt Fade khi Lặp A-B (Adaptive Audio Fade)',
+    ab_fade_desc: 'Điều chỉnh thời lượng fade out/in (0ms ngắt bén - 100ms siêu êm).',
+    autoplay_next: 'Tự động phát ngay khi chuyển sang video/audio kế tiếp',
+    default_loop_mode: 'CHẾ ĐỘ LẶP MẶC ĐỊNH',
+    loop_all_desc: 'Lặp toàn bộ danh sách tệp trong thư mục',
+    loop_single_desc: 'Lặp 1 tệp hiện tại (Repeat 1)',
+    loop_off_desc: 'Tắt lặp (Dừng khi phát hết danh sách)',
+
+    sec_cache_arch: 'Kiến Trúc Zero-Disk-Cache',
+    cache_arch_desc: 'Media Tool hoàn toàn không ghi bất kỳ tệp đệm nào xuống ổ cứng. Mọi tài nguyên ảnh được tải theo cơ chế cửa sổ trượt 3-slot trong RAM và giải phóng tức thì.',
+    ram_usage: 'Mức chiếm dụng RAM ước tính:',
+    ram_optimal: '~38.4 MB (Trạng thái tối ưu)',
+    btn_clear_ram: '🧹 Giải phóng RAM ngay',
+    ram_cleared: '✓ Đã dọn sạch bộ đệm ảnh trong RAM!',
+
+    sec_hotkeys_title: 'BẢNG TRA CỨU PHÍM TẮT TOÀN DIỆN',
+    btn_defaults: 'Mặc định',
+    btn_close: 'Đóng',
+  },
+  en: {
+    // Window Bar
+    app_title: 'VXMedia',
+    pin: 'Pin',
+    pinned: 'Pinned',
+    hud: 'HUD',
+    folder_list: 'List (B)',
+    settings: 'Settings (Cmd+,)',
+    open_file: 'Open File (Cmd+O)',
+    open_folder: 'Open Folder (Cmd+Shift+O)',
+    drag_drop_hint: 'Drag & drop media files or folders here',
+
+    // Player & Viewer Navigation
+    file_prev: 'Prev File',
+    file_next: 'Next File',
+    prev: 'Prev',
+    next: 'Next',
+    play: 'Play',
+    pause: 'Pause',
+    play_pause: 'Play / Pause (Space)',
+    rewind_5s: 'Rewind 5s (Shift + ←)',
+    rewind_1s: 'Rewind 1s (←)',
+    forward_1s: 'Forward 1s (→)',
+    forward_5s: 'Forward 5s (Shift + →)',
+
+    // Controls
+    shuffle: 'Shuffle Playlist (S)',
+    loop_file: 'Repeat: Off ↔ 1 ↔ All (L/R)',
+    loop_off: 'Off',
+    set_a: 'Set Point A ([)',
+    set_b: 'Set Point B (])',
+    toggle_ab: 'Toggle A-B Loop (\\)',
+    mark: 'Mark',
+    marked: 'Marked',
+    copy_mark: 'Copy Mark',
+    cut_mark: 'Cut',
+    fullscreen: 'Fullscreen',
+    rotate: 'Rotate 90° (R)',
+
+    // Toast
+    toast_copied_current: '✓ Copied current file to Clipboard',
+    toast_copied_n: (n: number) => `✓ Copied ${n} files to Clipboard`,
+    toast_cut_n: (n: number) => `✂️ Cut ${n} files to Clipboard (Press Option+Cmd+V to move in Finder)`,
+
+    // Sidebar
+    file_list: 'File List',
+    quick_filter: 'Quick search (name)...',
+    no_files_found: 'No matching files found',
+
+    // Error & Empty
+    no_media_opened: 'No media opened',
+    corrupted_format: 'Cannot display this file format',
+    corrupted_desc: 'The file might be corrupted or unsupported by your OS.',
+
+    // Settings Modal
+    settings_title: '⚙️ Settings VXMedia',
+    tab_general: 'General',
+    tab_playback: 'Playback',
+    tab_cache: 'Storage & Cache',
+    tab_hotkeys: 'Hotkeys',
+
+    // Settings Fields
+    sec_window_behavior: 'WINDOW & SYSTEM BEHAVIOR',
+    single_instance: 'Always open new files in the same window',
+    single_instance_desc: 'Reuse current window when double-clicking files in OS Finder/Explorer.',
+    auto_pin: 'Automatically Pin on top on launch',
+    hud_hide_delay: 'HUD Auto-Hide Delay',
+    hud_1s: '1 second (Fast)',
+    hud_2s: '2 seconds (Default)',
+    hud_3s: '3 seconds',
+    hud_never: 'Never hide',
+
+    sec_theme_colors: 'THEME & COLORS',
+    theme_system: 'System Adaptive (OS Default)',
+    theme_dark: 'Dark Slate (#0f1117)',
+    theme_light: 'Light Clean',
+    theme_black: 'Pure Black (#000000)',
+
+    sec_language: 'LANGUAGE',
+    lang_vi: 'Tiếng Việt',
+    lang_en: 'English',
+
+    sec_seek_steps: 'TIMELINE SEEK STEPS',
+    seek_short: 'Short seek (Arrow ← / →):',
+    seek_long: 'Long seek (Shift + Arrow):',
+    sec_ab_fade: 'Smooth A-B Loop Crossfade (Adaptive Audio Fade)',
+    ab_fade_desc: 'Adjust fade out/in curve duration (0ms sharp cut - 100ms ultra-smooth).',
+    autoplay_next: 'Autoplay immediately when switching to next video/audio',
+    default_loop_mode: 'DEFAULT REPEAT MODE',
+    loop_all_desc: 'Loop all files in directory',
+    loop_single_desc: 'Repeat current file (Repeat 1)',
+    loop_off_desc: 'Repeat off (Stop at end of playlist)',
+
+    sec_cache_arch: 'Zero-Disk-Cache Architecture',
+    cache_arch_desc: 'Media Tool never writes temporary cache or thumbnail files to your disk. All image buffers utilize a 3-slot sliding window in RAM and release immediately.',
+    ram_usage: 'Estimated RAM footprint:',
+    ram_optimal: '~38.4 MB (Optimal State)',
+    btn_clear_ram: '🧹 Free RAM Now',
+    ram_cleared: '✓ Cleared image memory buffer in RAM!',
+
+    sec_hotkeys_title: 'KEYBOARD SHORTCUTS CHEATSHEET',
+    btn_defaults: 'Reset Defaults',
+    btn_close: 'Close',
+  },
+};
+
+export function t(lang: AppLanguage) {
+  return TRANSLATIONS[lang] || TRANSLATIONS.vi;
+}

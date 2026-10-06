@@ -190,7 +190,50 @@ Nhằm đảm bảo sản phẩm đạt đúng tiêu chí **"Siêu nhẹ, Tốc 
 
 ---
 
-## 7. Tiêu chuẩn Thực thi cho AI Execution Agent
+## 8. Quy chuẩn Biểu tượng Ứng dụng & Đóng gói (.icns cho macOS & .ico cho Windows)
+
+### 8.1. Hiện tượng "Icon bị biến thành Glass" trên macOS Web App
+* **Nguyên nhân:** Khi tạo Web App bằng tính năng *"Add to Dock"* của Safari (từ macOS Sonoma 14+), nếu website chỉ cung cấp favicon vuông phẳng (Flat square PNG) mà không có hình dạng bo góc siêu elip (Apple Squircle) kèm vùng lề an toàn (Safe-area padding), hệ điều hành macOS sẽ **tự động bọc một lớp đĩa kính mờ (Translucent Glass Plate), tạo viền vát 3D (Bevel sheen) và đổ bóng nổi** lên trên icon nhằm ép nó vừa khít với lưới thiết kế của Dock.
+* **Đối với Ứng dụng Desktop Bản địa (Tauri):**
+  - Ứng dụng được đóng gói thành tệp bundle native `.app` chứa tệp tài nguyên biểu tượng độc lập **`icon.icns`**.
+  - macOS hiển thị **chính xác 100% từng pixel và layer thiết kế gốc** trong tệp `.icns`, hoàn toàn không tự ý can thiệp, không phủ kính và không bọc viền ngoài.
+
+### 8.2. Chiến Lược Biểu Tượng Phân Tách Theo Nền Tảng (Cross-Platform Dual-Icon Strategy)
+Do ngôn ngữ thiết kế của macOS (Apple HIG) và Windows 11 (Microsoft Fluent Design) hoàn toàn khác nhau về quy chuẩn hiển thị thanh Dock / Taskbar, hệ thống áp dụng chiến lược **2 bản thiết kế độc lập**:
+
+| Nền tảng | Phong cách hiển thị | Cấu trúc file nguồn (1024×1024 px) | Định dạng đóng gói cuối cùng |
+| :--- | :--- | :--- | :--- |
+| **macOS (Apple Silicon / Intel)** | **Squircle Plate + Object Trắng** | Khung vẽ 1024×1024, ở giữa là đĩa Squircle 824×824 có màu nền fill (Gradient / Dark / Accent), lồng hình **Object màu trắng** bên trong; viền ngoài chừa lề trong suốt 100px. | **`src-tauri/icons/icon.icns`** (chỉ macOS Bundle `.app` sử dụng) |
+| **Windows 11 (x64)** | **Nền Trong Suốt + Object Fill (Frameless)** | Khung vẽ 1024×1024, **nền 100% trong suốt**, không có khung hộp chữ nhật bao quanh; chỉ có hình **Object được fill màu nổi bật** thả nổi trực tiếp trên Taskbar. | **`src-tauri/icons/icon.ico`** (chỉ Windows `.exe` / `.msi` sử dụng) |
+
+### 8.3. Quy Trình Xuất & Đồng Bộ Biểu Tượng Tự Động (Dual Build Workflow)
+1. **Chuẩn bị 2 tệp nguồn:**
+   - `app_icon_mac.png` (bản có nền Squircle + Object trắng).
+   - `app_icon_win.png` (bản nền trong suốt + Object fill màu).
+2. **Quy trình đóng gói song song:**
+   - *Bước 1 (Sinh icon cho Mac):* Chạy `npx @tauri-apps/cli icon app_icon_mac.png` → Tauri sinh `icon.icns` chuẩn cho macOS.
+   - *Bước 2 (Sinh icon cho Windows):* Chạy `npx @tauri-apps/cli icon app_icon_win.png -o src-tauri/icons-win` rồi sao chép tệp `icon.ico` và các file `32x32.png`, `128x128.png` đè vào `src-tauri/icons/`.
+   - Kết quả: Thư mục `src-tauri/icons/` chứa đúng file `icon.icns` của Mac và `icon.ico` của Windows mà không hề xung đột lẫn nhau. Khi build bản Mac, Tauri chỉ đọc `.icns`; khi build bản Win, Tauri chỉ đọc `.ico`.
+
+### 8.4. Quy Chuẩn Tích Hợp Hệ Điều Hành (OS File Associations, Seamless Window & Native Menus)
+1. **Khử Lặp Thanh Tiêu Đề (Seamless Titlebar):**
+   - Thiết lập `titleBarStyle: "Overlay"` và `hiddenTitle: true` trong `tauri.conf.json`.
+   - Cửa sổ không hiển thị dải header giả hay thanh đen tiêu đề tách biệt; 3 nút Traffic Light gốc của macOS (Đỏ, Vàng, Xanh) được tích hợp trực tiếp vào góc trên bên trái của giao diện ứng dụng.
+   - Thanh công cụ HUD chừa khoảng đệm an toàn `pl-20` (padding-left 80px) để không che lấp các nút điều khiển của OS.
+2. **Đăng Ký Đề Xuất Mở Tệp (Recommended App / File Associations):**
+   - Khai báo `bundle.fileAssociations` cho 3 nhóm định dạng:
+     * **Audio:** `mp3, wav, flac, ogg, aac, m4a, wma, aiff`.
+     * **Video:** `mp4, mkv, webm, mov, avi, m4v`.
+     * **Image:** `jpg, jpeg, png, webp, gif, svg, bmp, ico, avif`.
+   - Kết quả: Khi người dùng nhấp chuột phải vào bất kỳ tệp media nào trong Finder/Explorer và chọn *Open With*, hệ điều hành sẽ tự động đề xuất **VXMedia** trong danh sách ứng dụng phù hợp nhất.
+3. **Menu Bar Hệ Thống & Bộ Điều Khiển Mở Tệp (Native Menus & Dialogs):**
+   - Menu hệ thống **File**: Hỗ trợ *Mở tệp...* (`Cmd+O`), *Mở thư mục...* (`Cmd+Shift+O`) và *Đóng cửa sổ* (`Cmd+W`).
+   - Tích hợp hộp thoại tệp bản địa (`rfd` / Cocoa NSOpenPanel) và cơ chế kéo-thả trực tiếp (Drag & Drop) tệp hoặc thư mục vào cửa sổ.
+   - Bắt sự kiện hệ thống `RunEvent::Opened` để tự động phát ngay khi người dùng mở tệp từ Finder hoặc kéo tệp vào icon app trên Dock.
+
+---
+
+## 9. Tiêu chuẩn Thực thi cho AI Execution Agent
 
 Khi Dev Agent nhận lệnh triển khai mã nguồn, bắt buộc tuân thủ:
 1. **Phân tách Module rõ ràng:** Tuyệt đối không viết lẫn lộn logic của Viewer vào Player. Mọi hàm logic chung phải chuyển về `src/core`.
@@ -198,3 +241,4 @@ Khi Dev Agent nhận lệnh triển khai mã nguồn, bắt buộc tuân thủ:
 3. **Không tự ý mở rộng Scope:** Khi gặp câu hỏi "Liệu có nên thêm tính năng này không?", mặc định câu trả lời là **KHÔNG** trừ khi có chỉ thị trực tiếp từ Product Owner.
 4. **Không phụ thuộc thư viện rác:** Giữ số lượng dependencies ở mức tối thiểu.
 5. **Tiêu chuẩn đặt tên & Đường dẫn:** Tuân thủ chuẩn **snake_case** cho tên file, thư mục; không dùng dấu gạch ngang `-`; sử dụng relative links cho tài liệu.
+

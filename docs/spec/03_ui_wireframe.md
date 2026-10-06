@@ -26,7 +26,7 @@
 
 ## 2. Wireframe Phân hệ Viewer (Image Viewer)
 
-Giao diện xem ảnh tối giản, hiện đại và tập trung tối đa vào bức ảnh. Thanh thông tin tệp chuyển xuống dưới cùng, thanh công cụ gộp thành 1 hàng duy nhất và Toast phản hồi nổi ngay phía trên thanh công cụ.
+Giao diện xem ảnh tối giản, hiện đại và tập trung tối đa vào bức ảnh. Thanh thông tin tệp (tên file + số thứ tự) được tích hợp trực tiếp vào chính giữa thanh điều hướng, thanh công cụ gộp thành 1 hàng duy nhất và Toast phản hồi nổi ngay phía trên thanh công cụ.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -41,9 +41,8 @@ Giao diện xem ảnh tối giản, hiện đại và tập trung tối đa vào
 │                 │  ✓ Đã sao chép 4 tệp vào Clipboard │                 │ ◄─ Toast Feedback (Tự biến mất sau 2s)
 │                 └────────────────────────────────────┘                 │    (Nổi lơ lửng phía trên Action Bar)
 │  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │ [◀ Trước] [Tiếp ▶]  [☆ Đánh dấu (M)]  [📦 Copy Mark (4)] [✂️ Cut] [⛶]│  │ ◄─ Bottom Action Bar (Gộp 1 hàng duy nhất)
+│  │ [◀ File Trước] [File Tiếp ▶] │ 🏷️ DSC_0842.JPG [14/120] │ [☆ Mark] [⛶]│  │ ◄─ Bottom Bar: Trái (Nav), Giữa (Info), Phải (Mark, Fullscreen)
 │  └──────────────────────────────────────────────────────────────────┘  │
-│  🏷️ DSC_0842.JPG                                            [ 14 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -53,46 +52,39 @@ Giao diện xem ảnh tối giản, hiện đại và tập trung tối đa vào
    - Góc phải: Nút ghim cửa sổ `[📌 Ghim]` và nút mở danh sách `[📑 DS]`.
 2. **Toast Feedback:**
    - Đặt lơ lửng ngay **phía trên** Action Bar.
-   - Khi bấm Copy / Cut, Toast hiện ra thông báo kết quả trong 2 giây rồi tự mờ và biến mất, không chiếm diện tích cố định.
-3. **Bottom Action Bar (Gộp thành 1 hàng duy nhất):**
-   - **Nút điều hướng:** `[◀ Trước]` và `[Tiếp ▶]` chuyển file trực tiếp.
-   - **Nút Đánh dấu trực quan:** 
-     - Trạng thái chưa đánh dấu: Icon **outline** viền rỗng `☆ Đánh dấu (M)`.
-     - Trạng thái đã đánh dấu: Icon tự chuyển thành **fill** tô đặc màu vàng cam `★ Đã đánh dấu (M)`.
-   - **Nút `[📦 Copy Mark (N)]`:** Sao chép danh sách file đã đánh dấu ra OS Clipboard.
-   - **Nút `[✂️ Cut Mark (N)]`:** Cắt danh sách file đã đánh dấu để di chuyển (Move).
-   - **Nút `[⛶ Toàn màn hình]`:** Bật/tắt chế độ Fullscreen.
-   *(Nút sao chép ảnh hiện tại đã được loại bỏ trên giao diện để tránh rườm rà, người dùng chỉ cần nhấn phím tắt `Cmd+C` / `Ctrl+C`).*
-4. **Footer Dưới cùng (Thanh trạng thái tối giản):**
-   - Đặt ở đáy màn hình: Góc trái là **Tên tệp** (`DSC_0842.JPG`), góc phải là **Số thứ tự trong folder** (`[ 14 / 120 ]`).
+   - Khi bấm Copy / Cut, Toast hiện ra thông báo kết quả trong 2 giây rồi tự mờ và biến mất.
+3. **Bottom Action Bar (Gộp 1 hàng duy nhất, tích hợp Info ở giữa):**
+   - **Canh lề trái:** `[◀ File Trước]` và `[File Tiếp ▶]` chuyển file trực tiếp.
+   - **Canh giữa:** Thanh thông tin tệp `🏷️ DSC_0842.JPG   [ 14 / 120 ]` (Tên tệp + Số thứ tự trong thư mục).
+   - **Canh lề phải:** `[☆ Đánh dấu]` / `[★ Đã mark]`, `[📦 Copy Mark]` / `[✂️ Cut Mark]` (nếu có mark) và `[⛶ Toàn màn hình]`.
 
 ---
 
 ## 3. Wireframe Phân hệ Player — Chế độ Video
 
-Tương tự phân hệ Viewer: Thanh cửa sổ trên cùng giữ chuẩn thống nhất, thanh điều khiển phát gộp tinh gọn và Footer đáy hiển thị tên video kèm số thứ tự.
+Thanh điều khiển phát tinh gọn 2 hàng được sắp xếp theo đúng quy chuẩn phân cụm công năng:
+- **Hàng 1:** Cụm Playback, Tua thời gian, Shuffle, Repeat, A-B Loop canh lề trái; Cụm Âm lượng (Volume) canh lề phải.
+- **Hàng 2:** Chuyển tệp (`Prev/Next File`) canh lề trái; Thông tin tệp (`Info: Tên file + Số thứ tự`) nằm chính giữa; Đánh dấu (`Mark`) và Toàn màn hình (`Fullscreen`) canh lề phải.
 
 ```text
-┌────────────────────────────────────────────────────────────────────────┐
-│ [●][▲][▼] media_tool                   [📌 Ghim] [👁️ Ẩn HUD] [📑 DS]│ ◄─ Window Bar
-│                                                                        │
-│                                                                        │
-│                           [ VIDEO CONTENT ]                            │
-│                        (Khung hiển thị Video)                          │
-│                                                                        │
-│                                                                        │
-│                 ┌────────────────────────────────────┐                 │
-│                 │  ✓ Đã sao chép 3 tệp vào Clipboard │                 │ ◄─ Toast Feedback
-│                 └────────────────────────────────────┘                 │
-│  ┌──────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ 01:14 ────────────────●───────[════════════════]──────── 04:32                   │  │ ◄─ Timeline với mốc [A] và [B]
-│  │                               ▲                ▲                                 │  │
-│  │ ────────────────────────────────────────────────────────────────────────────────────────── │  │
-│  │ [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] │ [🔀 Shuffle] [🔁 File: Tắt] │ [Set A] [Set B] [🔁 AB: 45ms] │  │ ◄─ Hàng 1: Tua, Play, Shuffle, Loop File & Loop AB
-│  │ ────────────────────────────────────────────────────────────────────────────────────────── │  │
-│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu (M)]  │  [📦 Copy Mark (3)]  [✂️ Cut Mark (3)]  │ [🔊 80% ──●──] [⛶] │  │ ◄─ Hàng 2: Chuyển File, Mark, Copy/Cut, Volume & Fullscreen
-│  └──────────────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar (Mặc định HIỆN)
-│  🏷️ action_clip_02.mp4                                                           [ 15 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
+┌────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [●][▲][▼] media_tool                                       [📌 Ghim] [👁️ Ẩn HUD] [📑 DS]│ ◄─ Window Bar
+│                                                                                            │
+│                                                                                            │
+│                              [ VIDEO CONTENT ]                                             │
+│                           (Khung hiển thị Video)                                           │
+│                                                                                            │
+│                                                                                            │
+│                    ┌────────────────────────────────────┐                                  │
+│                    │  ✓ Đã sao chép 3 tệp vào Clipboard │                                  │ ◄─ Toast Feedback
+│                    └────────────────────────────────────┘                                  │
+│  ┌──────────────────────────────────────────────────────────────────────────────────────┐  │
+│  │ 01:14 ───────────────────●───────[════════════════]──────────── 04:32                │  │ ◄─ Timeline với mốc [A] và [B]
+│  │ ──────────────────────────────────────────────────────────────────────────────────── │  │
+│  │ [▶/⏸] [<<] [<] [>] [>>]  [🔀] [🔁 All]  [A] [B] [🔁 AB]          │  [🔊 80% ──●──]    │  │ ◄─ Hàng 1: Playback/Tua/Loop lề TRÁI │ Volume lề PHẢI
+│  │ ──────────────────────────────────────────────────────────────────────────────────── │  │
+│  │ [◀ File Trước] [File Tiếp ▶]  │  🏷️ action_clip_02.mp4 [15/120]  │  [☆ Mark (M)]  [⛶] │  │ ◄─ Hàng 2: Nav lề TRÁI │ Info CHÍNH GIỮA │ Mark/⛶ lề PHẢI
+│  └──────────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Floating Control Bar (Mặc định HIỆN)
 └────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -100,7 +92,7 @@ Tương tự phân hệ Viewer: Thanh cửa sổ trên cùng giữ chuẩn thố
 
 ## 4. Wireframe Phân hệ Player — Chế độ Audio (Âm nhạc & Podcast)
 
-Khi mở file audio, giao diện giữ nguyên cấu trúc chuẩn: Window Bar phía trên, Card âm nhạc ở giữa, thanh điều khiển bên dưới và Footer đáy hiển thị tên file kèm số thứ tự.
+Khi mở file audio, giao diện giữ nguyên cấu trúc chuẩn của Control Bar: Window Bar phía trên, Card âm nhạc ở giữa, thanh điều khiển bên dưới tích hợp toàn bộ info.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -119,11 +111,12 @@ Khi mở file audio, giao diện giữ nguyên cấu trúc chuẩn: Window Bar p
 │                     │  ✓ Đã sao chép 4 tệp vào Clipboard │                                 │ ◄─ Toast Feedback
 │                     └────────────────────────────────────┘                                 │
 │  ┌──────────────────────────────────────────────────────────────────────────────────────┐  │
-│  │ 00:45 ─────────────●──────────[═════════════]─────────── 04:17                       │  │ ◄─ Timeline
-│  │ [⏪ -5s] [◀ -1s] [▶/⏸] [+1s ▶] [+5s ⏩] │ [🔀 Shuffle] [🔁 File: Tắt] │ [Set A] [Set B] │  │ ◄─ Hàng 1: Tua, Play, Shuffle & Loop
-│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu (M)]  │  [📦 Copy Mark (4)]  [✂️ Cut] │ [🔊 80% ──●──] [⛶]│  │ ◄─ Hàng 2: Chuyển File, Copy/Cut & Volume
-│  └──────────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Control Bar
-│  🏷️ track_03_counting_stars.mp3                                                  [ 16 / 120 ]│ ◄─ Footer Dưới cùng: Tên file + Số thứ tự
+│  │ 00:45 ────────────────●──────────[═════════════]─────────────── 04:17                │  │ ◄─ Timeline
+│  │ ──────────────────────────────────────────────────────────────────────────────────── │  │
+│  │ [▶/⏸] [<<] [<] [>] [>>]  [🔀] [🔁 All]  [A] [B] [🔁 AB]          │  [🔊 80% ──●──]    │  │ ◄─ Hàng 1: Playback/Tua/Loop lề TRÁI │ Volume lề PHẢI
+│  │ ──────────────────────────────────────────────────────────────────────────────────── │  │
+│  │ [◀ File Trước] [File Tiếp ▶]  │  🏷️ track_03.mp3 [16/120]        │  [☆ Mark (M)]  [⛶] │  │ ◄─ Hàng 2: Nav lề TRÁI │ Info CHÍNH GIỮA │ Mark/⛶ lề PHẢI
+│  └──────────────────────────────────────────────────────────────────────────────────────┘  │ ◄─ Floating Control Bar
 └────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -326,11 +319,10 @@ Phần này quy định chi tiết 4 trường hợp đặc thù về hành vi h
 │                     │                      │                           │
 │                     │                      │                           │
 │  ┌──────────────────┴──────────────────────┴────────────────────────┐  │
-│  │ 00:15 ──────●────────────────────────────── 00:58                │  │ ◄─ Control Bar nổi đè nhẹ
-│  │ [⏪] [◀] [▶/⏸] [▶] [⏩] │ [🔀] [🔁 File] │ [Set A] [Set B] [🔁 AB] │  │    ngang đáy cửa sổ,
-│  │ [◀ Trước] [Tiếp ▶]  │  [☆ Đánh dấu]  │  [📦 Copy]  [✂️ Cut]  │ [⛶]│  │    không bị bó hẹp theo video
+│  │ 00:15 ──────●────────────────────────────────────────────── 00:58│  │ ◄─ Timeline
+│  │ [▶/⏸] [<<] [<] [>] [>>]  [🔀] [🔁 All]  [A] [B] [🔁 AB] │ [🔊 80%] │  │ ◄─ Hàng 1: Trái (Controls) │ Phải (Volume)
+│  │ [◀ File Trước] [File Tiếp ▶] │ 🏷️ reel.mp4 [5/120] │ [☆ Mark] [⛶]│  │ ◄─ Hàng 2: Trái (Nav) │ Giữa (Info) │ Phải (Mark/⛶)
 │  └──────────────────────────────────────────────────────────────────┘  │
-│  🏷️ tiktok_dance_trend.mp4                                   [ 5 / 120 ]│
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -374,46 +366,52 @@ HUD (Heads-Up Display) là **toàn bộ lớp giao diện điều khiển phủ 
 
 ---
 
-### 10.4. Cơ chế Responsive Mini PiP Mode khi Người dùng Thu nhỏ Cửa sổ
+### 10.4. Cơ chế Responsive Mini PiP Mode & Logic Điều khiển HUD Độc lập
 
-**Vấn đề:** Người dùng thường có thói quen thu nhỏ cửa sổ video về một góc màn hình (dạng Picture-in-Picture - kích thước rất bé, ví dụ 320x180 hoặc 400x250) để vừa làm việc khác vừa theo dõi video/nghe nhạc. Nếu để nguyên 2 hàng nút bấm với hơn 10 nút thì giao diện sẽ che kín 90% diện tích video.
-
-**Quy chuẩn Chuyển đổi Tự động (Responsive Breakpoints):**
-Hệ thống sử dụng CSS Container Queries hoặc Window Resize Listener để tự động chuyển sang **Chế độ Mini PiP** khi kích thước cửa sổ rơi vào ngưỡng:
+Hệ thống sử dụng Window Resize Listener để tự động chuyển sang **Chế độ Mini PiP** khi kích thước cửa sổ rơi vào ngưỡng:
 * **Ngưỡng Breakpoint Mini:** Chiều rộng `width < 500px` HOẶC chiều cao `height < 320px`.
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│ [●][▲][▼]                                     [📌 Ghim] │ ◄─ Top Bar tinh giản (Chỉ giữ nút đóng/ghim)
+│ [📌]                                                [✕] │ ◄─ WindowBar Mini (Ẩn Traffic Lights/Decorations)
 │                                                         │
 │                                                         │
-│                      [ VIDEO PiP ]                      │
+│                     VIDEO / ẢNH CONTENT                 │
 │                                                         │
 │                                                         │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │ 01:14 ──────────────●─────────────────── 04:32    │  │ ◄─ Micro Timeline thanh mảnh (cao 3px)
-│  │           [◀ Trước]   [ ▶ / ⏸ ]   [Tiếp ▶]         │  │ ◄─ Control Bar rút gọn về 1 hàng duy nhất
-│  └───────────────────────────────────────────────────┘  │    (Chỉ hiện khi Hover chuột)
+│          ┌───────────────────────────────────┐          │
+│          │  [◀]        [ ▶ / ⏸ ]        [▶]  │          │ ◄─ Frosted Pill siêu gọn (Player: có nút Play/Pause)
+│          │  [◀]      [ 11 / 13 ]        [▶]  │          │ ◄─ Frosted Pill siêu gọn (Viewer: có số thứ tự trang)
+│          └───────────────────────────────────┘          │    (Đồng kích thước & vị trí bottom-3, tự ẩn khi idle)
+├─────────────────────────────────────────────────────────┤
+│═════════════════════════●═══════════════════════════════│ ◄─ Timeline Hairline siêu mảnh (2px, sát mép đáy)
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Chi tiết Thích ứng trong Chế độ Mini PiP:**
-1. **Rút gọn Thanh điều khiển về 3 Nút Cốt lõi Nhất:**
-   - Tạm ẩn toàn bộ các nút nâng cao: Shuffle, Loop AB, Copy Mark, Cut Mark, Fullscreen, Footer tên file.
-   - Chỉ giữ lại duy nhất 3 nút điều khiển cơ bản:
-     * `[◀ Trước]` (hoặc phím tắt `Cmd+←` / `Ctrl+←`): Lùi về file trước.
-     * `[ ▶ / ⏸ ]` (hoặc phím tắt `Space`): Tạm dừng / Tiếp tục phát.
-     * `[Tiếp ▶]` (hoặc phím tắt `Cmd+→` / `Ctrl+→`): Chuyển sang file tiếp theo.
-2. **Timeline Thu gọn (Micro Progress Bar):**
-   - Biến thành một đường mảnh 3px sát phía trên cụm 3 nút hoặc sát đáy cửa sổ, có màu xanh nổi bật để người dùng vẫn nhìn rõ tiến độ mà không che mất video.
-3. **Ưu tiên Tối đa cho Nội dung (Hover-Only Visibility):**
-   - Trong chế độ Mini PiP, thanh điều khiển mặc định **ẨN HOÀN TOÀN** để nhường 100% diện tích cửa sổ cho video.
-   - Chỉ khi con trỏ chuột hover vào trong cửa sổ mini thì cụm 3 nút mới hiện mờ lên.
-   - Thời gian tự động ẩn HUD được rút ngắn xuống **1 giây** (thay vì 2 giây như cửa sổ lớn).
-4. **Giữ lại Nút Ghim Cửa sổ `[📌 Ghim (P)]`:**
-   - Nút ghim trên Window Bar vẫn được ưu tiên giữ lại để người dùng có thể kích hoạt nhanh tính năng Ghim luôn nổi trên các ứng dụng khác (Always-on-Top), biến cửa sổ thành PiP thực thụ của hệ điều hành.
-5. **Phím tắt Toàn năng Vẫn Hoạt động 100%:**
-   - Dù các nút Copy, Cut, Mark, Loop AB bị ẩn trên UI Mini PiP, người dùng vẫn có thể bấm phím tắt (`M` để đánh dấu, `Cmd+C` / `Ctrl+C` để copy, `[` / `]` để set A-B) hoàn toàn bình thường mà không gặp bất kỳ trở ngại nào.
+**Chi tiết Đặc tả trong Chế độ Mini PiP & HUD Logic (Chuẩn hóa Cross-Platform macOS & Windows):**
+
+1. **Giao diện Đồng nhất Dạng Viên thuốc (Frosted Pill Controls):**
+   - Đặt sát đáy cửa sổ (`bottom-3`), căn giữa ngang với kích thước siêu nhỏ gọn: `px-2.5 py-1 rounded-full`, viền kính mờ `bg-black/55 backdrop-blur-md border border-white/15 shadow-2xl`.
+   - **Đối với Ảnh (Viewer):** Gồm 2 nút chuyển file `[◀]` và `[▶]` kèm chỉ số trang `[ X / Y ]` ở giữa.
+   - **Đối với Video/Audio (Player):** Giữ nguyên kích thước và thiết kế giống hệt Viewer, chỉ thay phần chỉ số ở giữa bằng nút `[ ▶ / ⏸ ]` màu Cyan nổi bật.
+   - Toàn bộ pill tự động ẩn mượt mà khi người dùng không di chuột (idle).
+
+2. **Timeline Hairline Siêu Mảnh (2px Progress Line ở mép đáy):**
+   - Chạy dọc tràn viền sát đáy cửa sổ (`bottom-0 left-0 right-0`), không nằm trong khối card để không che khuất bất kỳ chi tiết hay phụ đề video nào.
+   - Độ dày hairline chỉ `2px` (nở nhẹ lên `4px` khi hover chuột), vệt sáng Cyan hiển thị chính xác tiến độ phát, hỗ trợ click hoặc kéo tua trực tiếp.
+
+3. **Ẩn Toàn bộ 3 Nút System / Window Decorations (macOS & Windows):**
+   - Khi co cửa sổ về Mini PiP, ứng dụng gọi `setDecorations(false)` làm ẩn hoàn toàn 3 nút đỏ/vàng/xanh trên macOS cũng như titlebar trên Windows, trả lại 100% diện tích viền kính cho video/ảnh.
+   - Thanh tiêu đề mini chuyển sang lề gọn `px-2`, cung cấp nút Ghim `[📌]` và nút Đóng `[✕]` tinh tế ở góc trên bên phải khi rê chuột.
+   - Khi kéo to cửa sổ trở lại (`≥ 500px`), `setDecorations(true)` tự động phục hồi decorations và 3 nút system.
+
+4. **Logic Điều khiển HUD Độc lập & Chống Choán Mắt:**
+   - **Khi Cài đặt "Tự động ẩn sau X giây" (`delay > 0` hoặc Mini PiP):** Cơ chế tự động làm chủ. Di chuột hiện HUD, sau X giây tự ẩn. Nút manual HUD trên WindowBar được làm mờ (`opacity-30 cursor-not-allowed`) với tooltip giải thích để tránh xung đột thao tác.
+   - **Khi Cài đặt "Không bao giờ tự ẩn" (`delay = 0`):** Nút manual HUD (và phím tắt `H`, chuột phải context menu) hoạt động toàn quyền. Khi người dùng click ẩn thủ công, hệ thống khóa trạng thái `manualHudHidden = true`: **di chuột hay click chuột tuyệt đối KHÔNG làm hiện lại HUD**. Chỉ hiện lại khi bấm lại phím `H` hoặc click chuột phải chọn *"Ẩn / Hiện HUD"*.
+   - **Con trỏ chuột:** Luôn giữ con trỏ chuột hiển thị bình thường khi ẩn HUD (không sử dụng `cursor-none`), giúp người dùng luôn xác định được vị trí chuột trong app.
+
+5. **Phím tắt Toàn năng Hoạt động 100%:**
+   - Dù các nút mở rộng bị ẩn trên Mini PiP, toàn bộ phím tắt (`M` đánh dấu, `Cmd+C` copy, `[` / `]` loop A-B, số `0`–`9` nhảy mốc timeline, `Space` play/pause) vẫn hoạt động hoàn hảo.
 
 ---
 
@@ -479,7 +477,10 @@ Khi bấm `[⚙️ Cài đặt]` trên Menu chuột phải hoặc nhấn tổ h�
 │                         │                                              │
 │                         │ ───────────────────────────────────────────  │
 │                         │ GIAO DIỆN & MÀU SẮC                          │
-│                         │ Chủ đề: [● Tối trầm (Mặc định)] [○ Đen tuyền]│
+│                         │ Chủ đề: [● Thích ứng OS] [○ Tối] [○ Sáng]    │
+│                         │                                              │
+│                         │ NGÔN NGỮ (LANGUAGE)                          │
+│                         │ [● Tiếng Việt]  [○ English]                  │
 ├─────────────────────────┴──────────────────────────────────────────────┤
 │                                                    [ Mặc định ] [ Đóng ]│
 └────────────────────────────────────────────────────────────────────────┘
@@ -490,7 +491,12 @@ Khi bấm `[⚙️ Cài đặt]` trên Menu chuột phải hoặc nhấn tổ h�
    - **Single Instance:** Tái sử dụng cửa sổ hiện tại khi click mở file từ ngoài Finder/Explorer.
    - **Tự động ghim (Pin on top):** Tự động bật chế độ Always-on-Top khi mở.
    - **Thời gian ẩn HUD:** Tùy chọn 1s, 2s, 3s hoặc Không bao giờ ẩn.
-   - **Chủ đề màu sắc:** Tối trầm (Slate `#0f1117`) hoặc Đen tuyền (Pure Black `#000000`).
+   - **Chủ đề màu sắc (Theme):**
+     - **Thích ứng OS (System Adaptive - Mặc định):** Tự động theo dõi `prefers-color-scheme` của hệ điều hành (chuyển Dark khi OS là Dark Mode, chuyển Light khi OS là Light Mode).
+     - **Tối trầm (Dark Slate):** Nền `#0f1117`, kính mờ tối.
+     - **Sáng dịu (Light Clean):** Nền `#f8fafc`, kính mờ sáng, chữ tối tương phản cao.
+     - **Đen tuyền (Pure Black):** Nền `#000000` chuyên dụng cho màn hình OLED.
+   - **Ngôn ngữ (Language):** Chuyển đổi linh hoạt giữa **Tiếng Việt** (`vi`) và **English** (`en`) cho toàn bộ nhãn, nút bấm, thông báo toast và menu ngữ cảnh.
 2. **Tab 2 — Trình phát (Playback):**
    - **Bước nhảy tua ngắn:** 1 giây (mặc định) / có thể chỉnh 2s, 3s.
    - **Bước nhảy tua dài:** 5 giây (mặc định) / có thể chỉnh 10s.
@@ -545,8 +551,9 @@ tauri::Builder::default()
 Hệ thống điều khiển âm lượng được thiết kế tinh gọn, mượt mà và trực quan, hỗ trợ đầy đủ cả thao tác chuột, thanh trượt kéo thả, cuộn bánh xe và phím tắt.
 
 ### 14.1. Vị trí & Cấu trúc Giao diện (UI)
-* **Vị trí trên Control Bar:** Đặt tại **Hàng 2**, ngay phía trước nút Toàn màn hình `[⛶]` và phía sau cụm Cut Mark:
-  `[◀ Trước] [Tiếp ▶] │ [☆ Đánh dấu] │ [📦 Copy] [✂️ Cut] │ [🔊 80% ──●──] [⛶]`
+* **Vị trí trên Control Bar:** Đặt tại **Hàng 1, canh lề phải** (đối xứng với cụm Playback/Tua/Loop canh lề trái):
+  - Hàng 1: `[▶/⏸] [<<] [<] [>] [>>]  [🔀] [🔁 All]  [A] [B] [🔁 AB]  ──►  [🔊 80% ──●──]`
+  - Hàng 2: `[◀ File Trước] [File Tiếp ▶]  ──►  🏷️ filename [15/120]  ──►  [☆ Đánh dấu] [⛶]`
 * **Biểu tượng Loa động (Dynamic Speaker Icon - Lucide SVG):** Tự động đổi hình thái theo mức âm lượng hiện tại:
   - `0%`: `🔇 VolumeX` (Đang tắt tiếng / Mute).
   - `1% - 33%`: `🔈 Volume1` (Mức nhỏ).
@@ -585,6 +592,36 @@ Khi người dùng điều chỉnh âm lượng qua phím tắt hoặc cuộn ch
 ### 14.4. Cơ chế Ghi nhớ Mức Âm lượng (Volume Persistence)
 * Mức âm lượng được lưu tự động vào `localStorage` của Webview (`media_tool_volume`).
 * Khi chuyển sang video/audio tiếp theo trong folder, hoặc khi tắt app đi mở lại, mức âm lượng được giữ nguyên vẹn như lần nghe gần nhất, tránh tình trạng bị giật mình vì âm lượng bị reset về 100% to đột ngột.
+
+---
+
+## 15. Quy chuẩn Thiết kế Giao diện Sáng Dịu (Light Clean Mode UI/UX Standards)
+
+Nhằm đảm bảo trải nghiệm thị giác cao cấp và độ tương phản tuyệt đối (WCAG AAA) khi người dùng sử dụng chế độ Sáng hoặc khi hệ điều hành chuyển sang Light Mode:
+
+### 15.1. Bảng màu & Design Tokens cho Chế độ Sáng (Light Theme Tokens)
+* **Nền chính (App Background):** `#f8fafc` (Slate 50 — dịu mắt, chống chói lóa so với `#ffffff` gắt).
+* **Bảng điều khiển & Hộp thoại (Glass Dropdown & Modal):**
+  - Nền Modal & Dropdown: `#ffffff` với viền `border: 1px solid #e2e8f0`.
+  - Nền Header & Footer: `#f8fafc` (Slate 50) với đường phân cách `border-slate-200`.
+  - Nền Sidebar danh mục tab: `#f1f5f9` (Slate 100) tạo chiều sâu không gian (Z-index layering).
+* **Hệ thống Phông chữ & Độ Tương Phản (Typography Contrast):**
+  - **Tiêu đề chính & Tiêu đề Modal:** `#0f172a` (Slate 900, độ đậm Semi-bold / Bold).
+  - **Nội dung nhãn (Checkbox, Radio, Tên tệp):** `#1e293b` (Slate 800) — tương phản sắc nét trên nền trắng.
+  - **Văn bản giải thích phụ:** `#475569` (Slate 600) — dễ đọc, không bị mờ nhạt.
+  - **Tiêu đề phân khu (Section Headers):** `#0369a1` (Cyan 700) — điểm nhấn thương hiệu nhận diện rõ rệt.
+
+### 15.2. Thẻ Lựa Chọn Theme & Điều Khiển (Selectable Cards & Inputs)
+* **Thẻ Theme khi ĐƯỢC CHỌN:** Nền xanh nhẹ `bg-cyan-50/80`, viền xanh đậm `border-cyan-500`, chữ `text-cyan-900`, hiệu ứng đổ bóng nhẹ `shadow-xs ring-1 ring-cyan-500/30`.
+* **Thẻ Theme khi CHƯA CHỌN:** Nền trắng `bg-white`, viền mảnh `border-slate-200`, chữ `text-slate-700`, hiệu ứng rê chuột `hover:border-slate-300 hover:bg-slate-50`.
+* **Trường nhập liệu & Select Dropdown:** Nền trắng `#ffffff`, viền `#cbd5e1`, chữ `#0f172a`, bóng đổ nhẹ `shadow-2xs`.
+* **Phím tắt (Hotkey Badges):** Huy hiệu phím chữ nổi với nền trắng, viền mảnh `#e2e8f0`, chữ monospace xanh đậm `#0e7490`.
+
+### 15.3. Thanh Điều Khiển HUD trên Nền Sáng (Player & Viewer Control Bar)
+* **Kính mờ HUD (Glass Panel):** `background: rgba(255, 255, 255, 0.92)`, đổ bóng `box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08)`.
+* **Biểu tượng & Nút bấm:** Màu `text-slate-700`, khi rê chuột chuyển sang `text-slate-950` kèm nền hover `bg-black/5`.
+* **Huy hiệu thông tin tệp (File Info Badge):** Tên tệp hiển thị chữ Slate 800 đậm nét; số thứ tự tệp đặt trong khung bo tròn viền xám sáng `border-slate-200 text-slate-600 bg-slate-100`.
+
 
 
 

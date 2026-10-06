@@ -2,7 +2,8 @@
 
 Ứng dụng desktop cá nhân siêu nhẹ, đa nền tảng (Windows 11+ & macOS Apple Silicon), phục vụ duyệt và chọn lọc ảnh tốc độ cao, đồng thời phát video và âm thanh với khả năng kiểm soát phím tắt chuẩn xác và tính năng lặp đoạn A–B Loop kèm hạ/tăng âm thích ứng (Adaptive Audio Fade).
 
-> **Tôn chỉ:** *One App, One Codebase, Two Modules: Viewer + Player trên Shared Core thống nhất.*
+> **Tôn chỉ:** *One App, One Codebase, Two Modules: Viewer + Player trên Shared Core thống nhất.*  
+> **Phiên bản hiện tại:** `v1.1.0` — Xem chi tiết tại [docs/version_management.md](docs/version_management.md)
 
 ---
 
@@ -24,6 +25,8 @@ Toàn bộ tài liệu đặc tả chuẩn hóa phục vụ việc triển khai 
    **Tiêu chuẩn Nghiệm thu & Kiểm thử Khói:** 12 tiêu chí nghiệm thu Gherkin (AC-01 đến AC-12), Ma trận 10 trường hợp biên (Edge Cases) và Checklist kiểm thử khói 18 bước trên Windows 11 và macOS.
 7. 🎬 [06_demo_presentation.md](docs/spec/06_demo_presentation.md) (`_spec6_demo_presentation`):  
    **Kịch bản Trình diễn Nghiệm thu (DoD Playbook):** Hướng dẫn thiết lập bộ file mẫu `fixtures/` và kịch bản demo 3 hồi tuần tự chứng minh đáp ứng 100% Definition of Done trước khi bàn giao.
+8. 📑 [07_folder_tabs_multi_window.md](docs/spec/07_folder_tabs_multi_window.md) (`_spec7_folder_tabs_multi_window`):  
+   **Quản lý Tab Thư mục & Đa Cửa sổ (v1.1.0):** Mô hình App → Windows → Tabs → Folder Sessions, phát âm thanh ngầm toàn cục (Global Playback), tái sử dụng tab cùng thư mục, di chuyển session sang cửa sổ mới (Move to New Window) phục vụ so sánh media side-by-side, và danh mục Backlog Detachable Tabs.
 
 ---
 
