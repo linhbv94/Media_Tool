@@ -48,6 +48,7 @@ const PageRenderItem: React.FC<PageRenderItemProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const renderTaskRef = useRef<any>(null);
+  const [isInViewport, setIsInViewport] = useState(false);
   const [isRendered, setIsRendered] = useState(false);
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({ width: 600, height: 800 });
 
@@ -69,12 +70,19 @@ const PageRenderItem: React.FC<PageRenderItemProps> = ({
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.4) {
-            onVisible(pageNum);
+          if (entry.isIntersecting) {
+            setIsInViewport(true);
+            if (entry.intersectionRatio >= 0.4) {
+              onVisible(pageNum);
+            }
+          } else {
+            // Free canvas memory when scrolled far away (>600px)
+            setIsInViewport(false);
+            setIsRendered(false);
           }
         });
       },
-      { threshold: [0.1, 0.4, 0.8] }
+      { threshold: [0, 0.4, 0.8], rootMargin: '600px' }
     );
 
     if (containerRef.current) {
@@ -87,6 +95,13 @@ const PageRenderItem: React.FC<PageRenderItemProps> = ({
   }, [pageNum, onVisible]);
 
   useEffect(() => {
+    if (!isInViewport) {
+      if (renderTaskRef.current) {
+        renderTaskRef.current.cancel();
+      }
+      return;
+    }
+
     let isCancelled = false;
 
     const renderPage = async () => {
@@ -141,7 +156,7 @@ const PageRenderItem: React.FC<PageRenderItemProps> = ({
         renderTaskRef.current.cancel();
       }
     };
-  }, [pdfDoc, pageNum, scale, rotation]);
+  }, [isInViewport, pdfDoc, pageNum, scale, rotation]);
 
   return (
     <div
@@ -374,21 +389,22 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   const handleToggleFit = () => {
     if (!containerRef.current || !pdfDoc) return;
     pdfDoc.getPage(currentPage || 1).then((page) => {
+      if (!containerRef.current) return;
       const vp = page.getViewport({ scale: 1, rotation });
       if (!isFitWidth) {
         // Switch to Fit Width
-        const availableWidth = containerRef.current!.clientWidth - (isThumbnailsOpen ? 190 : 48);
+        const availableWidth = containerRef.current.clientWidth - (isThumbnailsOpen ? 190 : 48);
         const newScale = Math.max(availableWidth / vp.width, 0.4);
         setScale(Number(newScale.toFixed(2)));
         setIsFitWidth(true);
       } else {
         // Switch to Fit Height (Full page visible vertically)
-        const availableHeight = containerRef.current!.clientHeight - 80;
+        const availableHeight = containerRef.current.clientHeight - 80;
         const newScale = Math.max(availableHeight / vp.height, 0.3);
         setScale(Number(newScale.toFixed(2)));
         setIsFitWidth(false);
       }
-    });
+    }).catch(console.warn);
   };
 
   const handleRotate = () => {

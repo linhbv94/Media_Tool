@@ -51,9 +51,18 @@ pub fn print_file(window: tauri::Window, file_path: String) -> Result<(), String
         use objc::{msg_send, sel, sel_impl};
 
         unsafe {
+            let pool_cls = match objc::runtime::Class::get("NSAutoreleasePool") {
+                Some(cls) => cls,
+                None => return Err("NSAutoreleasePool class not found".into()),
+            };
+            let pool: id = msg_send![pool_cls, new];
+
             let bundle_cls = match objc::runtime::Class::get("NSBundle") {
                 Some(cls) => cls,
-                None => return Err("NSBundle class not found".into()),
+                None => {
+                    let _: () = msg_send![pool, drain];
+                    return Err("NSBundle class not found".into());
+                }
             };
             let framework_path = NSString::alloc(nil).init_str("/System/Library/Frameworks/PDFKit.framework");
             let bundle: id = msg_send![bundle_cls, bundleWithPath: framework_path];
@@ -63,12 +72,18 @@ pub fn print_file(window: tauri::Window, file_path: String) -> Result<(), String
 
             let pdf_doc_cls = match objc::runtime::Class::get("PDFDocument") {
                 Some(cls) => cls,
-                None => return Err("PDFKit PDFDocument class not available".into()),
+                None => {
+                    let _: () = msg_send![pool, drain];
+                    return Err("PDFKit PDFDocument class not available".into());
+                }
             };
 
             let ns_url_cls = match objc::runtime::Class::get("NSURL") {
                 Some(cls) => cls,
-                None => return Err("NSURL class not found".into()),
+                None => {
+                    let _: () = msg_send![pool, drain];
+                    return Err("NSURL class not found".into());
+                }
             };
 
             let ns_path = NSString::alloc(nil).init_str(&file_path);
@@ -78,31 +93,49 @@ pub fn print_file(window: tauri::Window, file_path: String) -> Result<(), String
             let pdf_doc: id = msg_send![pdf_doc, initWithURL: file_url];
 
             if pdf_doc == nil {
+                let _: () = msg_send![pool, drain];
                 return Err("Failed to load PDF document for printing".into());
             }
 
             let ns_print_info_cls = match objc::runtime::Class::get("NSPrintInfo") {
                 Some(cls) => cls,
-                None => return Err("NSPrintInfo class not found".into()),
+                None => {
+                    let _: () = msg_send![pool, drain];
+                    return Err("NSPrintInfo class not found".into());
+                }
             };
             let shared_print_info: id = msg_send![ns_print_info_cls, sharedPrintInfo];
 
-            let sel_print = sel!(printOperationForPrintInfo:autoRotate:);
-            let responds: BOOL = msg_send![pdf_doc, respondsToSelector: sel_print];
-            if responds == YES {
-                let print_op: id = msg_send![pdf_doc, printOperationForPrintInfo: shared_print_info autoRotate: YES];
-                if print_op != nil {
-                    let _: () = msg_send![print_op, setShowsPrintPanel: YES];
-                    let _: () = msg_send![print_op, setShowsProgressPanel: YES];
-                    let _: BOOL = msg_send![print_op, runOperation];
-                    return Ok(());
+            // Try 3-arg selector: printOperationForPrintInfo:scalingMode:autoRotate:
+            let sel_print3 = sel!(printOperationForPrintInfo:scalingMode:autoRotate:);
+            let responds3: BOOL = msg_send![pdf_doc, respondsToSelector: sel_print3];
+            let mut print_op: id = nil;
+
+            if responds3 == YES {
+                // PDFPrintPageScaleToFit = 1
+                print_op = msg_send![pdf_doc, printOperationForPrintInfo: shared_print_info scalingMode: 1isize autoRotate: YES];
+            } else {
+                let sel_print2 = sel!(printOperationForPrintInfo:autoRotate:);
+                let responds2: BOOL = msg_send![pdf_doc, respondsToSelector: sel_print2];
+                if responds2 == YES {
+                    print_op = msg_send![pdf_doc, printOperationForPrintInfo: shared_print_info autoRotate: YES];
                 }
+            }
+
+            if print_op != nil {
+                let _: () = msg_send![print_op, setShowsPrintPanel: YES];
+                let _: () = msg_send![print_op, setShowsProgressPanel: YES];
+                let _: BOOL = msg_send![print_op, runOperation];
+                let _: () = msg_send![pool, drain];
+                return Ok(());
             }
 
             // Fallback: open in macOS Preview
             let _ = std::process::Command::new("open")
                 .args(&["-a", "Preview", &file_path])
                 .spawn();
+
+            let _: () = msg_send![pool, drain];
         }
         Ok(())
     }
