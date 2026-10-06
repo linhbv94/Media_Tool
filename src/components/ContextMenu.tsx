@@ -13,6 +13,7 @@ import {
   ListFilter,
   Maximize2,
   Settings,
+  Info,
 } from 'lucide-react';
 
 interface ContextMenuProps {
@@ -37,6 +38,7 @@ interface ContextMenuProps {
   onToggleSidebar: () => void;
   onToggleFullscreen: () => void;
   onOpenSettings: () => void;
+  onOpenAbout?: () => void;
 }
 
 export const ContextMenu: React.FC<ContextMenuProps> = ({
@@ -61,6 +63,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   onToggleSidebar,
   onToggleFullscreen,
   onOpenSettings,
+  onOpenAbout,
 }) => {
   const i18n = t(language);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -279,7 +282,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         </button>
       </div>
 
-      {/* Settings */}
+      {/* Settings & About */}
       <div className="py-1">
         <button
           onClick={() => {
@@ -294,6 +297,22 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           </div>
           <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Cmd+,</span>
         </button>
+
+        {onOpenAbout && (
+          <button
+            onClick={() => {
+              onOpenAbout();
+              onClose();
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 rounded-md text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Info className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+              <span>{language === 'vi' ? 'Giới thiệu VXMedia...' : 'About VXMedia...'}</span>
+            </div>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">F1</span>
+          </button>
+        )}
       </div>
     </div>
   );

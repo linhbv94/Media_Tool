@@ -61,6 +61,18 @@ export const TRANSLATIONS = {
     tab_playback: 'Trình phát (Playback)',
     tab_cache: 'Bộ nhớ & Cache',
     tab_hotkeys: 'Phím tắt (Hotkeys)',
+    tab_about: 'Giới thiệu (About)',
+
+    // About Tab
+    about_app_name: 'VXMedia Desktop',
+    about_tagline: 'Trình duyệt ảnh & phát media cá nhân siêu nhẹ (One App, Shared Core)',
+    about_author: 'by Viet Linh Bui',
+    about_diff_title: 'Điểm khác biệt so với các Player/Viewer khác:',
+    about_diff_1: 'Hợp nhất All-in-One: Duyệt ảnh tốc độ cao + Trình phát Video/Audio chuyên dụng trong 1 app duy nhất.',
+    about_diff_2: 'Lặp đoạn A–B siêu êm: Thuật toán Adaptive Audio Fade (0–100ms) loại bỏ hoàn toàn tiếng nấc giật khi tua/lặp.',
+    about_diff_3: 'Phát nhạc ngầm toàn cục (Global Audio): Nghe nhạc liên tục khi chuyển tab duyệt ảnh hoặc đổi thư mục.',
+    about_diff_4: 'Quản lý Tab Thư mục & Đa Cửa sổ: Phân tách Folder Sessions độc lập, tái sử dụng tab thông minh và mở cửa sổ so sánh song song.',
+    about_diff_5: 'Tích hợp sâu hệ điều hành: Đánh dấu và copy/cut file trực tiếp vào Finder (macOS) / Windows Explorer (Win32 CF_HDROP).',
 
     // Settings Fields
     sec_window_behavior: 'HÀNH VI CỬA SỔ & HỆ THỐNG',
@@ -165,6 +177,18 @@ export const TRANSLATIONS = {
     tab_playback: 'Playback',
     tab_cache: 'Storage & Cache',
     tab_hotkeys: 'Hotkeys',
+    tab_about: 'About',
+
+    // About Tab
+    about_app_name: 'VXMedia Desktop',
+    about_tagline: 'Ultra-lightweight Personal Media Viewer & Player (One App, Shared Core)',
+    about_author: 'by Viet Linh Bui',
+    about_diff_title: 'Key Differentiators from other Players/Viewers:',
+    about_diff_1: 'All-in-One: Blazingly fast photo viewer + Dedicated Video/Audio player in a single unified app.',
+    about_diff_2: 'Seamless A–B Loop: Adaptive Audio Fade (0–100ms) eliminates loop clicks/pops completely.',
+    about_diff_3: 'Global Audio Playback: Persistent audio keeps playing while browsing photos across tabs and folders.',
+    about_diff_4: 'Folder Tabs & Multi-Window: Independent folder sessions with intelligent reuse and side-by-side comparison.',
+    about_diff_5: 'Deep OS Integration: Mark files and copy/cut directly into Finder (macOS) / Explorer (Win32 CF_HDROP).',
 
     // Settings Fields
     sec_window_behavior: 'WINDOW & SYSTEM BEHAVIOR',

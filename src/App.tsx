@@ -30,7 +30,7 @@ import { Player } from './components/Player';
 import { MiniAudioPill } from './components/MiniAudioPill';
 import { Sidebar } from './components/Sidebar';
 import { ContextMenu } from './components/ContextMenu';
-import { SettingsModal } from './components/SettingsModal';
+import { SettingsModal, SettingsTabType } from './components/SettingsModal';
 import { Toast } from './components/Toast';
 import { VolumeOSD } from './components/VolumeOSD';
 import { useKeyboardDispatcher } from './hooks/useKeyboardDispatcher';
@@ -73,6 +73,13 @@ export const App: React.FC = () => {
   // Window & UI State
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTabType>('general');
+
+  const handleOpenAbout = useCallback(() => {
+    setSettingsInitialTab('about');
+    setIsSettingsOpen(true);
+  }, []);
+
   const [isPinned, setIsPinned] = useState<boolean>(false);
   const [hudVisible, setHudVisible] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -707,7 +714,11 @@ export const App: React.FC = () => {
     onToggleSidebar: () => setIsSidebarOpen((prev) => !prev),
     onToggleHud: handleToggleHud,
     onToggleFullscreen: handleToggleFullscreen,
-    onOpenSettings: () => setIsSettingsOpen((prev) => !prev),
+    onOpenSettings: () => {
+      setSettingsInitialTab('general');
+      setIsSettingsOpen((prev) => !prev);
+    },
+    onOpenAbout: handleOpenAbout,
     onOpenFile: handleOpenFile,
     onOpenFolder: handleOpenFolder,
   });
@@ -802,7 +813,10 @@ export const App: React.FC = () => {
         isAutoHide={isAutoHide}
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenSettings={() => {
+          setSettingsInitialTab('general');
+          setIsSettingsOpen(true);
+        }}
         onOpenFile={handleOpenFile}
         onOpenFolder={handleOpenFolder}
         isMiniPip={isMiniPip}
@@ -997,13 +1011,18 @@ export const App: React.FC = () => {
           onToggleHud={handleToggleHud}
           onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
           onToggleFullscreen={handleToggleFullscreen}
-          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenSettings={() => {
+            setSettingsInitialTab('general');
+            setIsSettingsOpen(true);
+          }}
+          onOpenAbout={handleOpenAbout}
         />
       )}
 
       {/* Settings Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}
+        initialTab={settingsInitialTab}
         settings={settings}
         language={settings.language || 'vi'}
         onSaveSettings={(newSettings) => {
@@ -1016,7 +1035,10 @@ export const App: React.FC = () => {
             } catch {}
           }
         }}
-        onClose={() => setIsSettingsOpen(false)}
+        onClose={() => {
+          setIsSettingsOpen(false);
+          setSettingsInitialTab('general');
+        }}
       />
     </div>
   );

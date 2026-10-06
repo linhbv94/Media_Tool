@@ -26,14 +26,20 @@ pub fn run() {
                 .authors(Some(vec!["Viet Linh Bui".into()]))
                 .comments(Some("Trình duyệt ảnh & phát media cá nhân siêu nhẹ"))
                 .credits(Some(
-                    "VXMedia — Trình duyệt ảnh & phát media cá nhân siêu nhẹ (One App, Shared Core)\n\n\
-                    Điểm khác biệt so với các Player/Viewer khác:\n\
-                    • Hợp nhất All-in-One: Duyệt ảnh tốc độ cao + Trình phát Video/Audio chuyên dụng trong 1 app duy nhất.\n\
-                    • Lặp đoạn A–B siêu êm: Thuật toán Adaptive Audio Fade (0–100ms) loại bỏ hoàn toàn tiếng nấc giật khi lặp âm thanh.\n\
-                    • Phát nhạc ngầm toàn cục (Global Playback): Thẻ audio bền vững, tiếp tục nghe nhạc liên tục khi chuyển tab duyệt ảnh.\n\
-                    • Quản lý Tab Thư mục & Đa Cửa sổ: Phân tách Folder Sessions độc lập, tái sử dụng tab thông minh và mở cửa sổ so sánh song song.\n\
-                    • Tích hợp sâu hệ điều hành: Đánh dấu và copy/cut file trực tiếp vào Finder (macOS) / Explorer (Win32 CF_HDROP).\n\n\
-                    by Viet Linh Bui"
+                    "VXMedia — Trình duyệt ảnh & phát media cá nhân siêu nhẹ (One App, Shared Core)\n\
+                    Created by Viet Linh Bui\n\n\
+                    [VI] Điểm khác biệt so với các Player/Viewer khác:\n\
+                    • Hợp nhất All-in-One: Duyệt ảnh tốc độ cao + Trình phát Video/Audio chuyên dụng trong 1 app.\n\
+                    • Lặp đoạn A–B siêu êm: Thuật toán Adaptive Audio Fade (0–100ms) loại bỏ hoàn toàn tiếng nấc giật.\n\
+                    • Phát nhạc ngầm toàn cục: Thẻ audio bền vững, tiếp tục nghe nhạc liên tục khi chuyển tab duyệt ảnh.\n\
+                    • Quản lý Tab & Đa Cửa sổ: Phân tách Folder Sessions độc lập, tái sử dụng tab và mở cửa sổ song song.\n\
+                    • Tích hợp Native OS: Đánh dấu và copy/cut file trực tiếp vào Finder (macOS) / Explorer (Win32 CF_HDROP).\n\n\
+                    [EN] Key Differentiators:\n\
+                    • All-in-One: Fast photo browsing + Dedicated Video/Audio player in a single unified app.\n\
+                    • Smooth A–B Loop: Adaptive Audio Fade (0–100ms) eliminates loop clicks/pops.\n\
+                    • Global Playback: Persistent audio playback across photo tabs and folders.\n\
+                    • Folder Tabs & Multi-Window: Independent folder sessions with parallel comparison.\n\
+                    • Native OS Integration: Mark files and copy directly to Finder / Explorer."
                 ))
                 .build();
 

@@ -1,27 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppSettings, ThemeMode, AppLanguage, LoopFileMode } from '../types';
 import { t } from '../services/i18n';
-import { X, Sliders, Play, HardDrive, Keyboard, RotateCcw } from 'lucide-react';
+import { X, Sliders, Play, HardDrive, Keyboard, RotateCcw, Info, Sparkles, CheckCircle2 } from 'lucide-react';
+
+export type SettingsTabType = 'general' | 'playback' | 'cache' | 'hotkeys' | 'about';
 
 interface SettingsModalProps {
   isOpen: boolean;
   settings: AppSettings;
   language?: AppLanguage;
+  initialTab?: SettingsTabType;
   onSaveSettings: (settings: AppSettings) => void;
   onClose: () => void;
 }
 
-type TabType = 'general' | 'playback' | 'cache' | 'hotkeys';
-
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   settings,
+  initialTab = 'general',
   onSaveSettings,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('general');
+  const [activeTab, setActiveTab] = useState<SettingsTabType>(initialTab);
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [ramFreedNotice, setRamFreedNotice] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   const i18n = t(localSettings.language);
 
@@ -127,6 +135,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             >
               <Keyboard className="w-4 h-4" />
               <span>{i18n.tab_hotkeys}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('about')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-left transition-all ${
+                activeTab === 'about'
+                  ? 'bg-cyan-50 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-500/40 font-semibold shadow-2xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <Info className="w-4 h-4" />
+              <span>{i18n.tab_about}</span>
             </button>
           </div>
 
@@ -468,6 +488,59 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       </span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: ABOUT */}
+            {activeTab === 'about' && (
+              <div className="space-y-6 animate-in fade-in duration-200">
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-cyan-500/10 via-cyan-500/5 to-transparent border border-cyan-500/20">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white shrink-0 font-bold text-2xl">
+                    👁️
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                        {i18n.about_app_name}
+                      </h3>
+                      <span className="px-2 py-0.5 text-[11px] font-mono font-semibold bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 rounded-full border border-cyan-300 dark:border-cyan-500/30">
+                        v1.1.1
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                      {i18n.about_tagline}
+                    </p>
+                    <p className="text-xs font-semibold text-cyan-700 dark:text-cyan-400 mt-1">
+                      {i18n.about_author}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-xs uppercase tracking-wider font-semibold text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>{i18n.about_diff_title}</span>
+                  </h4>
+                  <div className="space-y-2 text-xs">
+                    {[
+                      i18n.about_diff_1,
+                      i18n.about_diff_2,
+                      i18n.about_diff_3,
+                      i18n.about_diff_4,
+                      i18n.about_diff_5,
+                    ].map((diff, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-white/5"
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <span className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                          {diff}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

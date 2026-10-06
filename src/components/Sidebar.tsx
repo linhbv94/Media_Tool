@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { MediaItem, AppLanguage } from '../types';
 import { t } from '../services/i18n';
 import { X, Search, Image as ImageIcon, Video, Music, Star } from 'lucide-react';
@@ -24,6 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const i18n = t(language);
   const [searchQuery, setSearchQuery] = useState('');
+  const currentItemRef = useRef<HTMLButtonElement | null>(null);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -34,6 +35,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
       .map((item, originalIndex) => ({ item, originalIndex }))
       .filter(({ item }) => item.name.toLowerCase().includes(q));
   }, [items, searchQuery]);
+
+  // Auto-scroll list to active item when opened or active index changes
+  useEffect(() => {
+    if (isOpen) {
+      // Use setTimeout 50ms to ensure the sidebar transition animation / DOM render is mounted
+      const timer = setTimeout(() => {
+        if (currentItemRef.current) {
+          currentItemRef.current.scrollIntoView({
+            block: 'center',
+            behavior: 'smooth',
+          });
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, currentIndex]);
 
   if (!isOpen) return null;
 
@@ -96,6 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             return (
               <button
                 key={item.path}
+                ref={isCurrent ? currentItemRef : undefined}
                 onClick={() => onSelectItem(originalIndex)}
                 className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left text-xs transition-colors ${
                   isCurrent

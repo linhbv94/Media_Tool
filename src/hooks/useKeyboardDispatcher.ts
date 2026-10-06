@@ -25,6 +25,7 @@ interface KeyboardDispatcherProps {
   onToggleHud: () => void;
   onToggleFullscreen: () => void;
   onOpenSettings: () => void;
+  onOpenAbout?: () => void;
   onOpenFile?: () => void;
   onOpenFolder?: () => void;
 }
@@ -53,6 +54,7 @@ export function useKeyboardDispatcher({
   onToggleHud,
   onToggleFullscreen,
   onOpenSettings,
+  onOpenAbout,
   onOpenFile,
   onOpenFolder,
 }: KeyboardDispatcherProps) {
@@ -250,6 +252,13 @@ export function useKeyboardDispatcher({
         onToggleFullscreen();
         return;
       }
+
+      // 17. ABOUT MODAL: F1
+      if (!isCmdOrCtrl && e.key === 'F1') {
+        e.preventDefault();
+        onOpenAbout?.();
+        return;
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -280,5 +289,6 @@ export function useKeyboardDispatcher({
     onToggleHud,
     onToggleFullscreen,
     onOpenSettings,
+    onOpenAbout,
   ]);
 }

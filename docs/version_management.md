@@ -2,7 +2,7 @@
 
 > **Tài liệu:** `docs/version_management.md`  
 > **Dự án:** VXMedia (`media_tool`)  
-> **Phiên bản hiện tại:** `v1.1.0`  
+> **Phiên bản hiện tại:** `v1.1.1`  
 > **Quy chuẩn:** Tuân thủ Semantic Versioning (SemVer 2.0.0) & Hướng dẫn [AGENTS.md](../AGENTS.md)  
 
 ---
@@ -12,7 +12,7 @@
 Hệ thống áp dụng định dạng chuẩn: **`MAJOR.MINOR.PATCH`**
 
 ```text
-v1.1.0
+v1.1.1
  │ │ └── PATCH: Sửa lỗi (Bug fixes), vá bảo mật, tinh chỉnh nhỏ không đổi giao diện lớn.
  │ └──── MINOR: Bổ sung tính năng mới, mở rộng hỗ trợ OS mà vẫn giữ tương thích ngược.
  └────── MAJOR: Thay đổi kiến trúc lớn, phá vỡ tính tương thích ngược (Breaking Changes).
@@ -55,6 +55,22 @@ Phát triển / Fix bug ──► Build kiểm thử (Dev) ──► Chạy QA S
 ---
 
 ## 3. Lịch sử Phiên bản (Changelog & Milestones)
+
+### 🌟 v1.1.1 — Tự động Cuộn Danh sách Item Đang chọn & Hỗ trợ Giới thiệu Song ngữ Đa nền tảng
+*Ngày phát hành:* 2026-10-06  
+*Trọng tâm:* Tinh chỉnh trải nghiệm duyệt danh sách (Sidebar Auto-scroll), hỗ trợ hộp thoại Giới thiệu (About) song ngữ Việt - Anh đa nền tảng, thích ứng tối ưu cho Windows không có thanh MenuBar chuẩn macOS.
+
+#### 🎯 Tự động Cuộn Danh sách tới Item Đang chọn (Sidebar Auto-scroll):
+- Khi đang mở xem một item và bật mở danh sách (`Sidebar`), danh sách sẽ tự động cuộn mượt mà (`scrollIntoView` block `center`) đến đúng vị trí của item đang chọn thay vì luôn hiển thị từ đầu danh sách.
+- Hỗ trợ cuộn tự động cả khi chuyển bài/chuyển ảnh trong lúc danh sách đang mở.
+
+#### 🌐 Giới thiệu (About) Song ngữ & Thích ứng Giao diện Windows:
+- **macOS MenuBar:** Menu hệ thống native `VXMedia > About VXMedia` được cập nhật đầy đủ credit song ngữ (Tiếng Việt & English), nêu bật triết lý định vị của ứng dụng và thông tin tác giả `by Viet Linh Bui`.
+- **Windows Adaptation:** Do Windows sử dụng giao diện cửa sổ không viền (Frameless Custom Titlebar) và không có thanh menubar toàn cục, thông tin About được tích hợp thành tab chuyên biệt bên trong bảng Cài đặt (`SettingsModal`), đồng thời có thể mở nhanh qua:
+  - Phím tắt chuẩn Windows: `F1`
+  - Menu chuột phải (`ContextMenu`): Mục *Giới thiệu VXMedia...*
+  - Biểu tượng bánh răng Cài đặt trên thanh `WindowBar`.
+- **Nội dung Song ngữ:** Hỗ trợ chuyển đổi tức thì giữa Tiếng Việt và Tiếng Anh với 5 điểm khác biệt cốt lõi của VXMedia so với các trình phát truyền thống (Tốc độ khởi động siêu tốc, Adaptive Audio Fade, phím tắt A-B Loop, lọc ảnh Spacebar, bảo mật riêng tư 100% offline).
 
 ### 🌟 v1.1.0 — Quản lý Tab Thư mục, Phát nhạc Toàn cục & Đa Cửa sổ Độc lập
 *Ngày phát hành:* 2026-10-06  
