@@ -1,7 +1,7 @@
 mod commands;
 
 use commands::dialog::InitialMediaState;
-use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+use tauri::menu::{AboutMetadataBuilder, MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::{Emitter, Manager, WindowEvent};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -19,8 +19,27 @@ pub fn run() {
                 .accelerator("CmdOrCtrl+Shift+O")
                 .build(app)?;
             #[cfg(target_os = "macos")]
+            let about_metadata = AboutMetadataBuilder::new()
+                .name(Some("VXMedia"))
+                .version(Some(env!("CARGO_PKG_VERSION")))
+                .copyright(Some("by Viet Linh Bui"))
+                .authors(Some(vec!["Viet Linh Bui".into()]))
+                .comments(Some("Trình duyệt ảnh & phát media cá nhân siêu nhẹ"))
+                .credits(Some(
+                    "VXMedia — Trình duyệt ảnh & phát media cá nhân siêu nhẹ (One App, Shared Core)\n\n\
+                    Điểm khác biệt so với các Player/Viewer khác:\n\
+                    • Hợp nhất All-in-One: Duyệt ảnh tốc độ cao + Trình phát Video/Audio chuyên dụng trong 1 app duy nhất.\n\
+                    • Lặp đoạn A–B siêu êm: Thuật toán Adaptive Audio Fade (0–100ms) loại bỏ hoàn toàn tiếng nấc giật khi lặp âm thanh.\n\
+                    • Phát nhạc ngầm toàn cục (Global Playback): Thẻ audio bền vững, tiếp tục nghe nhạc liên tục khi chuyển tab duyệt ảnh.\n\
+                    • Quản lý Tab Thư mục & Đa Cửa sổ: Phân tách Folder Sessions độc lập, tái sử dụng tab thông minh và mở cửa sổ so sánh song song.\n\
+                    • Tích hợp sâu hệ điều hành: Đánh dấu và copy/cut file trực tiếp vào Finder (macOS) / Explorer (Win32 CF_HDROP).\n\n\
+                    by Viet Linh Bui"
+                ))
+                .build();
+
+            #[cfg(target_os = "macos")]
             let app_submenu = SubmenuBuilder::new(app, "VXMedia")
-                .about(None)
+                .about(Some(about_metadata))
                 .separator()
                 .services()
                 .separator()
