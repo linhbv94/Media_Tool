@@ -16,7 +16,11 @@ pub fn clipboard_files(
 
     #[cfg(target_os = "windows")]
     {
-        let hwnd = window.hwnd().ok();
+        // Tauri and this adapter use different windows crate versions. Bridge the raw handle.
+        let hwnd = window
+            .hwnd()
+            .ok()
+            .map(|handle| windows::Win32::Foundation::HWND(handle.0));
         return windows_clipboard_files(hwnd, &file_paths, is_cut);
     }
 
@@ -69,7 +73,8 @@ fn windows_clipboard_files(
     use windows::Win32::UI::Shell::*;
 
     unsafe {
-        OpenClipboard(hwnd).map_err(|e| format!("Failed to open Windows clipboard: {e}"))?;
+        OpenClipboard(hwnd.unwrap_or_default())
+            .map_err(|e| format!("Failed to open Windows clipboard: {e}"))?;
 
         struct ClipboardGuard;
         impl Drop for ClipboardGuard {

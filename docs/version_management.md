@@ -2,7 +2,7 @@
 
 > **Tài liệu:** `docs/version_management.md`  
 > **Dự án:** VXMedia (`media_tool`)  
-> **Phiên bản hiện tại:** `v1.2.0`  
+> **Phiên bản hiện tại:** `v1.2.1`
 > **Quy chuẩn:** Tuân thủ Semantic Versioning (SemVer 2.0.0) & Hướng dẫn [AGENTS.md](../AGENTS.md)  
 
 ---
@@ -19,6 +19,8 @@ v1.2.0
 ```
 
 ### Quy tắc đồng bộ phiên bản (Version Sync Rules)
+Từ v1.2.1, chạy `npm run version:set -- X.Y.Z` để đồng bộ cả ba cấu hình dưới đây và hai lockfile npm/Cargo. Phát hành đa nền tảng qua GitHub Actions theo [hướng dẫn release](release_guide.md).
+
 Khi phát hành bản cập nhật mới, số phiên bản bắt buộc phải được cập nhật đồng nhất trên 3 tệp cấu hình cốt lõi:
 1. [package.json](../package.json): trường `"version": "x.y.z"`
 2. [src-tauri/Cargo.toml](../src-tauri/Cargo.toml): trường `version = "x.y.z"`
@@ -55,6 +57,16 @@ Phát triển / Fix bug ──► Build kiểm thử (Dev) ──► Chạy QA S
 ---
 
 ## 3. Lịch sử Phiên bản (Changelog & Milestones)
+
+### v1.2.1 — GitHub Releases và cập nhật trong app (2026-10-07)
+
+- Thêm Tauri Updater, tự kiểm tra khi mở bản đã cài và nút cập nhật trong Giới thiệu.
+- Build Windows x64, macOS Apple Silicon/Intel trên runner GitHub tiêu chuẩn cho repo public; tạo release nháp và kiểm tra đủ platform trước publish.
+- Ký gói cập nhật bằng khóa Tauri riêng miễn phí; macOS ký ad-hoc, Windows cài NSIS theo user.
+- Sửa tương thích kiểu window handle và tham số OpenClipboard của adapter Windows.
+- Thêm script đồng bộ version, kiểm thử luồng updater và hướng dẫn [phát hành/cài đặt](release_guide.md).
+- Trạng thái: đã kiểm thử logic và build macOS cục bộ; chờ thêm GitHub secret, merge PR, build Windows/Intel và smoke test trước phát hành.
+
 
 ### 🌟 v1.2.0 — Module Đọc PDF Siêu tốc, In ấn Native & Ngăn kéo Ảnh Thu nhỏ
 *Ngày phát hành:* 2026-10-06  
