@@ -14,7 +14,7 @@
     "tauri": "tauri",
     "version:set": "node scripts/set_version.mjs",
     "release:check": "node scripts/validate_release.mjs",
-    "test:updates": "node --test scripts/test_updates.mjs scripts/test_release.mjs"
+    "test:updates": "node --test scripts/test_updates.mjs scripts/test_release.mjs scripts/test_release_automation.mjs"
   },
   "bugs": {
     "url": "https://github.com/linhbv94/Media_Tool/issues"
