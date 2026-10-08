@@ -229,3 +229,13 @@ Cửa sổ B: [ 📁 Photoshoot B ] (Giữ nguyên vị trí ảnh, zoom, mark t
 - Đăng ký IPC command `create_new_window(session_data)` trong `src-tauri/src/commands/window.rs`.
 - Cấu hình quyền `allow-create-window` trong capabilities của Tauri.
 - Đồng bộ dữ liệu session giữa các cửa sổ thông qua `BroadcastChannel` hoặc Tauri events (`emit_to`).
+
+
+## 10. Nghiệm thu nhạc nền sau review 2026-10-08
+
+- Một Player audio giữ nguyên vòng đời ở cấp App; ảnh/PDF/video chỉ render viewport đang xem. Tab ẩn không đăng ký phím tắt Player.
+- Shared audio nhận đường dẫn đã resolve đúng file và ID thư mục nguồn; mở tab ảnh hoặc quay lại không gọi load(), không reset tiến độ/A–B.
+- App xử lý ended đúng một lần, chọn bài audio kế tiếp của thư mục nguồn; không chuyển ảnh đang xem hoặc phát ảnh bìa như bài nhạc.
+- Đóng tab nguồn hoặc đóng các tab khác có chứa nguồn thì dừng và gỡ src. Space ở tab ảnh tạm dừng/tiếp tục nhạc nền được.
+- Regression tự động: `npm run test:playback` (cần Chromium từ `npx playwright install chromium`; có thể dùng `BROWSER_EXECUTABLE_PATH` để trỏ Chrome sẵn có). Bài test chạy App/Player thật và media WAV bằng browser; bridge file/dialog dùng fixture local. Windows CI chạy bài này trước merge.
+- Test browser không thay nghiệm thu GUI Tauri/WebView2 trên máy Windows thực tế.

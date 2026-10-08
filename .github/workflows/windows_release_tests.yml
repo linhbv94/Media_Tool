@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'scripts/**'
+      - 'src/App.tsx'
+      - 'src/components/Player.tsx'
+      - 'src/hooks/useKeyboardDispatcher.ts'
       - 'src/services/update_controller.ts'
       - 'package.json'
       - 'package-lock.json'
@@ -27,3 +30,8 @@ jobs:
           node-version: '22'
           package-manager-cache: false
       - run: npm run test:updates
+      - run: npm ci
+      - name: Install browser for playback regression
+        run: npx playwright install chromium
+      - name: Test persistent audio and tab controls
+        run: npm run test:playback

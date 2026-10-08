@@ -50,6 +50,9 @@ interface PlayerProps {
   onCycleLoopFile: () => void;
   onToggleFullscreen: () => void;
   sharedAudioRef?: React.RefObject<HTMLAudioElement | null>;
+  isActive?: boolean;
+  audioSessionId?: string;
+  onAudioSourceChange?: (item: MediaItem, sessionId: string) => void;
   mediaFitMode?: 'scale_to_fit' | 'limit_file_size';
 }
 
@@ -70,6 +73,9 @@ export const Player: React.FC<PlayerProps> = ({
   language,
   isMiniPip = false,
   mediaFitMode = 'scale_to_fit',
+  isActive = true,
+  audioSessionId,
+  onAudioSourceChange,
   onPrev,
   onNext,
   onToggleMark,
@@ -87,7 +93,8 @@ export const Player: React.FC<PlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
-  const [mediaSrc, setMediaSrc] = useState<string>('');
+  const [resolvedSource, setResolvedSource] = useState<{ path: string; src: string } | null>(null);
+  const mediaSrc = resolvedSource?.path === item.path ? resolvedSource.src : '';
   const [audioMeta, setAudioMeta] = useState<AudioMetadataResponse | null>(null);
 
   // A-B Loop State
@@ -111,18 +118,30 @@ export const Player: React.FC<PlayerProps> = ({
       is_active: false,
       fade_duration_ms: abLoopCrossfadeMs,
     });
-    setCurrentTime(0);
-    setDuration(0);
-    setIsPlaying(false);
+
+    const isSameAudioAlreadyPlaying =
+      isAudio &&
+      sharedAudioRef?.current &&
+      sharedAudioRef.current.dataset.currentPath === item.path;
+
+    if (isSameAudioAlreadyPlaying && sharedAudioRef?.current) {
+      setCurrentTime(sharedAudioRef.current.currentTime);
+      setDuration(sharedAudioRef.current.duration || 0);
+      setIsPlaying(!sharedAudioRef.current.paused);
+    } else {
+      setCurrentTime(0);
+      setDuration(0);
+      setIsPlaying(false);
+    }
 
     getSafeMediaSrc(item.path).then((src) => {
-      if (!isCancelled) setMediaSrc(src);
-    });
+      if (!isCancelled) setResolvedSource({ path: item.path, src });
+    }).catch(console.warn);
 
     if (isAudio) {
       readAudioMetadata(item.path).then((meta) => {
         if (!isCancelled) setAudioMeta(meta);
-      });
+      }).catch(console.warn);
     } else {
       setAudioMeta(null);
     }
@@ -130,7 +149,7 @@ export const Player: React.FC<PlayerProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [item.path, isAudio, abLoopCrossfadeMs]);
+  }, [item.path, isAudio, abLoopCrossfadeMs, sharedAudioRef]);
 
   // Sync volume & mute to media element and audio engine
   useEffect(() => {
@@ -155,20 +174,22 @@ export const Player: React.FC<PlayerProps> = ({
       audioEngine.init(el);
       audioEngine.setVolume(volume, isMuted);
 
-      // Autoplay media on load
-      const playPromise = el.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => setIsPlaying(true))
-          .catch((err) => {
-            if (err.name !== 'AbortError') {
-              console.warn('Autoplay prevented or failed:', err);
-            }
-            setIsPlaying(false);
-          });
+      // Only video autoplays here; audio using sharedAudioRef is managed in the dedicated effect below
+      if (!isAudio || !sharedAudioRef) {
+        const playPromise = el.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => setIsPlaying(true))
+            .catch((err) => {
+              if (err.name !== 'AbortError') {
+                console.warn('Autoplay prevented or failed:', err);
+              }
+              setIsPlaying(false);
+            });
+        }
       }
     }
-  }, [mediaSrc]);
+  }, [mediaSrc, isAudio, sharedAudioRef]);
 
   // Handle Play/Pause
   const togglePlay = useCallback(() => {
@@ -205,7 +226,7 @@ export const Player: React.FC<PlayerProps> = ({
 
 
   // Time update listener & A-B Loop enforcement
-  const onTimeUpdate = () => {
+  const onTimeUpdate = useCallback(() => {
     const el = mediaRef.current;
     if (!el) return;
     const now = el.currentTime;
@@ -221,7 +242,7 @@ export const Player: React.FC<PlayerProps> = ({
       const fadeMs = audioEngine.calculateFadeDurationMs(abLoop.point_a, abLoop.point_b);
       audioEngine.performLoopTransition(el, abLoop.point_a, volume, fadeMs);
     }
-  };
+  }, [abLoop, volume]);
 
   // On Ended
   const onEnded = useCallback(() => {
@@ -244,7 +265,14 @@ export const Player: React.FC<PlayerProps> = ({
     const el = sharedAudioRef.current;
     mediaRef.current = el;
 
-    if (mediaSrc && el.src !== mediaSrc) {
+    const isSamePathAlreadyLoaded = el.dataset.currentPath === item.path;
+    if (mediaSrc && audioSessionId) {
+      el.dataset.originSessionId = audioSessionId;
+      onAudioSourceChange?.(item, audioSessionId);
+    }
+
+    if (mediaSrc && !isSamePathAlreadyLoaded) {
+      el.dataset.currentPath = item.path;
       el.src = mediaSrc;
       el.load();
       el.play()
@@ -253,6 +281,13 @@ export const Player: React.FC<PlayerProps> = ({
           if (err.name !== 'AbortError') console.warn(err);
           setIsPlaying(false);
         });
+    } else if (isSamePathAlreadyLoaded) {
+      // Sync progress & playing state directly from uninterrupted running element
+      setCurrentTime(el.currentTime);
+      if (el.duration && !isNaN(el.duration)) {
+        setDuration(el.duration);
+      }
+      setIsPlaying(!el.paused);
     }
 
     const handleLoadedMetadata = () => {
@@ -265,7 +300,7 @@ export const Player: React.FC<PlayerProps> = ({
     el.addEventListener('loadedmetadata', handleLoadedMetadata);
     el.addEventListener('play', handlePlay);
     el.addEventListener('pause', handlePause);
-    el.addEventListener('ended', onEnded);
+    // App owns playlist completion; do not advance it a second time here.
 
     if (el.duration && !isNaN(el.duration)) {
       setDuration(el.duration);
@@ -277,9 +312,8 @@ export const Player: React.FC<PlayerProps> = ({
       el.removeEventListener('loadedmetadata', handleLoadedMetadata);
       el.removeEventListener('play', handlePlay);
       el.removeEventListener('pause', handlePause);
-      el.removeEventListener('ended', onEnded);
     };
-  }, [isAudio, sharedAudioRef, mediaSrc, onTimeUpdate, onEnded]);
+  }, [isAudio, sharedAudioRef, mediaSrc, item, audioSessionId, onAudioSourceChange, onTimeUpdate]);
 
   // Set Point A (Click again at unchanged position cancels A)
   const handleSetPointA = () => {
@@ -400,6 +434,7 @@ export const Player: React.FC<PlayerProps> = ({
 
   // Listen to keyboard dispatcher events (0..9 jumps, arrows seek, space play, A-B loop)
   useEffect(() => {
+    if (!isActive) return;
     const onSeekPercentEvt = (e: Event) => {
       const custom = e as CustomEvent<{ percent: number }>;
       if (custom.detail && duration > 0) {
@@ -445,7 +480,7 @@ export const Player: React.FC<PlayerProps> = ({
       window.removeEventListener('player:set-point-b', onSetPointBEvt);
       window.removeEventListener('player:toggle-ab-loop', onToggleABLoopEvt);
     };
-  }, [duration, handleSeek, seekRelative, togglePlay, currentTime, abLoop]);
+  }, [isActive, duration, handleSeek, seekRelative, togglePlay, currentTime, abLoop]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
