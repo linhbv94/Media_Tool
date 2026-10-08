@@ -442,3 +442,32 @@ sequenceDiagram
    - Giảm thời gian `hudDelayMs` từ 2000ms xuống **1000ms**.
    - Mặc định ở chế độ PiP: HUD ẩn 100%, chỉ hiện khi con trỏ chuột rê vào bên trong cửa sổ mini.
 
+---
+
+## 12. Cơ chế Điều phối Cửa sổ Đơn & Mở Thẻ Tab (Single Instance IPC Pipeline)
+
+Nhằm tối ưu hóa tài nguyên và trải nghiệm người dùng trên Windows và macOS, khi người dùng mở một tệp media mới (qua thao tác click mở file từ Finder/Explorer hoặc "Open with"):
+1. Ứng dụng tích hợp plugin `tauri-plugin-single-instance`.
+2. Khi một instance thứ hai được khởi chạy từ hệ thống:
+   - Plugin chặn tạo tiến trình GUI mới.
+   - Trích xuất danh sách tham số dòng lệnh (`argv`), lọc và chuẩn hóa đường dẫn file hợp lệ (hỗ trợ cả đường dẫn POSIX, Windows backslash và định dạng `file://`).
+   - Gửi sự kiện IPC `open-media-file` trực tiếp đến cửa sổ chính `main` hiện có kèm payload chuỗi đường dẫn tệp.
+   - Đưa cửa sổ chính lên tiền tuyến (Unminimize, Set Focus).
+3. Phía Frontend lắng nghe sự kiện `open-media-file`:
+   - Nếu tệp thuộc cùng thư mục đang mở, nạp và chuyển ngay đến vị trí tệp trong danh sách hiện tại.
+   - Nếu tệp thuộc thư mục mới, mở thêm thẻ Tab mới trên thanh tiêu đề của cùng cửa sổ thay vì phân mảnh thành nhiều cửa sổ riêng biệt.
+   - Tự động kích hoạt (active) thẻ tab và bắt đầu phát/hiển thị media.
+
+---
+
+## 13. Cơ chế Co giãn Media & Kéo Tua Timeline (Media Scaling & Interactive Timeline)
+
+### A. Tùy chọn Co giãn Media (Media Fit Modes)
+- **`scale_to_fit` (Mặc định):** Áp dụng class `w-full h-full object-contain`. Media luôn phóng to vừa khít không gian hiển thị của cửa sổ hoặc toàn màn hình mà không làm méo tỷ lệ cạnh.
+- **`limit_file_size`:** Áp dụng class `max-w-full max-h-full w-auto h-auto object-contain`. Giới hạn kích thước hiển thị tối đa theo đúng độ phân giải pixel gốc của tệp tin. Giúp tránh vỡ hạt khi xem ảnh/video nhỏ trên màn hình 4K/Retina.
+
+### B. Kéo Tua & Tương tác Mốc Lặp A/B (Interactive Timeline & A/B Dragging)
+- **Kéo tua trực tiếp (Drag Seek):** Người dùng có thể nhấn chuột vào bất kỳ vị trí nào trên thanh tiến trình và kéo chuột (`mousemove`) để tua video/audio liên tục trong thời gian thực.
+- **Kéo thả mốc A/B (Marker Dragging):** Khi mốc A hoặc B đã được thiết lập, người dùng có thể nhấp chuột trực tiếp vào biểu tượng marker `A` hoặc `B` trên timeline và kéo thả để tinh chỉnh vị trí mốc lặp.
+- **Hủy mốc thông minh (Click to Cancel):** Khi click vào nút "Set A" hoặc "Set B" tại vị trí phát hiện tại mà khoảng cách đến mốc cũ nhỏ hơn ngưỡng nhạy `0.25s`, hệ thống sẽ hiểu là thao tác hủy mốc và tự động xóa bỏ mốc tương ứng.
+

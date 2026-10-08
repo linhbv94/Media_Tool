@@ -237,7 +237,47 @@ export async function setTrafficLightsVisible(visible: boolean): Promise<void> {
   }
 }
 
-export const setWindowDecorations = setTrafficLightsVisible;
+/**
+ * Set window decorations (true for native titlebar, false for borderless/custom chrome)
+ */
+export async function setWindowDecorations(decorations: boolean): Promise<void> {
+  if (isTauriEnvironment()) {
+    try {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
+      await getCurrentWindow().setDecorations(decorations);
+    } catch (e) {
+      console.warn('Failed to set window decorations:', e);
+    }
+  }
+}
+
+/**
+ * Minimize current window
+ */
+export async function minimizeWindow(): Promise<void> {
+  if (isTauriEnvironment()) {
+    try {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
+      await getCurrentWindow().minimize();
+    } catch (e) {
+      console.warn('Failed to minimize window:', e);
+    }
+  }
+}
+
+/**
+ * Toggle maximize / restore current window
+ */
+export async function toggleMaximizeWindow(): Promise<void> {
+  if (isTauriEnvironment()) {
+    try {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
+      await getCurrentWindow().toggleMaximize();
+    } catch (e) {
+      console.warn('Failed to toggle maximize window:', e);
+    }
+  }
+}
 
 /**
  * Close current window

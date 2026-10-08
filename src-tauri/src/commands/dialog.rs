@@ -54,26 +54,16 @@ pub fn log_frontend(msg: String) {
     debug_log(&format!("[Frontend] {}", msg));
 }
 
-fn clean_file_url_or_path(raw: &str) -> String {
-    let clean = if raw.starts_with("file://") {
+pub fn clean_file_url_or_path(raw: &str) -> String {
+    if raw.starts_with("file://") {
         if let Ok(url) = Url::parse(raw) {
             if let Ok(file_path) = url.to_file_path() {
                 return file_path.to_string_lossy().to_string();
             }
         }
-        raw.trim_start_matches("file://")
-    } else {
-        raw
-    };
-
-    if clean.contains('%') {
-        if let Ok(url) = Url::parse(&format!("file://{}", clean)) {
-            if let Ok(file_path) = url.to_file_path() {
-                return file_path.to_string_lossy().to_string();
-            }
-        }
+        return raw.trim_start_matches("file://").to_string();
     }
-    clean.to_string()
+    raw.to_string()
 }
 
 #[cfg(target_os = "macos")]
