@@ -1,3 +1,4 @@
+import { AppUpdates } from './components/AppUpdates';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   AppSettings,
@@ -1078,6 +1079,7 @@ export const App: React.FC = () => {
           setSettingsInitialTab('general');
         }}
       />
+      <AppUpdates language={settings.language || 'vi'} notice />
     </div>
   );
 };

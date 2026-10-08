@@ -3,7 +3,7 @@
 Ứng dụng desktop cá nhân siêu nhẹ, đa nền tảng (Windows 11+ & macOS Apple Silicon), phục vụ duyệt và chọn lọc ảnh tốc độ cao, đồng thời phát video và âm thanh với khả năng kiểm soát phím tắt chuẩn xác và tính năng lặp đoạn A–B Loop kèm hạ/tăng âm thích ứng (Adaptive Audio Fade).
 
 > **Tôn chỉ:** *One App, One Codebase, Two Modules: Viewer + Player trên Shared Core thống nhất.*  
-> **Phiên bản hiện tại:** `v1.2.0` — Xem chi tiết tại [docs/version_management.md](docs/version_management.md)
+> **Phiên bản hiện tại:** `v1.2.1` — Xem chi tiết tại [docs/version_management.md](docs/version_management.md)
 
 ---
 
@@ -38,3 +38,8 @@ Toàn bộ tài liệu đặc tả chuẩn hóa phục vụ việc triển khai 
 - **Frontend UI:** TypeScript + React + Vite (Plain CSS / Tailwind CSS tinh gọn)
 - **Media Engine:** Tích hợp `libmpv` hoặc Native Media Engine (kiểm định qua Phase 0 Technical Spike)
 - **Native OS Integration:** Win32 API (`windows-sys` / `CF_HDROP`) & macOS Cocoa (`NSPasteboard` / `NSURL`)
+
+
+## Phát hành Windows/macOS và tự cập nhật
+
+Phiên bản `1.2.1` thêm kiểm tra cập nhật khi mở app và nút cập nhật trong Cài đặt → Giới thiệu. GitHub Actions build bộ cài Windows x64, macOS Apple Silicon và Intel bằng runner tiêu chuẩn cho repo public. Xem [hướng dẫn cấu hình khóa ký, phát hành và cài đặt](docs/release_guide.md).

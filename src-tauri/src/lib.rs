@@ -9,6 +9,8 @@ pub fn run() {
     let app = tauri::Builder::default()
         .manage(InitialMediaState::default())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
 
             // Build Native Menus (macOS Menu Bar & Windows Menu)

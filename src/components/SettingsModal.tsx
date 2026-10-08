@@ -1,3 +1,5 @@
+import { AppUpdates } from './AppUpdates';
+import { appVersion } from '../services/app_updater';
 import React, { useState, useEffect } from 'react';
 import { AppSettings, ThemeMode, AppLanguage, LoopFileMode } from '../types';
 import { t } from '../services/i18n';
@@ -505,7 +507,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         {i18n.about_app_name}
                       </h3>
                       <span className="px-2 py-0.5 text-[11px] font-mono font-semibold bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 rounded-full border border-cyan-300 dark:border-cyan-500/30">
-                        v1.2.0
+                        v{appVersion}
                       </span>
                     </div>
                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
@@ -516,6 +518,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </p>
                   </div>
                 </div>
+
+                <AppUpdates language={localSettings.language} />
 
                 <div className="space-y-3">
                   <h4 className="text-xs uppercase tracking-wider font-semibold text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5">
