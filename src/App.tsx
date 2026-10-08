@@ -50,6 +50,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   default_loop_file: 'all',
   autoplay_next: true,
   volume: 0.8,
+  media_fit_mode: 'scale_to_fit',
 };
 
 function normalizePath(rawPath: string): string {
@@ -861,6 +862,7 @@ export const App: React.FC = () => {
             hudVisible={hudVisible}
             language={settings.language || 'vi'}
             isMiniPip={isMiniPip}
+            mediaFitMode={settings.media_fit_mode || 'scale_to_fit'}
             onPrev={handlePrev}
             onNext={handleNext}
             onToggleMark={handleToggleMark}
@@ -946,6 +948,7 @@ export const App: React.FC = () => {
           seekLongSec={settings.seek_long_sec}
           abLoopCrossfadeMs={settings.ab_loop_crossfade_ms}
           isMiniPip={isMiniPip}
+          mediaFitMode={settings.media_fit_mode || 'scale_to_fit'}
           language={settings.language || 'vi'}
           onPrev={handlePrev}
           onNext={handleNext}

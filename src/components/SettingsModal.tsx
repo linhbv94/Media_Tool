@@ -3,7 +3,8 @@ import { appVersion } from '../services/app_updater';
 import React, { useState, useEffect } from 'react';
 import { AppSettings, ThemeMode, AppLanguage, LoopFileMode } from '../types';
 import { t } from '../services/i18n';
-import { X, Sliders, Play, HardDrive, Keyboard, RotateCcw, Info, Sparkles, CheckCircle2 } from 'lucide-react';
+import { startDragging } from '../services/tauri';
+import { X, Sliders, Play, HardDrive, Keyboard, RotateCcw, Info, Sparkles, Coffee, QrCode, ExternalLink, PlaySquare } from 'lucide-react';
 
 export type SettingsTabType = 'general' | 'playback' | 'cache' | 'hotkeys' | 'about';
 
@@ -55,6 +56,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       default_loop_file: 'all',
       autoplay_next: true,
       volume: 0.8,
+      media_fit_mode: 'scale_to_fit',
     };
     setLocalSettings(defaults);
     onSaveSettings(defaults);
@@ -67,30 +69,56 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-150"
+    >
+      {/* Top 32px Drag Strip across modal backdrop */}
+      <div
+        data-tauri-drag-region
+        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+        onMouseDown={(e) => {
+          if (e.button === 0) startDragging();
+        }}
+        className="absolute top-0 left-0 w-full h-8 z-10 pointer-events-auto"
+      />
+
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl bg-white dark:bg-[#141821] rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col text-xs transition-colors duration-200"
+        className="relative z-20 w-full max-w-2xl h-[560px] max-h-[calc(100dvh-32px)] bg-white dark:bg-[#141821] rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden flex flex-col text-xs transition-colors duration-200"
       >
         {/* Header */}
-        <div className="h-14 px-6 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50/70 dark:bg-black/20">
-          <div className="flex items-center gap-2">
+        <div
+          data-tauri-drag-region
+          style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+          onMouseDown={(e) => {
+            if (
+              e.button === 0 &&
+              !(e.target as HTMLElement).closest('button, input, select, textarea, [role="button"]')
+            ) {
+              startDragging();
+            }
+          }}
+          className="h-14 px-6 border-b border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50/70 dark:bg-black/20 shrink-0 cursor-default select-none"
+        >
+          <div className="flex items-center gap-2 pointer-events-none">
             <span className="text-base font-semibold text-slate-900 dark:text-white">
               {i18n.settings_title}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors"
+            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors pointer-events-auto"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content Body: Sidebar + Main Content */}
-        <div className="flex min-h-[420px]">
+        <div className="flex flex-1 min-h-0 overflow-hidden">
           {/* Tab Sidebar */}
-          <div className="w-48 border-r border-slate-200 dark:border-white/10 p-3 space-y-1.5 bg-slate-50/50 dark:bg-black/20">
+          <div className="w-48 border-r border-slate-200 dark:border-white/10 p-3 space-y-1.5 bg-slate-50/50 dark:bg-black/20 overflow-y-auto shrink-0">
             <button
               onClick={() => setActiveTab('general')}
               className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg font-medium text-left transition-all ${
@@ -153,7 +181,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           {/* Tab Content Panel */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-white dark:bg-[#141821]">
+          <div className="flex-1 min-h-0 p-6 overflow-y-auto space-y-6 bg-white dark:bg-[#141821]">
             {/* TAB 1: GENERAL */}
             {activeTab === 'general' && (
               <div className="space-y-5">
@@ -415,6 +443,52 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <option value="off">{i18n.loop_off_desc}</option>
                   </select>
                 </div>
+
+                {/* Media Scaling: Scale to fit vs Limit to file size */}
+                <div className="pt-4 border-t border-slate-200 dark:border-white/10">
+                  <h4 className="text-xs uppercase tracking-wider font-semibold text-cyan-700 dark:text-cyan-400 mb-2">
+                    {i18n.sec_media_scaling}
+                  </h4>
+                  <div className="space-y-2.5">
+                    <label className="flex items-start gap-2.5 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="media_fit_mode"
+                        value="scale_to_fit"
+                        checked={(localSettings.media_fit_mode || 'scale_to_fit') === 'scale_to_fit'}
+                        onChange={() => updateSetting('media_fit_mode', 'scale_to_fit')}
+                        className="mt-0.5 text-cyan-600 accent-cyan-600"
+                      />
+                      <div className="text-[11px]">
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition-colors">
+                          {i18n.scale_to_fit}
+                        </span>
+                        <p className="text-slate-500 dark:text-slate-400 leading-normal mt-0.5">
+                          {i18n.scale_to_fit_desc}
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="media_fit_mode"
+                        value="limit_file_size"
+                        checked={localSettings.media_fit_mode === 'limit_file_size'}
+                        onChange={() => updateSetting('media_fit_mode', 'limit_file_size')}
+                        className="mt-0.5 text-cyan-600 accent-cyan-600"
+                      />
+                      <div className="text-[11px]">
+                        <span className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition-colors">
+                          {i18n.limit_file_size}
+                        </span>
+                        <p className="text-slate-500 dark:text-slate-400 leading-normal mt-0.5">
+                          {i18n.limit_file_size_desc}
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -496,13 +570,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* TAB 5: ABOUT */}
             {activeTab === 'about' && (
-              <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="space-y-4 animate-in fade-in duration-200">
+                {/* Khung 1: Thông tin ứng dụng */}
                 <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-cyan-500/10 via-cyan-500/5 to-transparent border border-cyan-500/20">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white shrink-0 font-bold text-2xl">
-                    👁️
+                    <PlaySquare className="w-7 h-7 text-white" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-base font-bold text-slate-900 dark:text-white">
                         {i18n.about_app_name}
                       </h3>
@@ -513,37 +588,61 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                       {i18n.about_tagline}
                     </p>
-                    <p className="text-xs font-semibold text-cyan-700 dark:text-cyan-400 mt-1">
-                      {i18n.about_author}
-                    </p>
+                    <div className="flex items-center gap-3 mt-1.5 flex-wrap text-xs">
+                      <span className="font-semibold text-cyan-700 dark:text-cyan-400">
+                        {i18n.about_author}
+                      </span>
+                      <span className="text-slate-300 dark:text-slate-600">•</span>
+                      <a
+                        href="https://github.com/linhbv94/Media_Tool"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-cyan-600 dark:text-cyan-400 hover:underline font-mono text-[11px]"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>github.com/linhbv94/Media_Tool</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
 
+                {/* Khung 2: Update trạng thái & kiểm tra */}
                 <AppUpdates language={localSettings.language} />
 
-                <div className="space-y-3">
+                {/* Khung 3: Giới thiệu ngắn 2-3 câu về công dụng / điểm nổi bật */}
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-white/5 space-y-2">
                   <h4 className="text-xs uppercase tracking-wider font-semibold text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>{i18n.about_diff_title}</span>
                   </h4>
-                  <div className="space-y-2 text-xs">
-                    {[
-                      i18n.about_diff_1,
-                      i18n.about_diff_2,
-                      i18n.about_diff_3,
-                      i18n.about_diff_4,
-                      i18n.about_diff_5,
-                    ].map((diff, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-white/5"
-                      >
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5" />
-                        <span className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
-                          {diff}
-                        </span>
-                      </div>
-                    ))}
+                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                    {i18n.about_diff_short}
+                  </p>
+                </div>
+
+                {/* Khung 4: QR ủng hộ placeholder */}
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/80 dark:border-white/5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Coffee className="w-3.5 h-3.5 text-amber-500" />
+                      <span>{localSettings.language === 'vi' ? 'Mời tôi ly coffee' : 'Buy me a coffee'}</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                      Placeholder
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 p-2.5 rounded-lg border border-dashed border-slate-300 dark:border-white/15 bg-white dark:bg-black/20">
+                    <div className="w-14 h-14 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 shrink-0">
+                      <QrCode className="w-7 h-7 text-slate-400 dark:text-slate-500" />
+                    </div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      <p className="font-medium text-slate-800 dark:text-slate-200">
+                        {localSettings.language === 'vi' ? 'Mời tôi ly coffee' : 'Buy me a coffee'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        {localSettings.language === 'vi' ? 'Khu vực QR ủng hộ tác giả (Sắp ra mắt, không quét mã giả)' : 'Author support QR area (Coming soon, placeholder only)'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -552,7 +651,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="h-14 px-6 border-t border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50/70 dark:bg-black/30">
+        <div className="h-14 px-6 border-t border-slate-200 dark:border-white/10 flex items-center justify-between bg-slate-50/70 dark:bg-black/30 shrink-0">
           <button
             onClick={handleResetDefaults}
             className="flex items-center gap-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-colors font-medium"

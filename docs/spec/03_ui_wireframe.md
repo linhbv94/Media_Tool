@@ -498,9 +498,16 @@ Khi bấm `[⚙️ Cài đặt]` trên Menu chuột phải hoặc nhấn tổ h�
      - **Đen tuyền (Pure Black):** Nền `#000000` chuyên dụng cho màn hình OLED.
    - **Ngôn ngữ (Language):** Chuyển đổi linh hoạt giữa **Tiếng Việt** (`vi`) và **English** (`en`) cho toàn bộ nhãn, nút bấm, thông báo toast và menu ngữ cảnh.
 2. **Tab 2 — Trình phát (Playback):**
+   - **Tỷ lệ hiển thị Media (Media Scaling):**
+     - **Vừa cửa sổ / Màn hình (Scale to fit - Mặc định):** Phóng to vừa khít khung cửa sổ hoặc toàn màn hình, giữ nguyên tỷ lệ gốc không méo ảnh/video.
+     - **Theo kích thước gốc (Limit file size):** Giới hạn tối đa theo kích thước pixel thật của file gốc, tránh hiện tượng vỡ hạt/pixelated khi phóng to ảnh/video độ phân giải thấp trên màn hình lớn.
    - **Bước nhảy tua ngắn:** 1 giây (mặc định) / có thể chỉnh 2s, 3s.
    - **Bước nhảy tua dài:** 5 giây (mặc định) / có thể chỉnh 10s.
    - **Độ mượt Crossfade khi Lặp A-B:** Slider từ 0ms (ngắt bén) đến 100ms (mặc định: 45ms siêu mượt).
+   - **Tương tác Timeline & Đoạn Lặp A-B:**
+     - Kéo tua (Drag Seek) mượt mà trực tiếp trên thanh tiến trình với cập nhật thời gian liên tục.
+     - Kéo thả mốc Marker A và Marker B linh hoạt để tinh chỉnh khoảng lặp.
+     - Nhấn nút Set A hoặc Set B tại vị trí đã thiết lập trước đó (chênh lệch < 0.25s) sẽ tự động hủy mốc A hoặc B tương ứng.
    - **Chế độ Lặp Tệp Mặc định:** Không lặp / Lặp 1 file / Lặp danh sách.
    - **Tự động phát khi chuyển video:** Bật / Tắt.
 3. **Tab 3 — Bộ nhớ & Cache (Storage & Cache):**

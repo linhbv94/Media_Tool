@@ -11,84 +11,110 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
+            commands::dialog::debug_log(&format!("Single-instance secondary launch with argv: {:?}, cwd: {}", argv, cwd));
+            let target_win = app.get_webview_window("main");
+            for arg in argv.into_iter().skip(1) {
+                if arg.starts_with('-') {
+                    continue;
+                }
+                let clean_raw = commands::dialog::clean_file_url_or_path(&arg);
+                let p = std::path::Path::new(&clean_raw);
+                let resolved_path = if p.is_relative() && !cwd.is_empty() {
+                    std::path::Path::new(&cwd).join(p)
+                } else {
+                    p.to_path_buf()
+                };
+
+                if resolved_path.exists() {
+                    let path_str = resolved_path.to_string_lossy().to_string();
+                    if let Some(ref win) = target_win {
+                        let _ = win.emit("open-media-file", &path_str);
+                        let _ = win.unminimize();
+                        let _ = win.set_focus();
+                    }
+                }
+            }
+        }))
         .setup(|app| {
 
-            // Build Native Menus (macOS Menu Bar & Windows Menu)
-            let open_file = MenuItemBuilder::with_id("open_file", "Mở tệp...")
-                .accelerator("CmdOrCtrl+O")
-                .build(app)?;
-            let open_folder = MenuItemBuilder::with_id("open_folder", "Mở thư mục...")
-                .accelerator("CmdOrCtrl+Shift+O")
-                .build(app)?;
             #[cfg(target_os = "macos")]
-            let about_metadata = AboutMetadataBuilder::new()
-                .name(Some("VXMedia"))
-                .version(Some(env!("CARGO_PKG_VERSION")))
-                .copyright(Some("by Viet Linh Bui"))
-                .authors(Some(vec!["Viet Linh Bui".into()]))
-                .comments(Some("Trình duyệt ảnh & phát media cá nhân siêu nhẹ"))
-                .credits(Some(
-                    "VXMedia — Trình duyệt ảnh & phát media cá nhân siêu nhẹ (One App, Shared Core)\n\
-                    Created by Viet Linh Bui\n\n\
-                    [VI] Điểm khác biệt so với các Player/Viewer khác:\n\
-                    • Hợp nhất All-in-One: Duyệt ảnh tốc độ cao + Trình phát Video/Audio chuyên dụng trong 1 app.\n\
-                    • Lặp đoạn A–B siêu êm: Thuật toán Adaptive Audio Fade (0–100ms) loại bỏ hoàn toàn tiếng nấc giật.\n\
-                    • Phát nhạc ngầm toàn cục: Thẻ audio bền vững, tiếp tục nghe nhạc liên tục khi chuyển tab duyệt ảnh.\n\
-                    • Quản lý Tab & Đa Cửa sổ: Phân tách Folder Sessions độc lập, tái sử dụng tab và mở cửa sổ song song.\n\
-                    • Tích hợp Native OS: Đánh dấu và copy/cut file trực tiếp vào Finder (macOS) / Explorer (Win32 CF_HDROP).\n\n\
-                    [EN] Key Differentiators:\n\
-                    • All-in-One: Fast photo browsing + Dedicated Video/Audio player in a single unified app.\n\
-                    • Smooth A–B Loop: Adaptive Audio Fade (0–100ms) eliminates loop clicks/pops.\n\
-                    • Global Playback: Persistent audio playback across photo tabs and folders.\n\
-                    • Folder Tabs & Multi-Window: Independent folder sessions with parallel comparison.\n\
-                    • Native OS Integration: Mark files and copy directly to Finder / Explorer."
-                ))
-                .build();
+            {
+                // Build Native Menus (macOS Menu Bar)
+                let open_file = MenuItemBuilder::with_id("open_file", "Mở tệp...")
+                    .accelerator("CmdOrCtrl+O")
+                    .build(app)?;
+                let open_folder = MenuItemBuilder::with_id("open_folder", "Mở thư mục...")
+                    .accelerator("CmdOrCtrl+Shift+O")
+                    .build(app)?;
+                let about_metadata = AboutMetadataBuilder::new()
+                    .name(Some("VXMedia"))
+                    .version(Some(env!("CARGO_PKG_VERSION")))
+                    .copyright(Some("by Viet Linh Bui"))
+                    .authors(Some(vec!["Viet Linh Bui".into()]))
+                    .comments(Some("Trình duyệt ảnh & phát media cá nhân siêu nhẹ"))
+                    .credits(Some(
+                        "VXMedia — Trình duyệt ảnh & phát media cá nhân siêu nhẹ (One App, Shared Core)\n\
+                        Created by Viet Linh Bui\n\n\
+                        [VI] Điểm khác biệt so với các Player/Viewer khác:\n\
+                        • Hợp nhất All-in-One: Duyệt ảnh tốc độ cao + Trình phát Video/Audio chuyên dụng trong 1 app.\n\
+                        • Lặp đoạn A–B siêu êm: Thuật toán Adaptive Audio Fade (0–100ms) loại bỏ hoàn toàn tiếng nấc giật.\n\
+                        • Phát nhạc ngầm toàn cục: Thẻ audio bền vững, tiếp tục nghe nhạc liên tục khi chuyển tab duyệt ảnh.\n\
+                        • Quản lý Tab & Đa Cửa sổ: Phân tách Folder Sessions độc lập, tái sử dụng tab và mở cửa sổ song song.\n\
+                        • Tích hợp Native OS: Đánh dấu và copy/cut file trực tiếp vào Finder (macOS) / Explorer (Win32 CF_HDROP).\n\n\
+                        [EN] Key Differentiators:\n\
+                        • All-in-One: Fast photo browsing + Dedicated Video/Audio player in a single unified app.\n\
+                        • Smooth A–B Loop: Adaptive Audio Fade (0–100ms) eliminates loop clicks/pops.\n\
+                        • Global Playback: Persistent audio playback across photo tabs and folders.\n\
+                        • Folder Tabs & Multi-Window: Independent folder sessions with parallel comparison.\n\
+                        • Native OS Integration: Mark files and copy directly to Finder / Explorer."
+                    ))
+                    .build();
 
-            #[cfg(target_os = "macos")]
-            let app_submenu = SubmenuBuilder::new(app, "VXMedia")
-                .about(Some(about_metadata))
-                .separator()
-                .services()
-                .separator()
-                .hide()
-                .hide_others()
-                .show_all()
-                .separator()
-                .quit()
-                .build()?;
+                let app_submenu = SubmenuBuilder::new(app, "VXMedia")
+                    .about(Some(about_metadata))
+                    .separator()
+                    .services()
+                    .separator()
+                    .hide()
+                    .hide_others()
+                    .show_all()
+                    .separator()
+                    .quit()
+                    .build()?;
 
-            let file_submenu = SubmenuBuilder::new(app, "File")
-                .item(&open_file)
-                .item(&open_folder)
-                .separator()
-                .close_window()
-                .build()?;
+                let file_submenu = SubmenuBuilder::new(app, "File")
+                    .item(&open_file)
+                    .item(&open_folder)
+                    .separator()
+                    .close_window()
+                    .build()?;
 
-            let edit_submenu = SubmenuBuilder::new(app, "Edit")
-                .undo()
-                .redo()
-                .separator()
-                .cut()
-                .copy()
-                .paste()
-                .select_all()
-                .build()?;
+                let edit_submenu = SubmenuBuilder::new(app, "Edit")
+                    .undo()
+                    .redo()
+                    .separator()
+                    .cut()
+                    .copy()
+                    .paste()
+                    .select_all()
+                    .build()?;
 
-            #[cfg(target_os = "macos")]
-            let menu = MenuBuilder::new(app)
-                .item(&app_submenu)
-                .item(&file_submenu)
-                .item(&edit_submenu)
-                .build()?;
+                let menu = MenuBuilder::new(app)
+                    .item(&app_submenu)
+                    .item(&file_submenu)
+                    .item(&edit_submenu)
+                    .build()?;
 
-            #[cfg(not(target_os = "macos"))]
-            let menu = MenuBuilder::new(app)
-                .item(&file_submenu)
-                .item(&edit_submenu)
-                .build()?;
+                let _ = app.set_menu(menu);
+            }
 
-            let _ = app.set_menu(menu);
+            #[cfg(target_os = "windows")]
+            {
+                if let Some(main_win) = app.get_webview_window("main") {
+                    let _ = main_win.set_decorations(false);
+                }
+            }
 
             Ok(())
         })

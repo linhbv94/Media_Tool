@@ -50,6 +50,7 @@ interface PlayerProps {
   onCycleLoopFile: () => void;
   onToggleFullscreen: () => void;
   sharedAudioRef?: React.RefObject<HTMLAudioElement | null>;
+  mediaFitMode?: 'scale_to_fit' | 'limit_file_size';
 }
 
 export const Player: React.FC<PlayerProps> = ({
@@ -68,6 +69,7 @@ export const Player: React.FC<PlayerProps> = ({
   abLoopCrossfadeMs,
   language,
   isMiniPip = false,
+  mediaFitMode = 'scale_to_fit',
   onPrev,
   onNext,
   onToggleMark,
@@ -279,8 +281,17 @@ export const Player: React.FC<PlayerProps> = ({
     };
   }, [isAudio, sharedAudioRef, mediaSrc, onTimeUpdate, onEnded]);
 
-  // Set Point A
+  // Set Point A (Click again at unchanged position cancels A)
   const handleSetPointA = () => {
+    if (abLoop.point_a !== null && Math.abs(currentTime - abLoop.point_a) < 0.25) {
+      setAbLoop((prev) => ({
+        ...prev,
+        point_a: null,
+        is_active: false,
+      }));
+      return;
+    }
+
     setAbLoop((prev) => ({
       ...prev,
       point_a: currentTime,
@@ -292,9 +303,19 @@ export const Player: React.FC<PlayerProps> = ({
     }));
   };
 
-  // Set Point B
+  // Set Point B (Click again at unchanged position cancels B)
   const handleSetPointB = () => {
+    if (abLoop.point_b !== null && Math.abs(currentTime - abLoop.point_b) < 0.25) {
+      setAbLoop((prev) => ({
+        ...prev,
+        point_b: null,
+        is_active: false,
+      }));
+      return;
+    }
+
     if (abLoop.point_a === null) {
+      if (currentTime <= 0.2) return;
       setAbLoop({
         point_a: 0,
         point_b: currentTime,
@@ -315,6 +336,32 @@ export const Player: React.FC<PlayerProps> = ({
       point_b: bVal,
       is_active: true,
       fade_duration_ms: fadeMs,
+    }));
+  };
+
+  // Drag Point A on timeline
+  const handleDragPointA = (newA: number) => {
+    setAbLoop((prev) => ({
+      ...prev,
+      point_a: newA,
+      is_active: prev.point_b !== null && newA < prev.point_b,
+      fade_duration_ms:
+        prev.point_b !== null
+          ? audioEngine.calculateFadeDurationMs(newA, prev.point_b)
+          : prev.fade_duration_ms,
+    }));
+  };
+
+  // Drag Point B on timeline
+  const handleDragPointB = (newB: number) => {
+    setAbLoop((prev) => ({
+      ...prev,
+      point_b: newB,
+      is_active: prev.point_a !== null && newB > prev.point_a,
+      fade_duration_ms:
+        prev.point_a !== null
+          ? audioEngine.calculateFadeDurationMs(prev.point_a, newB)
+          : prev.fade_duration_ms,
     }));
   };
 
@@ -492,7 +539,11 @@ export const Player: React.FC<PlayerProps> = ({
                 if (mediaRef.current) setDuration(mediaRef.current.duration);
               }}
               onEnded={onEnded}
-              className="max-w-full max-h-full w-auto h-auto object-contain cursor-pointer select-none"
+              className={
+                mediaFitMode === 'limit_file_size'
+                  ? 'max-w-full max-h-full w-auto h-auto object-contain cursor-pointer select-none'
+                  : 'w-full h-full object-contain cursor-pointer select-none'
+              }
             />
           </div>
         )}
@@ -582,6 +633,8 @@ export const Player: React.FC<PlayerProps> = ({
                 duration={duration}
                 abLoop={abLoop}
                 onSeek={handleSeek}
+                onSetPointA={handleDragPointA}
+                onSetPointB={handleDragPointB}
               />
 
               {/* ROW 1: PLAY/PAUSE, <<, <, >, >>, SHUFFLE, REPEAT, A, B, LOOP AB (LEFT) │ VOLUME (RIGHT) */}

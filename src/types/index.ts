@@ -71,6 +71,7 @@ export interface AppSettings {
   default_loop_file: LoopFileMode; // Lặp file mặc định (Mặc định: 'all')
   autoplay_next: boolean;        // Tự phát khi next video (Mặc định: true)
   volume: number;                // Mức âm lượng lưu trữ (Mặc định: 0.8)
+  media_fit_mode?: 'scale_to_fit' | 'limit_file_size'; // Co giãn media: phóng to vừa khung hoặc giới hạn kích thước file thật
 }
 
 // 9. Trạng thái Đánh dấu trong Phiên làm việc (Session Mark State)

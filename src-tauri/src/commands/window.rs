@@ -22,6 +22,11 @@ pub async fn create_media_window(
             .hidden_title(true);
     }
 
+    #[cfg(target_os = "windows")]
+    {
+        builder = builder.decorations(false);
+    }
+
     builder.build().map_err(|e| e.to_string())?;
     Ok(())
 }

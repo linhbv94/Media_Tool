@@ -28,6 +28,7 @@ interface ViewerProps {
   onCopyMarked: () => void;
   onCutMarked: () => void;
   onToggleFullscreen: () => void;
+  mediaFitMode?: 'scale_to_fit' | 'limit_file_size';
 }
 
 export const Viewer: React.FC<ViewerProps> = ({
@@ -39,6 +40,7 @@ export const Viewer: React.FC<ViewerProps> = ({
   hudVisible,
   language,
   isMiniPip = false,
+  mediaFitMode = 'scale_to_fit',
   onPrev,
   onNext,
   onToggleMark,
@@ -120,7 +122,11 @@ export const Viewer: React.FC<ViewerProps> = ({
               transform: `rotate(${rotation}deg) scaleX(${isFlipped ? -1 : 1})`,
               transition: 'transform 0.2s ease-out',
             }}
-            className="max-w-full max-h-full w-auto h-auto object-contain select-none pointer-events-auto shadow-2xl rounded-sm"
+            className={
+              mediaFitMode === 'limit_file_size'
+                ? 'max-w-full max-h-full w-auto h-auto object-contain select-none pointer-events-auto shadow-2xl rounded-sm'
+                : 'w-full h-full object-contain select-none pointer-events-auto shadow-2xl rounded-sm'
+            }
           />
         ) : (
           <div className="w-6 h-6 rounded-full border-2 border-cyan-500 border-t-transparent animate-spin" />

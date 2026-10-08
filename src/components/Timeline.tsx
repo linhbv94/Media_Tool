@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { ABLoopState } from '../types';
 
 interface TimelineProps {
@@ -6,6 +6,8 @@ interface TimelineProps {
   duration: number;
   abLoop: ABLoopState;
   onSeek: (targetTime: number) => void;
+  onSetPointA?: (time: number) => void;
+  onSetPointB?: (time: number) => void;
   isMiniPip?: boolean;
 }
 
@@ -26,20 +28,78 @@ export const Timeline: React.FC<TimelineProps> = ({
   duration,
   abLoop,
   onSeek,
+  onSetPointA,
+  onSetPointB,
   isMiniPip = false,
 }) => {
   const barRef = useRef<HTMLDivElement>(null);
+  const [dragMode, setDragMode] = useState<'seek' | 'pointA' | 'pointB' | null>(null);
 
-  const calculateSeekTime = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+  // Global mousemove/mouseup listener while dragging
+  useEffect(() => {
+    if (!dragMode) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (e.buttons === 0) {
+        setDragMode(null);
+        return;
+      }
       if (!barRef.current || duration <= 0) return;
       const rect = barRef.current.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-      onSeek(ratio * duration);
-    },
-    [duration, onSeek]
-  );
+      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const targetTime = ratio * duration;
+
+      if (dragMode === 'seek') {
+        onSeek(targetTime);
+      } else if (dragMode === 'pointA' && onSetPointA) {
+        const maxA = abLoop.point_b !== null ? Math.max(0, abLoop.point_b - 0.1) : duration;
+        onSetPointA(Math.min(maxA, Math.max(0, targetTime)));
+      } else if (dragMode === 'pointB' && onSetPointB) {
+        const minB = abLoop.point_a !== null ? Math.min(duration, abLoop.point_a + 0.1) : 0;
+        onSetPointB(Math.max(minB, Math.min(duration, targetTime)));
+      }
+    };
+
+    const handleMouseUp = () => {
+      setDragMode(null);
+    };
+
+    const handleBlur = () => {
+      setDragMode(null);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('pointerup', handleMouseUp);
+    window.addEventListener('blur', handleBlur);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('pointerup', handleMouseUp);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [dragMode, duration, onSeek, onSetPointA, onSetPointB, abLoop.point_a, abLoop.point_b]);
+
+  const handleTrackMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || !barRef.current || duration <= 0) return;
+    const rect = barRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+    onSeek(ratio * duration);
+    setDragMode('seek');
+  };
+
+  const handleMarkerAMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (e.button !== 0) return;
+    setDragMode('pointA');
+  };
+
+  const handleMarkerBMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (e.button !== 0) return;
+    setDragMode('pointB');
+  };
 
   const currentPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const aPercent = abLoop.point_a !== null && duration > 0 ? (abLoop.point_a / duration) * 100 : null;
@@ -49,7 +109,7 @@ export const Timeline: React.FC<TimelineProps> = ({
     return (
       <div
         ref={barRef}
-        onClick={calculateSeekTime}
+        onMouseDown={handleTrackMouseDown}
         className="w-full h-1 bg-slate-800/80 cursor-pointer relative overflow-hidden"
       >
         <div
@@ -70,8 +130,8 @@ export const Timeline: React.FC<TimelineProps> = ({
       {/* Progress Track */}
       <div
         ref={barRef}
-        onClick={calculateSeekTime}
-        className="flex-1 h-5 flex items-center cursor-pointer group relative"
+        onMouseDown={handleTrackMouseDown}
+        className="flex-1 h-6 flex items-center cursor-pointer group relative"
       >
         {/* Background Track */}
         <div className="w-full h-1.5 bg-slate-700/60 rounded-full relative overflow-hidden group-hover:h-2 transition-all">
@@ -95,26 +155,30 @@ export const Timeline: React.FC<TimelineProps> = ({
           />
         </div>
 
-        {/* Marker Point A */}
+        {/* Marker Point A (Draggable) */}
         {aPercent !== null && (
           <div
-            className="absolute -top-1 -translate-x-1/2 flex flex-col items-center pointer-events-none z-10"
+            onMouseDown={handleMarkerAMouseDown}
+            className="absolute -top-1 -translate-x-1/2 flex flex-col items-center pointer-events-auto z-20 cursor-ew-resize group/marka"
             style={{ left: `${aPercent}%` }}
+            title={`Điểm A: ${abLoop.point_a?.toFixed(1)}s (Kéo để điều chỉnh)`}
           >
-            <span className="text-[9px] font-bold font-mono px-1 py-0.2 rounded bg-cyan-500 text-slate-950 shadow">
+            <span className="text-[9px] font-bold font-mono px-1 py-0.5 rounded bg-cyan-500 text-slate-950 shadow hover:scale-110 active:scale-95 transition-transform">
               A
             </span>
             <div className="w-0.5 h-3 bg-cyan-400" />
           </div>
         )}
 
-        {/* Marker Point B */}
+        {/* Marker Point B (Draggable) */}
         {bPercent !== null && (
           <div
-            className="absolute -top-1 -translate-x-1/2 flex flex-col items-center pointer-events-none z-10"
+            onMouseDown={handleMarkerBMouseDown}
+            className="absolute -top-1 -translate-x-1/2 flex flex-col items-center pointer-events-auto z-20 cursor-ew-resize group/markb"
             style={{ left: `${bPercent}%` }}
+            title={`Điểm B: ${abLoop.point_b?.toFixed(1)}s (Kéo để điều chỉnh)`}
           >
-            <span className="text-[9px] font-bold font-mono px-1 py-0.2 rounded bg-emerald-500 text-slate-950 shadow">
+            <span className="text-[9px] font-bold font-mono px-1 py-0.5 rounded bg-emerald-500 text-slate-950 shadow hover:scale-110 active:scale-95 transition-transform">
               B
             </span>
             <div className="w-0.5 h-3 bg-emerald-400" />
@@ -123,7 +187,9 @@ export const Timeline: React.FC<TimelineProps> = ({
 
         {/* Current Position Thumb */}
         <div
-          className="absolute w-3.5 h-3.5 bg-white rounded-full shadow-md -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-cyan-500"
+          className={`absolute w-3.5 h-3.5 bg-white rounded-full shadow-md -translate-x-1/2 transition-opacity pointer-events-none border border-cyan-500 ${
+            dragMode === 'seek' ? 'opacity-100 scale-125' : 'opacity-0 group-hover:opacity-100'
+          }`}
           style={{ left: `${currentPercent}%` }}
         />
       </div>

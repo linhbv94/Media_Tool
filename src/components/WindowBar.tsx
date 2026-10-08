@@ -1,8 +1,8 @@
-import React from 'react';
-import { Pin, Eye, EyeOff, ListFilter, Settings, FolderOpen, Folder, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Pin, Eye, EyeOff, ListFilter, Settings, FolderOpen, Folder, X, Minus, Square, PlaySquare } from 'lucide-react';
 import { AppLanguage } from '../types';
 import { t } from '../services/i18n';
-import { startDragging, closeWindow } from '../services/tauri';
+import { startDragging, closeWindow, minimizeWindow, toggleMaximizeWindow, setWindowDecorations } from '../services/tauri';
 
 interface WindowBarProps {
   isPinned: boolean;
@@ -37,6 +37,24 @@ export const WindowBar: React.FC<WindowBarProps> = ({
 }) => {
   const i18n = t(language);
   const isMac = typeof navigator !== 'undefined' && (/Mac|iPod|iPhone|iPad/.test(navigator.platform) || /Macintosh/.test(navigator.userAgent));
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setActiveMenu(null);
+      }
+    };
+    window.addEventListener('mousedown', handleOutsideClick);
+    return () => window.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
+
+  useEffect(() => {
+    if (!isMac) {
+      setWindowDecorations(false);
+    }
+  }, [isMac]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (
@@ -49,38 +67,102 @@ export const WindowBar: React.FC<WindowBarProps> = ({
     }
   };
 
+  const windowsMenus: Record<string, Array<{ label: string; shortcut?: string; action: () => void }>> = {
+    [i18n.menu_file || 'Tệp']: [
+      ...(onOpenFile ? [{ label: i18n.open_file, shortcut: 'Cmd/Ctrl+O', action: onOpenFile }] : []),
+      ...(onOpenFolder ? [{ label: i18n.open_folder, shortcut: 'Cmd/Ctrl+Shift+O', action: onOpenFolder }] : []),
+      { label: i18n.settings, shortcut: 'Cmd/Ctrl+,', action: onOpenSettings },
+      { label: language === 'vi' ? 'Đóng cửa sổ' : 'Close Window', shortcut: 'Alt+F4', action: () => closeWindow() },
+    ],
+    [i18n.menu_view || 'Xem']: [
+      { label: hudVisible ? 'Ẩn HUD' : 'Hiện HUD', shortcut: 'H', action: onToggleHud },
+      { label: i18n.folder_list, shortcut: 'B', action: onToggleSidebar },
+      { label: isPinned ? i18n.pinned : i18n.pin, shortcut: 'P', action: onTogglePin },
+    ],
+    [i18n.menu_help || 'Trợ giúp']: [
+      { label: i18n.settings, action: onOpenSettings },
+    ],
+  };
+
   return (
     <div
       data-tauri-drag-region
       onMouseDown={handleMouseDown}
       style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
-      className={`absolute top-0 left-0 w-full ${
+      className={`absolute top-0 left-0 w-full h-8 ${
         isMiniPip
-          ? 'h-7 px-2'
+          ? 'px-2'
           : isMac
-          ? 'h-7 pl-[82px] pr-3'
-          : 'h-8 pl-3 pr-3'
+          ? 'pl-[82px] pr-3'
+          : 'pl-2 pr-2'
       } flex items-center justify-between z-40 transition-colors duration-200 select-none ${
         hudVisible
           ? 'bg-gradient-to-b from-black/80 via-black/45 to-transparent pointer-events-auto'
           : 'bg-transparent pointer-events-none'
       }`}
     >
-      {/* Left: App Name, Tabs, and Quick Open Actions */}
+      {/* Left: Brand (Mac) or Menu Bar (Windows) + Tabs & Quick Open */}
       <div className={`flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[calc(100%-260px)] transition-opacity duration-200 ${
         hudVisible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       }`}>
-        {!isMiniPip && (
-          <span className="text-xs font-semibold tracking-wider font-mono opacity-90 text-slate-200 flex items-center leading-none shrink-0">
-            {i18n.app_title}
-          </span>
+        {/* macOS Brand: Icon + App Title (System font) */}
+        {!isMiniPip && isMac && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <PlaySquare className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span className="text-xs font-semibold tracking-wide text-slate-200 shrink-0 leading-none">
+              {i18n.app_title}
+            </span>
+          </div>
+        )}
+
+        {/* Windows Menus (Icon & Title hidden per desktop UI standard) */}
+        {!isMiniPip && !isMac && (
+          <div ref={menuRef} style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties} className="flex items-center gap-0.5 text-slate-300 shrink-0">
+            {Object.keys(windowsMenus).map((menuKey) => (
+              <div key={menuKey} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setActiveMenu(activeMenu === menuKey ? null : menuKey)}
+                  onMouseEnter={() => {
+                    if (activeMenu !== null) setActiveMenu(menuKey);
+                  }}
+                  className={`px-2 py-1 rounded text-xs transition-colors hover:bg-white/10 hover:text-white ${
+                    activeMenu === menuKey ? 'bg-white/15 text-cyan-300 font-semibold' : ''
+                  }`}
+                >
+                  {menuKey}
+                </button>
+
+                {activeMenu === menuKey && (
+                  <div className="absolute left-0 top-full mt-1 min-w-[200px] rounded-lg bg-slate-900/95 backdrop-blur-md py-1 z-50 shadow-2xl border border-white/10">
+                    {windowsMenus[menuKey].map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          item.action();
+                          setActiveMenu(null);
+                        }}
+                        className="w-full text-left px-3 py-1.5 flex items-center justify-between text-xs hover:bg-cyan-500/20 text-slate-200 hover:text-cyan-200 transition-colors"
+                      >
+                        <span>{item.label}</span>
+                        {item.shortcut && (
+                          <span className="text-[10px] text-slate-400 font-mono ml-3">{item.shortcut}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Tab Bar Content */}
         {!isMiniPip && tabBarContent}
 
         {/* Quick Open File */}
-        {onOpenFile && !isMiniPip && !tabBarContent && (
+        {onOpenFile && !isMiniPip && !tabBarContent && isMac && (
           <button
             onClick={onOpenFile}
             title={i18n.open_file}
@@ -93,7 +175,7 @@ export const WindowBar: React.FC<WindowBarProps> = ({
         )}
 
         {/* Quick Open Folder */}
-        {onOpenFolder && !isMiniPip && !tabBarContent && (
+        {onOpenFolder && !isMiniPip && !tabBarContent && isMac && (
           <button
             onClick={onOpenFolder}
             title={i18n.open_folder}
@@ -141,7 +223,7 @@ export const WindowBar: React.FC<WindowBarProps> = ({
 
         {!isMiniPip && (
           <>
-            {/* Toggle HUD Button - When HUD is hidden, this button stays at its exact coordinates and reveals itself on hover */}
+            {/* Toggle HUD Button */}
             <button
               onClick={onToggleHud}
               disabled={isAutoHide}
@@ -191,6 +273,36 @@ export const WindowBar: React.FC<WindowBarProps> = ({
               <Settings className="w-3.5 h-3.5" />
             </button>
           </>
+        )}
+
+        {/* Windows Window Controls (Hidden on macOS) */}
+        {!isMiniPip && !isMac && (
+          <div className="flex items-center ml-2 border-l border-white/15 pl-1.5">
+            <button
+              type="button"
+              onClick={() => minimizeWindow()}
+              title="Minimize"
+              className="p-1 text-slate-300 hover:text-white hover:bg-white/10 rounded transition-colors"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleMaximizeWindow()}
+              title="Maximize / Restore"
+              className="p-1 text-slate-300 hover:text-white hover:bg-white/10 rounded transition-colors"
+            >
+              <Square className="w-3 h-3" />
+            </button>
+            <button
+              type="button"
+              onClick={() => closeWindow()}
+              title="Close"
+              className="p-1 text-slate-300 hover:text-white hover:bg-rose-500 rounded transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         )}
       </div>
     </div>
