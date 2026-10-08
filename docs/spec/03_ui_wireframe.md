@@ -516,6 +516,15 @@ Khi bấm `[⚙️ Cài đặt]` trên Menu chuột phải hoặc nhấn tổ h�
    - Nút `[🧹 Giải phóng RAM ngay]`: Xóa sạch bộ đệm ảnh trong RAM để reset về 0MB.
 4. **Tab 4 — Phím tắt (Hotkeys Map):**
    - Bảng tra cứu trực quan toàn bộ phím tắt thao tác nhanh (`Space`, `M`, `P`, `H`, `B`, `[`, `]`, `\`, `←`, `→`, `↑`, `↓`, `Cmd+C`, `Cmd+Shift+C`...).
+5. **Tab 5 — Cập nhật (Updates):**
+   - Kiểm tra phiên bản mới nhất từ GitHub Releases qua Tauri Updater thật, hiển thị trạng thái phát hành và nút tải/cài đặt tự động.
+6. **Tab 6 — Giới thiệu (About):**
+   - Thẻ nhận diện thương hiệu VXMedia: Icon, tên app, phiên bản, tác giả Bùi Việt Linh, đường dẫn GitHub Repository.
+   - 2-3 câu giới thiệu điểm nổi bật và danh mục công nghệ nền tảng (Tauri 2, Rust Engine, React 19, Zero-Disk-Cache).
+7. **Tab 7 — Ủng hộ tác giả (Support Author):**
+   - Menu cuối cùng của sidebar với biểu tượng `Coffee` và gam màu hổ phách (amber) nổi bật.
+   - Lời cảm ơn và chia sẻ của tác giả đến người dùng.
+   - Thẻ mã QR ngân hàng thật (Vietcombank, STK: `9988961694`, chủ TK: `BUI VIET LINH`, nút Sao chép STK phản hồi trực quan) nền trắng sắc nét cho phép quét thanh toán tức thì 24/7.
 
 ---
 

@@ -2,6 +2,7 @@ import { AppUpdates } from './components/AppUpdates';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   AppSettings,
+  MediaItem,
   LoopFileMode,
 } from './types';
 import {
@@ -19,7 +20,6 @@ import {
   listenOpenMediaFile,
   listenMenuOpenEvents,
   startDragging,
-  setWindowDecorations,
   createMediaWindow,
   logFrontend,
 } from './services/tauri';
@@ -135,6 +135,29 @@ export const App: React.FC = () => {
     originSessionId: null,
   });
 
+  // One audio Player owns the persistent element, even while its viewport is hidden.
+  const audioIsVisible = currentItem?.media_type === 'audio';
+  const audioItem = audioIsVisible ? currentItem : globalAudio.item;
+  const audioSessionId = audioIsVisible ? activeSessionId : globalAudio.originSessionId;
+  const audioSession = sessions.find((session) => session.id === audioSessionId);
+  const handleAudioSourceChange = useCallback((item: MediaItem, sessionId: string) => {
+    setGlobalAudio((prev) => prev.item?.path === item.path && prev.originSessionId === sessionId
+      ? prev : { ...prev, item, originSessionId: sessionId });
+  }, []);
+
+  const stopAudio = useCallback(() => {
+    const el = sharedAudioRef.current;
+    if (el) {
+      el.pause();
+      el.removeAttribute('src');
+      delete el.dataset.currentPath;
+      delete el.dataset.originSessionId;
+      el.load();
+    }
+    setGlobalAudio((prev) => ({ ...prev, isPlaying: false, item: null,
+      currentTime: 0, duration: 0, originSessionId: null }));
+  }, []);
+
   // Context Menu State
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -209,6 +232,7 @@ export const App: React.FC = () => {
       const folderPath = normalizePath(res.parent_dir);
       const folderName = folderPath.split('/').filter(Boolean).pop() || 'Folder';
 
+      const newSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
       setSessions((prev) => {
         // Rule 1: Same Folder -> Reuse Tab & Navigate!
         const existingIdx = prev.findIndex((s) => s.folderPath.toLowerCase() === folderPath.toLowerCase());
@@ -228,7 +252,6 @@ export const App: React.FC = () => {
         }
 
         // Rule 2: Different Folder -> Create New FolderSession & Tab!
-        const newSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
         const newSession: FolderSession = {
           id: newSessionId,
           folderPath,
@@ -298,12 +321,16 @@ export const App: React.FC = () => {
       }
       return filtered;
     });
-  }, [activeSessionId]);
+
+    if (sharedAudioRef.current?.dataset.originSessionId === sessionId) stopAudio();
+  }, [activeSessionId, stopAudio]);
 
   const handleCloseOtherTabs = useCallback((sessionId: string) => {
+    const originId = sharedAudioRef.current?.dataset.originSessionId;
+    if (originId && originId !== sessionId) stopAudio();
     setSessions((prev) => prev.filter((s) => s.id === sessionId));
     setActiveSessionId(sessionId);
-  }, []);
+  }, [stopAudio]);
 
   const handleMoveTabToNewWindow = useCallback(async (sessionId: string) => {
     const sessionToMove = sessions.find((s) => s.id === sessionId);
@@ -425,14 +452,6 @@ export const App: React.FC = () => {
     window.addEventListener('resize', checkMiniPip);
     return () => window.removeEventListener('resize', checkMiniPip);
   }, []);
-
-  // Window Decorations based on Mini PiP mode
-  useEffect(() => {
-    setWindowDecorations(!isMiniPip);
-    return () => {
-      setWindowDecorations(true);
-    };
-  }, [isMiniPip]);
 
   const isAutoHide = isMiniPip || settings.hud_hide_delay_ms > 0;
 
@@ -679,7 +698,7 @@ export const App: React.FC = () => {
     onTogglePlay: () => {
       if (currentItem?.media_type === 'audio' || currentItem?.media_type === 'video') {
         window.dispatchEvent(new CustomEvent('player:toggle-play'));
-      } else if (globalAudio.isPlaying) {
+      } else if (globalAudio.item) {
         // In Viewer, toggle background audio
         if (sharedAudioRef.current) {
           if (sharedAudioRef.current.paused) {
@@ -729,11 +748,15 @@ export const App: React.FC = () => {
   // Track Global Audio Element Events
   const handleAudioPlay = () => {
     setGlobalAudio((prev) => {
+      const originId = sharedAudioRef.current?.dataset.originSessionId || null;
+      const path = sharedAudioRef.current?.dataset.currentPath;
+      const sourceItem = sessions.find((session) => session.id === originId)?.items
+        .find((item) => item.path === path) || prev.item;
       const next = {
         ...prev,
         isPlaying: true,
-        item: currentItem?.media_type === 'audio' ? currentItem : prev.item,
-        originSessionId: activeSessionId || prev.originSessionId,
+        item: sourceItem,
+        originSessionId: originId,
       };
       broadcastChannelRef.current?.postMessage({ type: 'AUDIO_STATE_UPDATE', state: next });
       return next;
@@ -759,19 +782,26 @@ export const App: React.FC = () => {
   };
 
   const handleAudioNext = useCallback(() => {
-    const targetSessionId = globalAudio.originSessionId;
-    if (targetSessionId) {
-      setSessions((prev) =>
-        prev.map((s) => {
-          if (s.id !== targetSessionId || s.items.length === 0) return s;
-          const nextIdx = (s.currentIndex + 1) % s.items.length;
-          return { ...s, currentIndex: nextIdx };
-        })
-      );
-    } else {
-      handleNext();
+    const el = sharedAudioRef.current;
+    const originId = el?.dataset.originSessionId;
+    const session = sessions.find((s) => s.id === originId);
+    if (!el || !session) return;
+    const tracks = session.items.filter((item) => item.media_type === 'audio');
+    if (!tracks.length) return;
+    const index = tracks.findIndex((item) => item.path === el.dataset.currentPath);
+    const offset = shuffle && tracks.length > 1
+      ? 1 + Math.floor(Math.random() * (tracks.length - 1)) : 1;
+    const nextItem = tracks[(Math.max(index, 0) + offset) % tracks.length];
+    if (nextItem.path === el.dataset.currentPath) {
+      el.currentTime = 0;
+      el.play().catch(console.warn);
+      return;
     }
-  }, [globalAudio.originSessionId, handleNext]);
+    setGlobalAudio((prev) => ({ ...prev, item: nextItem, originSessionId: session.id }));
+    setSessions((prev) => prev.map((s) => s.id === session.id &&
+      s.items[s.currentIndex]?.media_type === 'audio'
+      ? { ...s, currentIndex: s.items.findIndex((item) => item.path === nextItem.path) } : s));
+  }, [sessions, shuffle]);
 
   const handleAudioEnded = () => {
     if (loopFileMode === 'single') {
@@ -804,7 +834,7 @@ export const App: React.FC = () => {
         onPause={handleAudioPause}
         onTimeUpdate={handleAudioTimeUpdate}
         onEnded={handleAudioEnded}
-        className="hidden"
+        style={{ position: 'fixed', top: -9999, left: -9999, width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
       />
 
       {/* Unified Window Bar with Tab Bar */}
@@ -850,119 +880,8 @@ export const App: React.FC = () => {
         className="absolute top-0 left-0 w-full h-10 z-20 pointer-events-auto"
       />
 
-      {/* Main Viewport: Hot-swap between Viewer and Player */}
-      {currentItem && currentItem.media_type === 'image' ? (
-        <>
-          <Viewer
-            item={currentItem}
-            currentIndex={currentIndex}
-            totalCount={items.length}
-            isMarked={isCurrentMarked}
-            markedCount={markedPaths.size}
-            hudVisible={hudVisible}
-            language={settings.language || 'vi'}
-            isMiniPip={isMiniPip}
-            mediaFitMode={settings.media_fit_mode || 'scale_to_fit'}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onToggleMark={handleToggleMark}
-            onCopyMarked={handleCopyMarked}
-            onCutMarked={handleCutMarked}
-            onToggleFullscreen={handleToggleFullscreen}
-          />
-          {/* Mini Audio Pill when browsing images with background music loaded */}
-          {globalAudio.item && activeSession?.id !== globalAudio.originSessionId && (
-            <MiniAudioPill
-              isPlaying={globalAudio.isPlaying}
-              item={globalAudio.item}
-              currentTime={globalAudio.currentTime}
-              duration={globalAudio.duration}
-              onTogglePlay={() => {
-                if (sharedAudioRef.current) {
-                  if (sharedAudioRef.current.paused) {
-                    sharedAudioRef.current.play().catch(console.warn);
-                  } else {
-                    sharedAudioRef.current.pause();
-                  }
-                }
-              }}
-              onNextTrack={handleAudioNext}
-              onJumpToAudioSession={() => {
-                if (globalAudio.originSessionId) {
-                  setActiveSessionId(globalAudio.originSessionId);
-                }
-              }}
-            />
-          )}
-        </>
-      ) : currentItem && currentItem.media_type === 'pdf' ? (
-        <>
-          <PdfViewer
-            item={currentItem}
-            currentIndex={currentIndex}
-            totalCount={items.length}
-            hudVisible={hudVisible}
-            language={settings.language || 'vi'}
-            isMiniPip={isMiniPip}
-            onPrev={handlePrev}
-            onNext={handleNext}
-          />
-          {/* Mini Audio Pill when reading PDF with background music loaded */}
-          {globalAudio.item && activeSession?.id !== globalAudio.originSessionId && (
-            <MiniAudioPill
-              isPlaying={globalAudio.isPlaying}
-              item={globalAudio.item}
-              currentTime={globalAudio.currentTime}
-              duration={globalAudio.duration}
-              onTogglePlay={() => {
-                if (sharedAudioRef.current) {
-                  if (sharedAudioRef.current.paused) {
-                    sharedAudioRef.current.play().catch(console.warn);
-                  } else {
-                    sharedAudioRef.current.pause();
-                  }
-                }
-              }}
-              onNextTrack={handleAudioNext}
-              onJumpToAudioSession={() => {
-                if (globalAudio.originSessionId) {
-                  setActiveSessionId(globalAudio.originSessionId);
-                }
-              }}
-            />
-          )}
-        </>
-      ) : currentItem ? (
-        <Player
-          item={currentItem}
-          currentIndex={currentIndex}
-          totalCount={items.length}
-          isMarked={isCurrentMarked}
-          markedCount={markedPaths.size}
-          hudVisible={hudVisible}
-          volume={volume}
-          isMuted={isMuted}
-          shuffle={shuffle}
-          loopFileMode={loopFileMode}
-          seekShortSec={settings.seek_short_sec}
-          seekLongSec={settings.seek_long_sec}
-          abLoopCrossfadeMs={settings.ab_loop_crossfade_ms}
-          isMiniPip={isMiniPip}
-          mediaFitMode={settings.media_fit_mode || 'scale_to_fit'}
-          language={settings.language || 'vi'}
-          onPrev={handlePrev}
-          onNext={handleNext}
-          onToggleMark={handleToggleMark}
-          onCopyMarked={handleCopyMarked}
-          onCutMarked={handleCutMarked}
-          onVolumeChange={handleVolumeChange}
-          onToggleMute={handleToggleMute}
-          onToggleShuffle={handleToggleShuffle}
-          onCycleLoopFile={handleCycleLoopFile}
-          onToggleFullscreen={handleToggleFullscreen}
-          sharedAudioRef={sharedAudioRef}
-        />
-      ) : (
+      {/* Main Viewport: Multi-Session Keep-Alive View */}
+      {sessions.length === 0 ? (
         <div
           data-tauri-drag-region
           className="w-full h-full flex flex-col items-center justify-center gap-4 text-center px-6 select-none bg-slate-950/40"
@@ -995,6 +914,145 @@ export const App: React.FC = () => {
             </button>
           </div>
         </div>
+      ) : (
+        sessions.filter((session) => session.id === activeSessionId).map((session) => {
+          const isSessionActive = session.id === activeSessionId;
+          const sItems = session.items;
+          const sIndex = session.currentIndex;
+          const sItem = sItems[sIndex] || null;
+          const isCurrentItemMarked = sItem ? session.markedPaths.has(sItem.path) : false;
+
+          return (
+            <div
+              key={session.id}
+              className={`w-full h-full absolute inset-0 ${
+                isSessionActive ? 'visible z-10' : 'invisible pointer-events-none z-0'
+              }`}
+            >
+              {sItem && sItem.media_type === 'image' ? (
+                <Viewer
+                  item={sItem}
+                  currentIndex={sIndex}
+                  totalCount={sItems.length}
+                  isMarked={isCurrentItemMarked}
+                  markedCount={session.markedPaths.size}
+                  hudVisible={hudVisible}
+                  language={settings.language || 'vi'}
+                  isMiniPip={isMiniPip}
+                  mediaFitMode={settings.media_fit_mode || 'scale_to_fit'}
+                  onPrev={handlePrev}
+                  onNext={handleNext}
+                  onToggleMark={handleToggleMark}
+                  onCopyMarked={handleCopyMarked}
+                  onCutMarked={handleCutMarked}
+                  onToggleFullscreen={handleToggleFullscreen}
+                />
+              ) : sItem && sItem.media_type === 'pdf' ? (
+                <PdfViewer
+                  item={sItem}
+                  currentIndex={sIndex}
+                  totalCount={sItems.length}
+                  hudVisible={hudVisible}
+                  language={settings.language || 'vi'}
+                  isMiniPip={isMiniPip}
+                  onPrev={handlePrev}
+                  onNext={handleNext}
+                />
+              ) : sItem && sItem.media_type === 'video' ? (
+                <Player
+                  item={sItem}
+                  currentIndex={sIndex}
+                  totalCount={sItems.length}
+                  isMarked={isCurrentItemMarked}
+                  markedCount={session.markedPaths.size}
+                  hudVisible={hudVisible}
+                  volume={volume}
+                  isMuted={isMuted}
+                  shuffle={shuffle}
+                  loopFileMode={loopFileMode}
+                  seekShortSec={settings.seek_short_sec}
+                  seekLongSec={settings.seek_long_sec}
+                  abLoopCrossfadeMs={settings.ab_loop_crossfade_ms}
+                  isMiniPip={isMiniPip}
+                  mediaFitMode={settings.media_fit_mode || 'scale_to_fit'}
+                  language={settings.language || 'vi'}
+                  onPrev={handlePrev}
+                  onNext={handleNext}
+                  onToggleMark={handleToggleMark}
+                  onCopyMarked={handleCopyMarked}
+                  onCutMarked={handleCutMarked}
+                  onVolumeChange={handleVolumeChange}
+                  onToggleMute={handleToggleMute}
+                  onToggleShuffle={handleToggleShuffle}
+                  onCycleLoopFile={handleCycleLoopFile}
+                  onToggleFullscreen={handleToggleFullscreen}
+                  sharedAudioRef={sharedAudioRef}
+                />
+              ) : null}
+            </div>
+          );
+        })
+      )}
+
+      {audioItem && audioSession && (
+        <div className={`absolute inset-0 ${audioIsVisible ? 'visible z-10' : 'invisible pointer-events-none z-0'}`}>
+          <Player
+            item={audioItem}
+            currentIndex={audioSession.items.findIndex((item) => item.path === audioItem.path)}
+            totalCount={audioSession.items.length}
+            isMarked={audioSession.markedPaths.has(audioItem.path)}
+            markedCount={audioSession.markedPaths.size}
+            hudVisible={hudVisible}
+            volume={volume}
+            isMuted={isMuted}
+            shuffle={shuffle}
+            loopFileMode={loopFileMode}
+            seekShortSec={settings.seek_short_sec}
+            seekLongSec={settings.seek_long_sec}
+            abLoopCrossfadeMs={settings.ab_loop_crossfade_ms}
+            language={settings.language || 'vi'}
+            isMiniPip={isMiniPip}
+            isActive={audioIsVisible}
+            audioSessionId={audioSession.id}
+            onAudioSourceChange={handleAudioSourceChange}
+            onPrev={handlePrev}
+            onNext={handleNext}
+            onToggleMark={handleToggleMark}
+            onCopyMarked={handleCopyMarked}
+            onCutMarked={handleCutMarked}
+            onVolumeChange={handleVolumeChange}
+            onToggleMute={handleToggleMute}
+            onToggleShuffle={handleToggleShuffle}
+            onCycleLoopFile={handleCycleLoopFile}
+            onToggleFullscreen={handleToggleFullscreen}
+            sharedAudioRef={sharedAudioRef}
+          />
+        </div>
+      )}
+
+      {/* Mini Audio Pill when browsing images or PDF with background music loaded */}
+      {globalAudio.item && !audioIsVisible && (
+        <MiniAudioPill
+          isPlaying={globalAudio.isPlaying}
+          item={globalAudio.item}
+          currentTime={globalAudio.currentTime}
+          duration={globalAudio.duration}
+          onTogglePlay={() => {
+            if (sharedAudioRef.current) {
+              if (sharedAudioRef.current.paused) {
+                sharedAudioRef.current.play().catch(console.warn);
+              } else {
+                sharedAudioRef.current.pause();
+              }
+            }
+          }}
+          onNextTrack={handleAudioNext}
+          onJumpToAudioSession={() => {
+            if (globalAudio.originSessionId) {
+              setActiveSessionId(globalAudio.originSessionId);
+            }
+          }}
+        />
       )}
 
       {/* Right Drawer: File List */}
