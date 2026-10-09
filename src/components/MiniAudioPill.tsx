@@ -1,5 +1,5 @@
 import React from 'react';
-import { Music, Play, Pause, SkipForward, ExternalLink } from 'lucide-react';
+import { Music, Film, Play, Pause, SkipForward, ExternalLink } from 'lucide-react';
 import { MediaItem } from '../types';
 
 interface MiniAudioPillProps {
@@ -31,6 +31,7 @@ export const MiniAudioPill: React.FC<MiniAudioPillProps> = ({
   if (!item) return null;
 
   const trackName = item.name.replace(/\.[^/.]+$/, '');
+  const PlaybackIcon = item.media_type === 'video' ? Film : Music;
 
   return (
     <div
@@ -40,7 +41,7 @@ export const MiniAudioPill: React.FC<MiniAudioPillProps> = ({
     >
       {/* Animated Music Icon */}
       <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center shrink-0">
-        <Music className={`w-3 h-3 text-cyan-400 ${isPlaying ? 'animate-pulse' : 'opacity-60'}`} />
+        <PlaybackIcon className={`w-3 h-3 text-cyan-400 ${isPlaying ? 'animate-pulse' : 'opacity-60'}`} />
       </div>
 
       {/* Track Info */}
@@ -56,7 +57,7 @@ export const MiniAudioPill: React.FC<MiniAudioPillProps> = ({
       {/* Play / Pause */}
       <button
         onClick={onTogglePlay}
-        title={isPlaying ? 'Tạm dừng nhạc nền' : 'Tiếp tục phát'}
+        title={isPlaying ? 'Tạm dừng phát' : 'Tiếp tục phát'}
         className="p-1 rounded-full text-cyan-400 hover:text-cyan-300 hover:bg-white/15 transition-all active:scale-95 shrink-0"
       >
         {isPlaying ? <Pause className="w-3.5 h-3.5 fill-cyan-400" /> : <Play className="w-3.5 h-3.5 fill-cyan-400 ml-0.5" />}
@@ -77,7 +78,7 @@ export const MiniAudioPill: React.FC<MiniAudioPillProps> = ({
       {onJumpToAudioSession && (
         <button
           onClick={onJumpToAudioSession}
-          title="Mở tab thư mục nhạc"
+          title={item.media_type === 'video' ? 'Mở tab video' : 'Mở tab thư mục nhạc'}
           className="p-1 rounded-full text-slate-400 hover:text-cyan-300 hover:bg-white/15 transition-all active:scale-95 shrink-0"
         >
           <ExternalLink className="w-3 h-3" />

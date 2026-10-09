@@ -5,6 +5,7 @@ import { t } from '../services/i18n';
 import { startDragging, closeWindow, minimizeWindow, toggleMaximizeWindow, setWindowDecorations } from '../services/tauri';
 
 interface WindowBarProps {
+  isFullscreen?: boolean;
   isPinned: boolean;
   onTogglePin: () => void;
   hudVisible: boolean;
@@ -21,6 +22,7 @@ interface WindowBarProps {
 }
 
 export const WindowBar: React.FC<WindowBarProps> = ({
+  isFullscreen = false,
   isPinned,
   onTogglePin,
   hudVisible,
@@ -86,16 +88,18 @@ export const WindowBar: React.FC<WindowBarProps> = ({
 
   return (
     <div
+      data-hud-layer
       data-tauri-drag-region
       onMouseDown={handleMouseDown}
-      style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+      inert={isFullscreen && !hudVisible}
+      style={{ WebkitAppRegion: isFullscreen ? 'no-drag' : 'drag', opacity: isFullscreen && !hudVisible ? 0 : 'var(--hud-opacity, 1)' } as React.CSSProperties}
       className={`absolute top-0 left-0 w-full h-8 ${
         isMiniPip
           ? 'px-2'
           : isMac
           ? 'pl-[82px] pr-3'
           : 'pl-2 pr-2'
-      } flex items-center justify-between z-40 transition-colors duration-200 select-none ${
+      } flex items-center justify-between z-40 transition-all duration-200 select-none ${
         hudVisible
           ? 'bg-gradient-to-b from-black/80 via-black/45 to-transparent pointer-events-auto'
           : 'bg-transparent pointer-events-none'
@@ -276,7 +280,7 @@ export const WindowBar: React.FC<WindowBarProps> = ({
         )}
 
         {/* Windows Window Controls (Hidden on macOS) */}
-        {!isMiniPip && !isMac && (
+        {!isMiniPip && !isMac && !isFullscreen && (
           <div className="flex items-center ml-2 border-l border-white/15 pl-1.5">
             <button
               type="button"

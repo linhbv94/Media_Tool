@@ -1,7 +1,7 @@
 # QA Acceptance & Edge Cases Specification: Media Tool (`_spec5_qa_acceptance`)
 
-> **Phiên bản:** 1.0.0  
-> **Ngày cập nhật:** 2026-10-01  
+> **Phiên bản:** 1.1.0
+> **Ngày cập nhật:** 2026-10-09
 > **Phân loại đặc tả:** Tiêu chí Nghiệm thu Gherkin, Ma trận Trường hợp Biên & Checklist Kiểm thử Khói  
 > **Tài liệu tham chiếu:** [00_system_overview.md](00_system_overview.md), [02_feature_flow.md](02_feature_flow.md)  
 
@@ -255,6 +255,25 @@ Kịch bản: Chuột phải vào file media chọn Open With -> VXMedia
 
 ---
 
+### AC-24: Nghe video khi mở ảnh từ Explorer/Finder
+
+```gherkin
+Kịch bản: Video có tiếng tiếp tục phát khi mở tab ảnh và quay lại
+  Giả sử đang phát video có tiếng và thời lượng ít nhất 60 giây tại giây thứ 10
+  Khi mở ảnh ở thư mục khác bằng Explorer hoặc Finder với VXMedia
+  Thì ảnh mở trong tab mới của cửa sổ hiện tại và tiếng video tiếp tục phát
+  Khi quay lại tab video
+  Thì video tiếp tục ở tiến độ đã chạy, không quay về 0 và giữ mốc A–B
+```
+
+### AC-25: Quyền điều khiển và vòng đời nguồn phát nền
+
+- Space ở tab ảnh/PDF tạm dừng/tiếp tục nguồn video/audio vừa nghe đúng một lần. Mũi tên điều hướng ảnh không đồng thời tua player ẩn.
+- Phát file audio tạm dừng video và ngược lại; không có hai nguồn phát chồng tiếng trong cùng cửa sổ. Quay lại nguồn đã tạm dừng giữ tiến độ và trạng thái pause.
+- Hết video/audio ở chế độ lặp toàn bộ chọn đúng media cùng loại trong thư mục nguồn, bỏ qua ảnh và không đổi ảnh đang xem.
+- Mở ảnh cùng thư mục cũng giữ playback. Nút trở lại trên thanh phát nền mở đúng file đang nghe.
+- Đóng tab nguồn hoặc đóng các tab khác loại bỏ nguồn thì dừng và gỡ nguồn phát. Chuyển sang video khác giữ đúng một phần tử video đang sở hữu nguồn.
+
 ## 2. Ma trận Trường hợp Biên (Edge Cases Matrix)
 
 | STT | Trường hợp Biên (Edge Case) | Hành vi Dự kiến của Hệ thống | Mức độ Ưu tiên |
@@ -304,3 +323,34 @@ Quy trình kiểm thử khói bắt buộc thực hiện trên cả **Windows 11
 - [ ] **Bước 24:** Mở thử một file văn bản `.txt` hoặc file hỏng; kiểm tra thông báo lỗi hiển thị an toàn, app không crash.
 - [ ] **Bước 25:** Click nút đỏ `[X]` trên macOS; xác nhận cửa sổ đóng và dấu chấm tròn trên thanh Dock biến mất hoàn toàn.
 
+
+## 4. Kiểm thử phát nền bắt buộc trước phát hành
+
+1. Chạy `npm run test:playback`: App/Player thật, WAV thật và video WebM VP8/Opus có tiếng do browser tạo. Bridge file/dialog được mô phỏng; test kiểm tra phần tử video không bị gỡ, giữ tiến độ/A–B, phím tắt, chuyển nguồn, ended và đóng tab.
+2. Trên app Tauri đã đóng gói Windows/WebView2 và macOS/WKWebView, chạy AC-24 bằng file MP4 H.264/AAC thật từ Explorer/Finder. Sau đó thử chọn ảnh từ tab có sẵn và ảnh cùng thư mục.
+3. Nghe tiếng liên tục, quay lại kiểm tra tiến độ; thử Space, A–B, mở audio khác, đóng tab nguồn và “Đóng các tab khác”.
+4. Ghi riêng kết quả từng OS/kiến trúc/file codec và version. Build pass hoặc Chromium CI pass không thay nghiệm thu GUI native. Chỉ đóng turn khi user xác nhận.
+
+## AC-26: Fullscreen native, HUD và resize
+```gherkin
+Kịch bản: Fullscreen độc lập với setting HUD cửa sổ thường
+  Với HUD luôn hiện, tự ẩn hoặc ẩn thủ công
+  Khi vào fullscreen bằng nút hoặc F/F11
+  Thì HUD ẩn ngay; di chuột hiện lại và idle 2 giây ẩn lại
+  Và Windows không có cụm minimize/maximize/close
+  Khi thoát bằng nút hoặc Escape
+  Thì trạng thái HUD theo setting và trạng thái ẩn thủ công được khôi phục
+  Và video giữ phần tử, nguồn phát, tiến độ và A–B
+
+Kịch bản: Resize gần toàn màn hình rồi fullscreen
+  Khi resize cửa sổ rồi vào/thoát fullscreen nhiều lần
+  Thì scale_to_fit dùng viewport hiện tại
+  Và limit_file_size không phóng vượt kích thước gốc
+```
+- Browser regression đã đạt với bridge fullscreen mô phỏng: hide/reveal/idle 2s, Escape/khôi phục manual HUD, Windows controls, viewport video 900×600 → 1400×850 → 900×600.
+- QA bắt buộc trên Windows/WebView2 thật: resize gần màn hình, F/F11/nút/Escape, cả hai scaling modes; browser không chứng minh fullscreen native Windows đã pass.
+
+## AC-27: HUD luôn hiện giảm opacity khi idle
+- Cửa sổ thường, setting HUD không tự ẩn: sau 2 giây idle, toàn bộ HUD còn opacity 0.4 và vẫn thao tác được; media giữ opacity 1.
+- Di chuột, click, nhấn phím hoặc scroll: HUD trở lại opacity 1; timer bắt đầu lại.
+- Settings/context menu đang mở không làm mờ HUD; sau đóng mới bắt đầu lại timer. Ẩn thủ công không tự hiện vì idle; fullscreen/Mini PiP giữ cơ chế tự ẩn.
