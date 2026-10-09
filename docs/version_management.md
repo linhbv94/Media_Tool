@@ -2,10 +2,18 @@
 
 > **Tài liệu:** `docs/version_management.md`  
 > **Dự án:** VXMedia (`media_tool`)  
-> **Phiên bản hiện tại:** `v1.2.1`
-> **Quy chuẩn:** Tuân thủ Semantic Versioning (SemVer 2.0.0) & Hướng dẫn [AGENTS.md](../AGENTS.md)  
+> **Phiên bản:** `v1.2.4`
+> **Quy chuẩn:** Tuân thủ Semantic Versioning (SemVer 2.0.0) & Hướng dẫn [AGENTS.md](../../AGENTS.md)
 
 ---
+
+## v1.2.4 — Video phát nền, fullscreen và Support (2026-10-09)
+- HUD luôn hiện ở cửa sổ thường mờ còn 40% sau 2 giây idle; tương tác khôi phục 100%, media giữ nguyên độ sáng.
+- Fullscreen native Tauri, HUD fullscreen ẩn ngay/di chuột hiện/idle 2 giây ẩn; khôi phục HUD cửa sổ thường khi thoát.
+- Ẩn Windows controls và vô hiệu dải drag trong fullscreen; regression viewport video sau resize. Windows native còn cần QA.
+- Video có tiếng giữ tiến độ và A–B khi mở ảnh/chuyển tab; thanh phát nền điều khiển đúng nguồn, audio/video nhường quyền phát.
+- Support QR căn giữa, bỏ thông tin chuyển khoản và nút sao chép; làm sạch wording hiển thị.
+- Trạng thái build/publish và giới hạn QA thực tế lưu tại [work_log.md](../../work_log.md); version nguồn không tự chứng minh release đã công khai.
 
 ## 1. Quy chuẩn Đánh số Phiên bản (Semantic Versioning 2.0.0)
 
@@ -57,6 +65,21 @@ Phát triển / Fix bug ──► Build kiểm thử (Dev) ──► Chạy QA S
 ---
 
 ## 3. Lịch sử Phiên bản (Changelog & Milestones)
+
+### v1.2.4 — Giữ video có tiếng khi mở ảnh (2026-10-09)
+
+- Sửa lỗi mở tab ảnh làm dừng/reset video trên Windows và macOS; giữ player, tiến độ và A–B khi quay lại.
+- Thanh phát nền điều khiển nguồn vừa nghe, video/audio nhường quyền phát, xử lý hết file/đóng tab theo thư mục nguồn.
+- Thêm regression video có tiếng và AC-24/AC-25; cần ghi riêng QA app Tauri native, không suy từ test WAV/Chromium.
+
+### v1.2.3 — Settings và quyền sở hữu audio (2026-10-09)
+
+- Đã phát hành; Cập nhật/Giới thiệu/Ủng hộ tác giả thành mục riêng, QR thật, tooltip và quyền sở hữu audio được rà soát.
+- Regression WAV pass nhưng user phát hiện video có tiếng vẫn dừng/reset khi mở ảnh trên cả hai OS; bản sửa video được đưa vào v1.2.4.
+
+### v1.2.2 — Icon và cập nhật đa nền tảng (2026-10-08)
+
+- Đã phát hành icon mới và bộ cài/updater Windows x64, macOS Silicon/Intel; user xác nhận auto-update hoạt động trên Windows/macOS.
 
 ### v1.2.1 — GitHub Releases và cập nhật trong app (2026-10-07)
 

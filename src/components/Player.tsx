@@ -50,6 +50,10 @@ interface PlayerProps {
   onCycleLoopFile: () => void;
   onToggleFullscreen: () => void;
   sharedAudioRef?: React.RefObject<HTMLAudioElement | null>;
+  sharedVideoRef?: React.RefObject<HTMLVideoElement | null>;
+  videoSessionId?: string;
+  onVideoPlaybackChange?: (el: HTMLVideoElement) => void;
+  onPlaylistNext?: () => void;
   isActive?: boolean;
   audioSessionId?: string;
   onAudioSourceChange?: (item: MediaItem, sessionId: string) => void;
@@ -87,6 +91,10 @@ export const Player: React.FC<PlayerProps> = ({
   onCycleLoopFile,
   onToggleFullscreen,
   sharedAudioRef,
+  sharedVideoRef,
+  videoSessionId,
+  onVideoPlaybackChange,
+  onPlaylistNext,
 }) => {
   const i18n = t(language);
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement | null>(null);
@@ -106,6 +114,10 @@ export const Player: React.FC<PlayerProps> = ({
   });
 
   const isAudio = item.media_type === 'audio';
+  const attachVideo = useCallback((el: HTMLVideoElement | null) => {
+    mediaRef.current = el;
+    if (sharedVideoRef) sharedVideoRef.current = el;
+  }, [sharedVideoRef]);
 
   // Load safe source & audio metadata
   useEffect(() => {
@@ -231,6 +243,7 @@ export const Player: React.FC<PlayerProps> = ({
     if (!el) return;
     const now = el.currentTime;
     setCurrentTime(now);
+    if (!isAudio) onVideoPlaybackChange?.(el as HTMLVideoElement);
 
     // Check A-B loop boundary
     if (
@@ -242,7 +255,7 @@ export const Player: React.FC<PlayerProps> = ({
       const fadeMs = audioEngine.calculateFadeDurationMs(abLoop.point_a, abLoop.point_b);
       audioEngine.performLoopTransition(el, abLoop.point_a, volume, fadeMs);
     }
-  }, [abLoop, volume]);
+  }, [abLoop, volume, isAudio, onVideoPlaybackChange]);
 
   // On Ended
   const onEnded = useCallback(() => {
@@ -253,11 +266,11 @@ export const Player: React.FC<PlayerProps> = ({
         el.play().catch(console.warn);
       }
     } else if (loopFileMode === 'all') {
-      onNext();
+      (onPlaylistNext || onNext)();
     } else {
       setIsPlaying(false);
     }
-  }, [loopFileMode, onNext]);
+  }, [loopFileMode, onNext, onPlaylistNext]);
 
   // Wire up shared audio element listeners and source
   useEffect(() => {
@@ -557,21 +570,26 @@ export const Player: React.FC<PlayerProps> = ({
           /* VIDEO VIEW */
           <div className="w-full h-full flex items-center justify-center">
             <video
-              ref={(el) => {
-                mediaRef.current = el;
-              }}
-              src={mediaSrc}
+              ref={attachVideo}
+              data-current-path={item.path}
+              data-origin-session-id={videoSessionId}
+              src={mediaSrc || undefined}
               onClick={togglePlay}
               onPlay={() => {
                 setIsPlaying(true);
                 if (sharedAudioRef?.current && !sharedAudioRef.current.paused) {
                   sharedAudioRef.current.pause();
                 }
+                if (sharedVideoRef?.current) onVideoPlaybackChange?.(sharedVideoRef.current);
               }}
-              onPause={() => setIsPlaying(false)}
+              onPause={() => {
+                setIsPlaying(false);
+                if (sharedVideoRef?.current) onVideoPlaybackChange?.(sharedVideoRef.current);
+              }}
               onTimeUpdate={onTimeUpdate}
               onLoadedMetadata={() => {
                 if (mediaRef.current) setDuration(mediaRef.current.duration);
+                if (sharedVideoRef?.current) onVideoPlaybackChange?.(sharedVideoRef.current);
               }}
               onEnded={onEnded}
               className={
@@ -587,6 +605,7 @@ export const Player: React.FC<PlayerProps> = ({
       {/* 2. MINI PIP: COMPACT FROSTED PILL < [ ⏯ ] > (MATCHING VIEWER SIZE & PLACEMENT) */}
       {isMiniPip && (
         <div
+          data-hud-layer
           className={`absolute bottom-3 left-0 right-0 z-30 transition-all duration-200 pointer-events-none ${
             hudVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
           }`}
@@ -656,6 +675,7 @@ export const Player: React.FC<PlayerProps> = ({
       {/* 4. FULL WINDOW FLOATING CONTROL BAR (HUD) */}
       {!isMiniPip && (
         <div
+          data-hud-layer
           className={`absolute bottom-4 left-0 right-0 z-30 transition-all duration-200 pointer-events-none ${
             hudVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
           }`}

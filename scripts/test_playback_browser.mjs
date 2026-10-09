@@ -20,10 +20,13 @@ const server = await createServer({ server: { host: '127.0.0.1', port: 1436, str
     return `
       const image = (path) => ({path, name:path.split('/').pop(), media_type:'image', extension:'png', size_bytes:10});
       const audio = (path) => ({path, name:path.split('/').pop(), media_type:'audio', extension:'wav', size_bytes:10});
+      const video = (path) => ({path, name:path.split('/').pop(), media_type:'video', extension:'webm', size_bytes:10});
       const folders = {
         '/music': [audio('/music/one.wav'), image('/music/cover.png'), audio('/music/two.wav'), audio('/music/three.wav')],
         '/other': [audio('/other/other.wav')],
         '/images': [image('/images/first.png'), image('/images/second.png')],
+        '/videos': [video('/videos/clip.webm'), image('/videos/cover.png'), video('/videos/next.webm')],
+        '/other_videos': [video('/other_videos/other.webm')],
       };
       export const getDirectoryMedia = async(path) => {
         const parent = path.substring(0, path.lastIndexOf('/'));
@@ -32,6 +35,7 @@ const server = await createServer({ server: { host: '127.0.0.1', port: 1436, str
       };
       export const getSafeMediaSrc = async(path) => {
         if(window.__delaySource === path) await new Promise(resolve=>window.__resolveSource=resolve);
+        if(path.endsWith('.webm')) return window.__videoFixtureURL+'#'+encodeURIComponent(path);
         if (!path.endsWith('.png')) {const blob=await fetch('/fixture.wav').then(res=>res.blob());return URL.createObjectURL(blob)+'#'+encodeURIComponent(path);}
         return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="teal"/></svg>';
       };
@@ -46,6 +50,8 @@ const server = await createServer({ server: { host: '127.0.0.1', port: 1436, str
       export const clipboardFiles = async()=>true;
       export const createMediaWindow = async()=>true;
       export const logFrontend = async()=>{};
+      export const listenFullscreen = async(callback)=>{window.__fullscreenChanged=callback; callback(false); return ()=>{};};
+      export const setFullscreen = async(value)=>{window.__fullscreenChanged(value);};
       export const startDragging = async()=>{};
       export const setWindowDecorations = async()=>{};
       export const setTrafficLightsVisible = async()=>{};
@@ -125,6 +131,106 @@ try {
   await page.locator('[title="/images"]').click({button:'right'});
   await page.getByRole('button',{name:'Đóng các tab khác',exact:true}).click();
   await page.waitForFunction(()=>!document.querySelector('audio').hasAttribute('src'));
+  // A real video with an audio track covers listening to a video, not just WAV music.
+  await page.evaluate(async() => {
+    const canvas=document.createElement('canvas');canvas.width=160;canvas.height=90;
+    const context=canvas.getContext('2d');context.fillStyle='teal';context.fillRect(0,0,160,90);
+    const audioContext=new AudioContext();await audioContext.resume();
+    const oscillator=audioContext.createOscillator();const destination=audioContext.createMediaStreamDestination();
+    oscillator.connect(destination);oscillator.start();
+    const stream=canvas.captureStream(5);stream.addTrack(destination.stream.getAudioTracks()[0]);
+    const recorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp8,opus'});const chunks=[];
+    recorder.ondataavailable=event=>chunks.push(event.data);
+    const stopped=new Promise(resolve=>recorder.onstop=resolve);
+    recorder.start();await new Promise(resolve=>setTimeout(resolve,6000));recorder.stop();await stopped;
+    window.__videoFixtureURL=URL.createObjectURL(new Blob(chunks,{type:'video/webm'}));
+    oscillator.stop();stream.getTracks().forEach(track=>track.stop());await audioContext.close();
+  });
+  const videoPlaying=async(path)=>page.waitForFunction(path=>{
+    const el=document.querySelector('video');return el?.src.includes(encodeURIComponent(path))&&!el.paused&&el.readyState>=3;
+  },path,{timeout:10000});
+  await open('/videos/clip.webm');await videoPlaying('/videos/clip.webm');
+  // Fullscreen ignores windowed HUD preferences and preserves the mounted video.
+  const root = page.locator('[data-fullscreen]');
+  await page.mouse.move(410, 190);
+  await page.waitForFunction(()=>document.querySelector('[data-fullscreen]').dataset.hudDimmed==='true',null,{timeout:4000});
+  await page.waitForFunction(()=>[...document.querySelectorAll('[data-hud-layer]')].every(el=>getComputedStyle(el).opacity==='0.4'));
+  const opacities = await page.locator('[data-hud-layer]').evaluateAll(els=>els.map(el=>getComputedStyle(el).opacity));
+  assert.ok(opacities.every(value=>Number(value)===0.4));
+  assert.equal(await page.locator('video').evaluate(el=>getComputedStyle(el).opacity),'1');
+  await page.mouse.move(415, 195);
+  await page.waitForFunction(()=>document.querySelector('[data-fullscreen]').dataset.hudDimmed==='false');
+  await page.keyboard.press('h');
+  await page.keyboard.press('f');
+  await page.waitForFunction(()=>document.querySelector('[data-fullscreen]').dataset.fullscreen==='true');
+  assert.equal(await root.getAttribute('data-hud-visible'), 'false');
+  assert.equal(await page.getByTitle('Close', {exact:true}).count(), 0);
+  await page.mouse.move(420, 200);
+  await page.waitForFunction(()=>document.querySelector('[data-fullscreen]').dataset.hudVisible==='true');
+  await page.waitForFunction(()=>document.querySelector('[data-fullscreen]').dataset.hudVisible==='false',null,{timeout:4000});
+  await page.setViewportSize({width:1400,height:850});
+  const fitted = await page.locator('video').evaluate(el=>({width:el.clientWidth,height:el.clientHeight}));
+  assert.equal(fitted.width,1400); assert.equal(fitted.height,850);
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(()=>document.querySelector('[data-fullscreen]').dataset.fullscreen==='false');
+  assert.equal(await root.getAttribute('data-hud-visible'), 'false');
+  assert.equal(await page.getByTitle('Close', {exact:true}).count(), 1);
+  await page.keyboard.press('h');
+  await page.setViewportSize({width:900,height:600});
+  assert.equal(await page.locator('video').evaluate(el=>el.clientWidth),900);
+
+  await page.locator('video').evaluate(el=>{el.currentTime=1;window.__originalVideo=el;});
+  await open('/images/first.png');await page.waitForSelector('img[alt="first.png"]');
+  await page.waitForTimeout(300);
+  assert.equal(await page.evaluate(()=>window.__originalVideo.isConnected),true,'opening an image tab must retain the video element');
+  assert.equal(await page.locator('video').evaluate(el=>el.closest('[inert]')!==null),true,'hidden player controls must not receive focus');
+  assert.ok(await page.locator('video').evaluate(el=>el.getBoundingClientRect().right<0),'hidden video stays outside the visible viewport');
+  assert.equal(await page.locator('video').evaluate(el=>el.paused),false,'video audio continues under the image tab');
+  assert.ok(await page.locator('video').evaluate(el=>el.currentTime>=1),'video progress survives opening an image');
+  await page.locator('[title="/videos"]').click();
+  assert.equal(await page.locator('video').evaluate(el=>el===window.__originalVideo),true,'returning must reuse the same video');
+  assert.ok(await page.locator('video').evaluate(el=>el.currentTime>=1),'returning must not restart the video');
+  await page.keyboard.press('[');
+  await page.locator('video').evaluate(el=>{el.currentTime=2;el.dispatchEvent(new Event('timeupdate'));});
+  await page.keyboard.press(']');
+  await page.locator('[title="/images"]').click();
+  await page.locator('video').evaluate(el=>{el.currentTime=2.5;el.dispatchEvent(new Event('timeupdate'));});
+  assert.ok(await page.locator('video').evaluate(el=>el.currentTime<1.8),'video A/B loop remains active in an image tab');
+  await page.keyboard.press('Space');
+  assert.equal(await page.locator('video').evaluate(el=>el.paused),true,'Space pauses background video');
+  await page.keyboard.press('Space');await videoPlaying('/videos/clip.webm');
+  await page.keyboard.press('ArrowRight');await page.waitForSelector('img[alt="second.png"]');
+  assert.ok(await page.locator('video').evaluate(el=>el.currentTime<1.8),'hidden video must not also handle image navigation keys');
+  await page.locator('[title="/videos"]').click();await page.keyboard.press('Backslash');
+  await page.locator('[title="/images"]').click();
+  await page.locator('video').evaluate(el=>el.dispatchEvent(new Event('ended')));
+  await videoPlaying('/videos/next.webm');
+  assert.equal(await page.locator('img[alt="second.png"]').count(),1,'ended advances the video source, not the visible image');
+  // Images in the same folder also retain playback; the pill returns to the actual playing file.
+  await open('/videos/cover.png');await page.waitForSelector('img[alt="cover.png"]');
+  await videoPlaying('/videos/next.webm');
+  await page.getByTitle('Mở tab video',{exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('video')?.checkVisibility());
+  await open('/other/other.wav');await playing('/other/other.wav');
+  await page.waitForFunction(()=>document.querySelector('video')?.paused);
+  assert.equal(await page.locator('video').evaluate(el=>el.paused),true,'playing a music file pauses video without overlapping audio');
+  const pausedVideoTime=await page.locator('video').evaluate(el=>el.currentTime);
+  await page.locator('[title="/videos"]').click();
+  assert.equal(await page.locator('video').evaluate(el=>el.paused),true,'returning must preserve an intentionally paused video');
+  assert.equal(await page.locator('video').evaluate(el=>el.currentTime),pausedVideoTime);
+  await page.keyboard.press('Space');await videoPlaying('/videos/next.webm');
+  await page.waitForFunction(()=>document.querySelector('audio')?.paused);
+  assert.equal((await snapshot()).paused,true,'resuming video pauses the music source');
+  await open('/other_videos/other.webm');await videoPlaying('/other_videos/other.webm');
+  assert.equal(await page.locator('video').count(),1,'only one video source can play');
+  await page.locator('[title="/images"]').click();
+  await page.locator('[title="/other_videos"]').getByTitle('Đóng tab',{exact:true}).click();
+  await page.waitForFunction(()=>!document.querySelector('video'));
+  assert.equal(await page.evaluate(()=>window.__originalVideo.paused),true,'closing the source tab stops and unloads video');
+  await open('/videos/clip.webm');await videoPlaying('/videos/clip.webm');
+  await page.locator('[title="/images"]').click({button:'right'});
+  await page.getByRole('button',{name:'Đóng các tab khác',exact:true}).click();
+  await page.waitForFunction(()=>!document.querySelector('video'));
   assert.equal((await snapshot()).paused,true);
   // Single-track playlist restarts without loading another source.
   await open('/other/other.wav'); await playing('/other/other.wav');
@@ -134,5 +240,5 @@ try {
   await page.locator('[title="/other"]').getByTitle('Đóng tab',{exact:true}).click();
   await page.waitForFunction(()=>!document.querySelector('audio').hasAttribute('src'));
   assert.deepEqual(errors,[],'React/runtime must not throw');
-  console.log('PASS: native browser audio: image tabs/return, A-B persistence, deferred source, ended owner/once, multiple music folders, Space pause/resume, close/close others, single-track loop');
+  console.log('PASS: audio + video with sound: image tabs/return, A-B persistence, deferred source, ended owner/once, Space/keyboard isolation, exclusive playback, source tab close/close others, same-folder images/pill return');
 } finally { await browser?.close(); await server.close(); }

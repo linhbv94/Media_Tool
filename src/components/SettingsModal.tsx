@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AppSettings, ThemeMode, AppLanguage, LoopFileMode } from '../types';
 import { t } from '../services/i18n';
 import { startDragging } from '../services/tauri';
-import { X, Sliders, Play, HardDrive, Keyboard, RotateCcw, Info, Sparkles, Coffee, ExternalLink, PlaySquare, Copy, Check, Heart } from 'lucide-react';
+import { X, Sliders, Play, HardDrive, Keyboard, RotateCcw, Info, Sparkles, Coffee, ExternalLink, PlaySquare, Heart } from 'lucide-react';
 import qrImage from '../assets/qr.png';
 
 export type SettingsTabType = 'general' | 'playback' | 'cache' | 'hotkeys' | 'updates' | 'about' | 'support';
@@ -28,19 +28,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [activeTab, setActiveTab] = useState<SettingsTabType>(initialTab);
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [ramFreedNotice, setRamFreedNotice] = useState(false);
-  const [copiedBankNumber, setCopiedBankNumber] = useState(false);
-
-  const handleCopyBankNumber = async () => {
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText('9988961694');
-        setCopiedBankNumber(true);
-        setTimeout(() => setCopiedBankNumber(false), 2000);
-      }
-    } catch (err) {
-      console.error('Failed to copy STK:', err);
-    }
-  };
 
   useEffect(() => {
     if (isOpen && initialTab) {
@@ -724,80 +711,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                 </div>
 
-                {/* Card QR nổi bật và thông tin tài khoản */}
-                <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/10 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
+                {/* Card QR nổi bật căn giữa */}
+                <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-white/10 flex flex-col items-center justify-center text-center shadow-sm">
                   {/* Mã QR với nền trắng tương phản cao để quét nhạy */}
-                  <div className="relative group shrink-0">
-                    <div className="w-44 h-auto p-2.5 bg-white rounded-2xl shadow-md border border-slate-200/80 flex flex-col items-center justify-center">
-                      <img
-                        src={qrImage}
-                        alt="Vietcombank QR"
-                        className="w-full h-auto object-contain rounded-lg"
-                      />
-                      <span className="text-[10px] font-semibold text-emerald-800 mt-1 font-mono">
-                        VietQR • Napas247
-                      </span>
-                    </div>
+                  <div className="p-3 bg-white rounded-2xl shadow-md border border-slate-200/80 flex flex-col items-center justify-center">
+                    <img
+                      src={qrImage}
+                      alt="VietQR Code"
+                      className="w-52 h-auto object-contain rounded-lg"
+                    />
+                    <span className="text-[11px] font-semibold text-emerald-800 mt-2 font-mono tracking-wider">
+                      VietQR • Napas247
+                    </span>
                   </div>
 
-                  {/* Chi tiết thông tin ngân hàng & nút copy */}
-                  <div className="flex-1 w-full space-y-3.5 text-xs">
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                        {localSettings.language === 'vi' ? 'Ngân hàng thụ hưởng' : 'Bank'}
-                      </div>
-                      <div className="font-bold text-slate-900 dark:text-white text-sm mt-0.5">
-                        {i18n.support_bank_name}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                        {localSettings.language === 'vi' ? 'Chủ tài khoản' : 'Account Name'}
-                      </div>
-                      <div className="font-bold text-cyan-700 dark:text-cyan-400 text-sm mt-0.5">
-                        BUI VIET LINH
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                        {localSettings.language === 'vi' ? 'Số tài khoản' : 'Account Number'}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="font-mono text-base font-bold text-slate-900 dark:text-white px-2.5 py-1 bg-white dark:bg-black/30 rounded-lg border border-slate-300 dark:border-white/15 select-all">
-                          9988961694
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleCopyBankNumber}
-                          className={`px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition-all shadow-2xs ${
-                            copiedBankNumber
-                              ? 'bg-emerald-600 text-white font-semibold'
-                              : 'bg-cyan-600 hover:bg-cyan-500 text-white active:scale-95'
-                          }`}
-                        >
-                          {copiedBankNumber ? (
-                            <>
-                              <Check className="w-3.5 h-3.5" />
-                              <span>{localSettings.language === 'vi' ? 'Đã chép!' : 'Copied!'}</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5" />
-                              <span>{i18n.support_copy_btn}</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 italic pt-1 border-t border-slate-200/60 dark:border-white/5">
-                      {localSettings.language === 'vi'
-                        ? 'Có thể mở app ngân hàng bất kỳ để quét mã QR chuyển khoản tức thì 24/7.'
-                        : 'Scan the QR code with any banking app for instant 24/7 transfer.'}
-                    </p>
-                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-4 max-w-sm leading-relaxed">
+                    {i18n.support_scan_hint}
+                  </p>
                 </div>
               </div>
             )}

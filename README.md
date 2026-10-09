@@ -3,7 +3,7 @@
 Ứng dụng desktop cá nhân siêu nhẹ, đa nền tảng (Windows 11+ & macOS Apple Silicon), phục vụ duyệt và chọn lọc ảnh tốc độ cao, đồng thời phát video và âm thanh với khả năng kiểm soát phím tắt chuẩn xác và tính năng lặp đoạn A–B Loop kèm hạ/tăng âm thích ứng (Adaptive Audio Fade).
 
 > **Tôn chỉ:** *One App, One Codebase, Two Modules: Viewer + Player trên Shared Core thống nhất.*  
-> **Phiên bản hiện tại:** `v1.2.1` — Xem chi tiết tại [docs/version_management.md](docs/version_management.md)
+> **Phiên bản:** `v1.2.4` — Xem chi tiết tại [docs/version_management.md](docs/version_management.md)
 
 ---
 
@@ -22,7 +22,7 @@ Toàn bộ tài liệu đặc tả chuẩn hóa phục vụ việc triển khai 
 5. 🗄️ [04_api_data.md](docs/spec/04_api_data.md) (`_spec4_api_data`):  
    **Hợp đồng Dữ liệu & Tauri IPC Commands:** Đặc tả chi tiết các lệnh gọi bất đồng bộ (`get_directory_media`, `copy_files_to_clipboard`, `read_audio_metadata`), kiểu dữ liệu TypeScript và giải pháp kỹ thuật đưa file references vào Native Clipboard OS (`CF_HDROP` trên Windows, `NSPasteboard` trên macOS).
 6. 🧪 [05_qa_acceptance.md](docs/spec/05_qa_acceptance.md) (`_spec5_qa_acceptance`):  
-   **Tiêu chuẩn Nghiệm thu & Kiểm thử Khói:** 12 tiêu chí nghiệm thu Gherkin (AC-01 đến AC-12), Ma trận 10 trường hợp biên (Edge Cases) và Checklist kiểm thử khói 18 bước trên Windows 11 và macOS.
+   **Tiêu chuẩn Nghiệm thu & Kiểm thử Khói:** Tiêu chí nghiệm thu Gherkin đến AC-25 (gồm phát nền video/audio), Ma trận trường hợp biên (Edge Cases) và Checklist kiểm thử khói trên Windows 11 và macOS.
 7. 🎬 [06_demo_presentation.md](docs/spec/06_demo_presentation.md) (`_spec6_demo_presentation`):  
    **Kịch bản Trình diễn Nghiệm thu (DoD Playbook):** Hướng dẫn thiết lập bộ file mẫu `fixtures/` và kịch bản demo 3 hồi tuần tự chứng minh đáp ứng 100% Definition of Done trước khi bàn giao.
 8. 📑 [07_folder_tabs_multi_window.md](docs/spec/07_folder_tabs_multi_window.md) (`_spec7_folder_tabs_multi_window`):  
@@ -42,4 +42,10 @@ Toàn bộ tài liệu đặc tả chuẩn hóa phục vụ việc triển khai 
 
 ## Phát hành Windows/macOS và tự cập nhật
 
-Phiên bản `1.2.1` thêm kiểm tra cập nhật khi mở app và nút cập nhật trong Cài đặt → Giới thiệu. GitHub Actions build bộ cài Windows x64, macOS Apple Silicon và Intel bằng runner tiêu chuẩn cho repo public. Xem [hướng dẫn cấu hình khóa ký, phát hành và cài đặt](docs/release_guide.md).
+Phiên bản `1.2.1` thêm kiểm tra cập nhật khi mở app và nút cập nhật trong Cài đặt → Cập nhật. GitHub Actions build bộ cài Windows x64, macOS Apple Silicon và Intel bằng runner tiêu chuẩn cho repo public. Xem [hướng dẫn cấu hình khóa ký, phát hành và cài đặt](docs/release_guide.md).
+
+## Phát nền khi duyệt ảnh
+
+Từ v1.2.4, file nhạc và video có tiếng giữ tiến độ khi mở ảnh/PDF hoặc đổi tab. Thanh phát nền điều khiển nguồn vừa nghe; phát một nguồn khác tạm dừng nguồn trước, đóng tab nguồn dừng phát. Xem [luồng playback](docs/spec/02_feature_flow.md), [QA native](docs/spec/05_qa_acceptance.md) và [quyền sở hữu nguồn](docs/spec/07_folder_tabs_multi_window.md).
+
+Kiểm tra tự động: `npm run test:playback` (cài Chromium bằng `npx playwright install chromium`, hoặc đặt `BROWSER_EXECUTABLE_PATH`). Bài test dùng App/Player và media thật, mô phỏng bridge mở file; vẫn cần nghiệm thu Explorer/Finder trên app Tauri đã đóng gói.

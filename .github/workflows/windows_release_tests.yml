@@ -6,6 +6,7 @@ on:
       - 'scripts/**'
       - 'src/App.tsx'
       - 'src/components/Player.tsx'
+      - 'src/components/MiniAudioPill.tsx'
       - 'src/hooks/useKeyboardDispatcher.ts'
       - 'src/services/update_controller.ts'
       - 'package.json'
@@ -33,5 +34,5 @@ jobs:
       - run: npm ci
       - name: Install browser for playback regression
         run: npx playwright install chromium
-      - name: Test persistent audio and tab controls
+      - name: Test persistent audio/video and tab controls
         run: npm run test:playback

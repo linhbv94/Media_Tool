@@ -351,3 +351,34 @@ export async function printFile(filePath: string): Promise<boolean> {
 
 
 
+
+/** Native fullscreen for desktop; DOM fullscreen only for browser preview. */
+export async function setFullscreen(fullscreen: boolean): Promise<void> {
+  if (isTauriEnvironment()) {
+    const { getCurrentWindow } = await import('@tauri-apps/api/window');
+    await getCurrentWindow().setFullscreen(fullscreen);
+  } else if (fullscreen) {
+    await document.documentElement.requestFullscreen();
+  } else if (document.fullscreenElement) {
+    await document.exitFullscreen();
+  }
+}
+
+export async function listenFullscreen(callback: (fullscreen: boolean) => void): Promise<() => void> {
+  if (isTauriEnvironment()) {
+    const { getCurrentWindow } = await import('@tauri-apps/api/window');
+    const appWindow = getCurrentWindow();
+    let disposed = false;
+    const refresh = async () => {
+      const fullscreen = await appWindow.isFullscreen();
+      if (!disposed) callback(fullscreen);
+    };
+    const unlisten = await appWindow.onResized(() => { void refresh().catch(console.warn); });
+    try { await refresh(); } catch (error) { unlisten(); throw error; }
+    return () => { disposed = true; unlisten(); };
+  }
+  const refresh = () => callback(Boolean(document.fullscreenElement));
+  document.addEventListener('fullscreenchange', refresh);
+  refresh();
+  return () => document.removeEventListener('fullscreenchange', refresh);
+}

@@ -534,6 +534,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
 
       {/* Floating Bottom Action Bar (Locked Height h-12 with Zero Layout-Shift Borders) */}
       <div
+        data-hud-layer
         className={`absolute bottom-3 left-0 right-0 z-30 transition-all duration-200 pointer-events-none ${
           hudVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
         }`}

@@ -1,7 +1,7 @@
 # Demo Presentation & DoD Playbook: Media Tool (`_spec6_demo_presentation`)
 
-> **Phiên bản:** 1.0.0  
-> **Ngày cập nhật:** 2026-10-01  
+> **Phiên bản:** 1.1.0
+> **Ngày cập nhật:** 2026-10-09
 > **Phân loại đặc tả:** Kịch bản Trình diễn Nghiệm thu (Demo Script) & Thiết lập Bộ Dữ liệu Thử nghiệm  
 > **Tài liệu tham chiếu:** [00_system_overview.md](00_system_overview.md), [05_qa_acceptance.md](05_qa_acceptance.md)  
 
@@ -99,3 +99,19 @@ Buổi trình diễn được chia làm 3 màn liên hoàn, tái hiện 100% tr�
 | **Đúng Tôn chỉ V1:** Tuyệt đối không chứa tính năng thừa (Không YouTube, không DB). | 🟡 Chờ kiểm thử | Kiểm tra mã nguồn không chứa yt-dlp, SQLite, cloud APIs. | Product Owner |
 | **Hợp đồng Phím tắt:** Toàn bộ phím tắt phản hồi chuẩn xác theo đúng bảng đặc tả UI. | 🟡 Chờ kiểm thử | Kiểm tra không xung đột Cmd+M (Mac) và đầy đủ phím. | Product Owner |
 | **Tốc độ & Trọng lượng:** Khởi động dưới 1 giây, duyệt ảnh mượt mà, RAM sử dụng thấp. | 🟡 Chờ kiểm thử | Đo đạc Memory Footprint dưới 60MB RAM cho video 1080p. | Product Owner |
+
+## 5. Demo bổ sung: Nghe video trong lúc duyệt ảnh
+
+- Dùng video MP4 H.264/AAC 60 giây trong `fixtures/videos/` và ảnh ở `fixtures/images/`. Chạy riêng trên Windows và macOS với bản app đã đóng gói.
+- Phát video đến giây 10, quay ra Explorer/Finder mở ảnh bằng VXMedia. Xác nhận tab ảnh mới, nghe tiếng liên tục và thanh phát nền có icon video.
+- Quay lại video: tiến độ tiếp tục, không phát lại từ đầu. Lặp lại với A–B và thao tác chuyển qua tab ảnh đã mở.
+- Space ở tab ảnh tạm dừng/tiếp tục video; mở file nhạc tạm dừng video; trở lại video giữ tiến độ và trạng thái pause. Đóng tab nguồn dừng tiếng.
+- Ghi version/OS/kiến trúc/codec và kết quả theo [AC-24/AC-25](05_qa_acceptance.md).
+
+## Demo fullscreen bổ sung
+1. Chọn HUD luôn hiện; mở video, vào fullscreen bằng nút. HUD ẩn ngay.
+2. Di chuột → HUD hiện; dừng 2 giây → ẩn. Thoát bằng Escape → HUD luôn hiện.
+3. Ẩn HUD thủ công bằng H; vào bằng F; di chuột rồi thoát → trạng thái ẩn thủ công còn giữ.
+4. Windows: resize gần toàn màn hình, F11 rồi thoát nhiều lần; controls cửa sổ biến mất trong fullscreen, video scale_to_fit theo viewport. Đổi limit_file_size để kiểm tra giới hạn kích thước gốc.
+
+- Demo HUD luôn hiện: ở cửa sổ thường dừng tương tác 2 giây → HUD mờ 40%, di chuột → sáng 100%; media không đổi độ sáng.

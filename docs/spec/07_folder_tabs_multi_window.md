@@ -1,10 +1,11 @@
 # Đặc tả Kiến trúc Quản lý Tab Thư mục & Đa Cửa sổ (Folder Tabs & Multi-Window Architecture)
 
 > **Mã đặc tả:** `_spec7_folder_tabs_multi_window`  
-> **Phiên bản tài liệu:** `1.1.0`  
+> **Phiên bản tài liệu:** `1.2.0`
+> **Ngày cập nhật:** 2026-10-09
 > **Áp dụng từ:** `v1.1.0` (Milestone Sprint)  
 > **Dự án:** VXMedia (`media_tool`)  
-> **Tài liệu căn cứ:** [sprint.md](../../sprint.md) & [AGENTS.md](../../AGENTS.md)  
+> **Tài liệu căn cứ:** [sprint.md](../../sprint.md) & [AGENTS.md](../../../AGENTS.md)
 
 ---
 
@@ -93,7 +94,7 @@ export interface FolderSession {
 
 ## 4. Quyền Sở hữu & Tranh chấp Phát lại (Global Playback Ownership)
 
-Phát lại âm thanh/video **không thuộc về tab hay cửa sổ đang hiển thị**.
+Phát lại âm thanh/video **không thuộc về viewport của tab đang hiển thị**. Player nằm ở cấp App của từng cửa sổ. Một cửa sổ giữ nguồn phát khi đổi tab; chưa có engine dùng chung hoặc cơ chế chuyển giao liên tục nguồn/tiến độ giữa cửa sổ.
 
 ```text
 ┌────────────────────────────────────────────────────────┐
@@ -112,7 +113,7 @@ Phát lại âm thanh/video **không thuộc về tab hay cửa sổ đang hiể
 ### Quy tắc Giải quyết Tranh chấp Âm thanh (Audio/Video Contention):
 1. **Đang phát Nhạc → Mở tệp Ảnh (Viewer):**
    - Trình duyệt ảnh nạp ảnh tức thì.
-   - **Bài nhạc vẫn tiếp tục phát 100% không gián đoạn.**
+   - Bài nhạc hoặc tiếng từ video vẫn tiếp tục phát, giữ tiến độ và A–B khi mở ảnh/PDF.
    - Một thanh điều khiển mini phát nhạc nổi gọn gàng (Floating Mini Playback Pill / HUD) hiển thị tiến độ và nút tạm dừng/bài kế tiếp.
 2. **Đang phát Nhạc → Mở một tệp Nhạc khác & Bấm Play:**
    - Bản nhạc trước nhường quyền phát lại cho bản nhạc mới.
@@ -136,7 +137,7 @@ Triển khai ngay trong phiên bản `v1.1.0`.
      - Tệp đang xem dở (`currentFilePath`).
      - Danh sách file đánh dấu (`markedPaths`).
      - Trạng thái zoom/pan/xoay của Viewer.
-     - Vị trí vòng lặp A-B loop nếu có.
+     - Tiến độ playback và vòng lặp A–B chưa được chuyển giao sang cửa sổ mới; nguồn ở cửa sổ cũ dừng khi tab nguồn bị chuyển đi.
   4. Cửa sổ mới được kích hoạt và đưa lên hàng đầu (Focus).
 
 ```text
@@ -154,7 +155,7 @@ Cửa sổ B: [ 📁 Photoshoot B ] (Giữ nguyên vị trí ảnh, zoom, mark t
 * **Đóng Cửa sổ Phụ (Secondary Window):**
   - Giải phóng giao diện của cửa sổ đó, dọn dẹp các listener IPC.
   - Không làm sập ứng dụng, không ảnh hưởng đến Cửa sổ Chính.
-  - Nếu Cửa sổ Phụ đang chứa thư mục của bản nhạc đang phát toàn cục: **Bản nhạc vẫn tiếp tục phát ở App-Level** cho đến khi người dùng bấm dừng hoặc thoát hẳn ứng dụng.
+  - Nếu cửa sổ phụ sở hữu nguồn video/audio đang phát, đóng cửa sổ đó sẽ dừng nguồn. Chưa có engine toàn ứng dụng giữ phát khi cửa sổ sở hữu nguồn bị đóng.
 * **Đóng Cửa sổ Cuối cùng (Last Window):**
   - Thực hiện quy trình thoát sạch sẽ (Clean Quit / Zero-Residue Exit) toàn bộ ứng dụng.
 
@@ -198,7 +199,7 @@ Cửa sổ B: [ 📁 Photoshoot B ] (Giữ nguyên vị trí ảnh, zoom, mark t
 | **TC-01** | Mở 1 ảnh từ Thư mục A | Mở Tab A với tệp vừa chọn, nạp đủ danh sách media Thư mục A. |
 | **TC-02** | Mở thêm 1 ảnh khác cùng Thư mục A | Tái sử dụng Tab A, chuyển đến ảnh mới, không sinh thêm Tab trùng. |
 | **TC-03** | Mở 1 ảnh từ Thư mục B | Tạo Tab B mới kế bên Tab A, Tab B được kích hoạt. |
-| **TC-04** | Chuyển đổi qua lại giữa Tab A và Tab B | Trạng thái hiển thị (ảnh đang xem, vị trí scroll/zoom) được bảo toàn nguyên vẹn. |
+| **TC-04** | Chuyển đổi qua lại giữa Tab A và Tab B | Giữ file được chọn/đánh dấu theo session; viewport ảnh được tạo lại, không khẳng định giữ zoom/pan/scroll chưa được triển khai. |
 | **TC-05** | Đánh dấu (`Mark`) các file độc lập ở Tab A và Tab B | Số lượng file đánh dấu được lưu trữ riêng cho từng session thư mục. |
 | **TC-06** | Đang phát nhạc ở Tab Nhạc → Chuyển sang Tab Ảnh | Nhạc tiếp tục phát êm mượt, ảnh hiển thị trọn vẹn ở Viewer. |
 | **TC-07** | Nhạc đang phát → Chuyển liên tục giữa các Tab ảnh | Luồng âm thanh giữ nguyên, không bị ngắt hoặc giật tiếng. |
@@ -231,11 +232,13 @@ Cửa sổ B: [ 📁 Photoshoot B ] (Giữ nguyên vị trí ảnh, zoom, mark t
 - Đồng bộ dữ liệu session giữa các cửa sổ thông qua `BroadcastChannel` hoặc Tauri events (`emit_to`).
 
 
-## 10. Nghiệm thu nhạc nền sau review 2026-10-08
+## 10. Nghiệm thu phát nền video/audio sau review 2026-10-09
 
-- Một Player audio giữ nguyên vòng đời ở cấp App; ảnh/PDF/video chỉ render viewport đang xem. Tab ẩn không đăng ký phím tắt Player.
-- Shared audio nhận đường dẫn đã resolve đúng file và ID thư mục nguồn; mở tab ảnh hoặc quay lại không gọi load(), không reset tiến độ/A–B.
-- App xử lý ended đúng một lần, chọn bài audio kế tiếp của thư mục nguồn; không chuyển ảnh đang xem hoặc phát ảnh bìa như bài nhạc.
-- Đóng tab nguồn hoặc đóng các tab khác có chứa nguồn thì dừng và gỡ src. Space ở tab ảnh tạm dừng/tiếp tục nhạc nền được.
-- Regression tự động: `npm run test:playback` (cần Chromium từ `npx playwright install chromium`; có thể dùng `BROWSER_EXECUTABLE_PATH` để trỏ Chrome sẵn có). Bài test chạy App/Player thật và media WAV bằng browser; bridge file/dialog dùng fixture local. Windows CI chạy bài này trước merge.
-- Test browser không thay nghiệm thu GUI Tauri/WebView2 trên máy Windows thực tế.
+- Phản hồi thực tế trên bản 1.2.3: mở video có tiếng, mở ảnh từ Explorer/Finder tạo tab mới, tiếng bị ngắt và quay lại video phát từ đầu trên cả Windows và macOS. Regression WAV trước đó bỏ sót video.
+- Sửa hiện tại: một Player audio và một Player video giữ vòng đời ở cấp App; chỉ viewport ảnh/PDF đang xem được render. Player ẩn nằm ngoài viewport, inert/aria-hidden và không đăng ký phím tắt.
+- Mở ảnh hoặc quay lại không gỡ player, không nạp lại nguồn, không reset tiến độ/A–B. Ảnh cùng thư mục cũng giữ phát nền.
+- Trong cùng cửa sổ, video/audio nhường quyền phát cho nhau; nguồn đã pause giữ nguyên tiến độ. Space và thanh phát nền điều khiển nguồn vừa nghe; nút trở lại chọn đúng file nguồn.
+- Hết file chọn media cùng loại trong thư mục nguồn, bỏ qua ảnh và không đổi ảnh đang xem. Đóng tab nguồn hoặc đóng các tab khác loại bỏ nguồn thì dừng/gỡ src.
+- Regression tự động: `npm run test:playback` (cần Chromium từ `npx playwright install chromium`, hoặc `BROWSER_EXECUTABLE_PATH` trỏ Chrome sẵn có). App/Player và HTMLMediaElement thật, WAV và video WebM có tiếng; bridge file/dialog dùng fixture local.
+- Test browser không thay nghiệm thu app Tauri/WebView2 trên Windows hay WKWebView trên macOS. Đường mở file OS cần thử thật bằng AC-24/AC-25 trong [QA](05_qa_acceptance.md).
+- Phát nền xuyên cửa sổ và chuyển giao liên tục tiến độ khi Move to New Window chưa được triển khai/kiểm chứng. Các mục mô tả điều phối đa cửa sổ phía trên là mục tiêu, không phải bằng chứng đã đạt.

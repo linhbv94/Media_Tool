@@ -1,7 +1,7 @@
 # Business Process Specification: Media Tool (`_spec1_business_process`)
 
-> **Phiên bản:** 1.0.0  
-> **Ngày cập nhật:** 2026-10-01  
+> **Phiên bản:** 1.1.0
+> **Ngày cập nhật:** 2026-10-09
 > **Phân loại đặc tả:** Quy trình Nghiệp vụ, Swimlane & Ma trận Quyết định  
 > **Tài liệu tham chiếu:** [00_system_overview.md](00_system_overview.md)  
 
@@ -96,7 +96,7 @@ Truyền gói dữ liệu khởi tạo lên Frontend UI qua Tauri Event / IPC
     │
     ▼
 Frontend Router định tuyến:
-    ├─ Nếu là Ảnh → Mở Viewer Module (tắt audio/video pipeline)
+    ├─ Nếu là Ảnh → Mở Viewer Module (giữ nguyên video/audio đang phát nền)
     └─ Nếu là Video/Audio → Mở Player Module (khởi tạo media engine)
 ```
 
@@ -199,7 +199,7 @@ Khi một tệp tin được kích hoạt, hệ thống căn cứ vào phần m�
 
 | Nhóm Định dạng | Các phần mở rộng (Extensions) | Phân hệ Xử lý | Các tính năng được kích hoạt |
 | :--- | :--- | :--- | :--- |
-| **Ảnh tĩnh / Động** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.avif` | **Viewer Module** | View Fit/Full, Next/Prev, Mark (`M`), Copy Marked (`Ctrl/Cmd+C`). Tắt toàn bộ engine video/audio. |
+| **Ảnh tĩnh / Động** | `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.avif` | **Viewer Module** | View Fit/Full, Next/Prev, Mark (`M`), Copy Marked (`Ctrl/Cmd+C`). Giữ nguyên nguồn video/audio đang phát; điều khiển bằng thanh phát nền. |
 | **Video** | `.mp4`, `.mov`, `.webm`, `.mkv` | **Player Module** *(Video View)* | Khung hiển thị Video Canvas, Play/Pause (`Space`), Seek tỉ lệ (`0-9`), Seek giây, A–B Loop, Mark (`M`). Ẩn khung Artwork. |
 | **Âm thanh** | `.mp3`, `.wav`, `.flac`, `.m4a` | **Player Module** *(Audio View)* | Khung hiển thị Album Artwork + Thẻ Metadata (Title, Artist, Album), Timeline Seek, A–B Loop, Adaptive Fade, Mark (`M`). |
 | **File không hỗ trợ / File rác** | `.txt`, `.pdf`, `.exe`, `.DS_Store`, `Thumbs.db`... | **Bỏ qua (Ignored)** | Tự động loại khỏi danh sách file lân cận khi quét thư mục; nếu người dùng cố tình mở file này, hiển thị màn hình cảnh báo không hỗ trợ và giữ app không bị crash. |

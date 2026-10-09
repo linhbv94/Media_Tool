@@ -22,6 +22,8 @@ import {
   startDragging,
   createMediaWindow,
   logFrontend,
+  setFullscreen,
+  listenFullscreen,
 } from './services/tauri';
 import { t } from './services/i18n';
 import { WindowBar } from './components/WindowBar';
@@ -84,9 +86,12 @@ export const App: React.FC = () => {
   }, []);
 
   const [isPinned, setIsPinned] = useState<boolean>(false);
+  const [hudDimmed, setHudDimmed] = useState(false);
   const [hudVisible, setHudVisible] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isMiniPip, setIsMiniPip] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const fullscreenPendingRef = useRef(false);
   const [manualHudHidden, setManualHudHidden] = useState<boolean>(false);
 
   // Settings & Volume
@@ -125,6 +130,10 @@ export const App: React.FC = () => {
 
   // Global Audio Playback (App-Level persistent)
   const sharedAudioRef = useRef<HTMLAudioElement | null>(null);
+  const sharedVideoRef = useRef<HTMLVideoElement | null>(null);
+  const lastPlaybackRef = useRef<'audio' | 'video'>('audio');
+  const [videoPlayback, setVideoPlayback] = useState<{ item: MediaItem; sessionId: string } | null>(null);
+  const [videoProgress, setVideoProgress] = useState({ isPlaying: false, currentTime: 0, duration: 0 });
   const [globalAudio, setGlobalAudio] = useState<GlobalAudioState>({
     isPlaying: false,
     item: null,
@@ -140,6 +149,39 @@ export const App: React.FC = () => {
   const audioItem = audioIsVisible ? currentItem : globalAudio.item;
   const audioSessionId = audioIsVisible ? activeSessionId : globalAudio.originSessionId;
   const audioSession = sessions.find((session) => session.id === audioSessionId);
+  // Keep one video owner outside the selected tab, just like the audio owner.
+  const videoIsVisible = currentItem?.media_type === 'video';
+  const videoItem = videoIsVisible ? currentItem : videoPlayback?.item;
+  const videoSessionId = videoIsVisible ? activeSessionId : videoPlayback?.sessionId;
+  const videoSession = sessions.find((session) => session.id === videoSessionId);
+  useEffect(() => {
+    if (currentItem?.media_type === 'video' && activeSessionId) {
+      setVideoPlayback((prev) => prev?.item.path === currentItem.path && prev.sessionId === activeSessionId
+        ? prev : { item: currentItem, sessionId: activeSessionId });
+    }
+  }, [currentItem, activeSessionId]);
+  const handleVideoPlaybackChange = useCallback((el: HTMLVideoElement) => {
+    if (!el.paused) lastPlaybackRef.current = 'video';
+    setVideoProgress({ isPlaying: !el.paused, currentTime: el.currentTime,
+      duration: Number.isFinite(el.duration) ? el.duration : 0 });
+  }, []);
+  const stopVideo = useCallback(() => {
+    const el = sharedVideoRef.current;
+    if (el) {
+      el.pause();
+      el.removeAttribute('src');
+      el.load();
+    }
+    setVideoPlayback(null);
+    setVideoProgress({ isPlaying: false, currentTime: 0, duration: 0 });
+    if (lastPlaybackRef.current === 'video') lastPlaybackRef.current = 'audio';
+  }, []);
+  const toggleBackgroundPlayback = useCallback(() => {
+    const el = lastPlaybackRef.current === 'video' ? sharedVideoRef.current : sharedAudioRef.current;
+    if (!el?.getAttribute('src')) return;
+    if (el.paused) el.play().catch(console.warn);
+    else el.pause();
+  }, []);
   const handleAudioSourceChange = useCallback((item: MediaItem, sessionId: string) => {
     setGlobalAudio((prev) => prev.item?.path === item.path && prev.originSessionId === sessionId
       ? prev : { ...prev, item, originSessionId: sessionId });
@@ -323,14 +365,17 @@ export const App: React.FC = () => {
     });
 
     if (sharedAudioRef.current?.dataset.originSessionId === sessionId) stopAudio();
-  }, [activeSessionId, stopAudio]);
+    if (sharedVideoRef.current?.dataset.originSessionId === sessionId) stopVideo();
+  }, [activeSessionId, stopAudio, stopVideo]);
 
   const handleCloseOtherTabs = useCallback((sessionId: string) => {
     const originId = sharedAudioRef.current?.dataset.originSessionId;
     if (originId && originId !== sessionId) stopAudio();
+    const videoOriginId = sharedVideoRef.current?.dataset.originSessionId;
+    if (videoOriginId && videoOriginId !== sessionId) stopVideo();
     setSessions((prev) => prev.filter((s) => s.id === sessionId));
     setActiveSessionId(sessionId);
-  }, [stopAudio]);
+  }, [stopAudio, stopVideo]);
 
   const handleMoveTabToNewWindow = useCallback(async (sessionId: string) => {
     const sessionToMove = sessions.find((s) => s.id === sessionId);
@@ -453,7 +498,7 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('resize', checkMiniPip);
   }, []);
 
-  const isAutoHide = isMiniPip || settings.hud_hide_delay_ms > 0;
+  const isAutoHide = isFullscreen || isMiniPip || settings.hud_hide_delay_ms > 0;
 
   useEffect(() => {
     if (settings.hud_hide_delay_ms > 0) {
@@ -463,9 +508,14 @@ export const App: React.FC = () => {
 
   // Auto-Hide HUD Logic
   const resetHudTimer = useCallback(() => {
+    if (hudTimerRef.current) clearTimeout(hudTimerRef.current);
+    setHudDimmed(false);
     if (!isAutoHide) {
       if (!manualHudHidden) {
         setHudVisible(true);
+        hudTimerRef.current = setTimeout(() => {
+          if (!contextMenuPos && !isSettingsOpen) setHudDimmed(true);
+        }, 2000);
       }
       return;
     }
@@ -473,7 +523,7 @@ export const App: React.FC = () => {
     setHudVisible(true);
     if (hudTimerRef.current) clearTimeout(hudTimerRef.current);
 
-    const delay = isMiniPip ? 1000 : settings.hud_hide_delay_ms;
+    const delay = isFullscreen ? 2000 : isMiniPip ? 1000 : settings.hud_hide_delay_ms;
     if (delay > 0) {
       hudTimerRef.current = setTimeout(() => {
         if (!contextMenuPos && !isSettingsOpen) {
@@ -481,20 +531,55 @@ export const App: React.FC = () => {
         }
       }, delay);
     }
-  }, [isAutoHide, isMiniPip, settings.hud_hide_delay_ms, manualHudHidden, contextMenuPos, isSettingsOpen]);
+  }, [isAutoHide, isFullscreen, isMiniPip, settings.hud_hide_delay_ms, manualHudHidden, contextMenuPos, isSettingsOpen]);
 
   useEffect(() => {
     const onUserActivity = () => {
       resetHudTimer();
     };
 
+    const onKeyActivity = () => { if (!isAutoHide) resetHudTimer(); };
     window.addEventListener('mousemove', onUserActivity);
     window.addEventListener('mousedown', onUserActivity);
+    window.addEventListener('keyup', onKeyActivity);
+    window.addEventListener('wheel', onUserActivity, { passive: true });
     return () => {
       window.removeEventListener('mousemove', onUserActivity);
       window.removeEventListener('mousedown', onUserActivity);
+      window.removeEventListener('keyup', onKeyActivity);
+      window.removeEventListener('wheel', onUserActivity);
     };
-  }, [resetHudTimer]);
+  }, [resetHudTimer, isAutoHide]);
+
+  useEffect(() => {
+    let disposed = false;
+    let unlisten: (() => void) | undefined;
+    listenFullscreen((fullscreen) => { if (!disposed) setIsFullscreen(fullscreen); })
+      .then((cleanup) => { if (disposed) cleanup(); else unlisten = cleanup; })
+      .catch(console.warn);
+    return () => { disposed = true; unlisten?.(); };
+  }, []);
+
+  useEffect(() => {
+    if (isFullscreen) {
+      if (hudTimerRef.current) clearTimeout(hudTimerRef.current);
+      setHudVisible(false);
+    } else {
+      resetHudTimer();
+      if (manualHudHidden && !isAutoHide) setHudVisible(false);
+    }
+    return () => { if (hudTimerRef.current) clearTimeout(hudTimerRef.current); };
+  }, [isFullscreen, resetHudTimer, manualHudHidden, isAutoHide]);
+
+  useEffect(() => {
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isFullscreen && !isSettingsOpen && !contextMenuPos) {
+        void setFullscreen(false).then(() => setIsFullscreen(false)).catch(console.warn);
+      }
+    };
+    window.addEventListener('keydown', onEscape);
+    return () => window.removeEventListener('keydown', onEscape);
+  }, [isFullscreen, isSettingsOpen, contextMenuPos]);
 
   // Toast Feedback Helper
   const showToast = useCallback((msg: string) => {
@@ -676,13 +761,15 @@ export const App: React.FC = () => {
     setAlwaysOnTop(!isPinned).then(setIsPinned);
   }, [isPinned]);
 
-  const handleToggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(console.warn);
-    } else {
-      document.exitFullscreen().catch(console.warn);
-    }
-  }, []);
+  const handleToggleFullscreen = useCallback(async () => {
+    if (fullscreenPendingRef.current) return;
+    fullscreenPendingRef.current = true;
+    try {
+      await setFullscreen(!isFullscreen);
+      setIsFullscreen(!isFullscreen);
+    } catch (error) { console.warn('Fullscreen failed:', error); }
+    finally { fullscreenPendingRef.current = false; }
+  }, [isFullscreen]);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -698,15 +785,8 @@ export const App: React.FC = () => {
     onTogglePlay: () => {
       if (currentItem?.media_type === 'audio' || currentItem?.media_type === 'video') {
         window.dispatchEvent(new CustomEvent('player:toggle-play'));
-      } else if (globalAudio.item) {
-        // In Viewer, toggle background audio
-        if (sharedAudioRef.current) {
-          if (sharedAudioRef.current.paused) {
-            sharedAudioRef.current.play().catch(console.warn);
-          } else {
-            sharedAudioRef.current.pause();
-          }
-        }
+      } else {
+        toggleBackgroundPlayback();
       }
     },
     onSeekRelative: (seconds) => {
@@ -747,6 +827,8 @@ export const App: React.FC = () => {
 
   // Track Global Audio Element Events
   const handleAudioPlay = () => {
+    lastPlaybackRef.current = 'audio';
+    sharedVideoRef.current?.pause();
     setGlobalAudio((prev) => {
       const originId = sharedAudioRef.current?.dataset.originSessionId || null;
       const path = sharedAudioRef.current?.dataset.currentPath;
@@ -816,8 +898,35 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleVideoNext = useCallback(() => {
+    const el = sharedVideoRef.current;
+    const session = sessions.find((s) => s.id === el?.dataset.originSessionId);
+    if (!el || !session) return;
+    const videos = session.items.filter((item) => item.media_type === 'video');
+    if (!videos.length) return;
+    const index = videos.findIndex((item) => item.path === el.dataset.currentPath);
+    const offset = shuffle && videos.length > 1 ? 1 + Math.floor(Math.random() * (videos.length - 1)) : 1;
+    const nextItem = videos[(Math.max(index, 0) + offset) % videos.length];
+    if (nextItem.path === el.dataset.currentPath) {
+      el.currentTime = 0;
+      el.play().catch(console.warn);
+      return;
+    }
+    setVideoPlayback({ item: nextItem, sessionId: session.id });
+    setSessions((prev) => prev.map((s) => s.id === session.id && s.items[s.currentIndex]?.media_type === 'video'
+      ? { ...s, currentIndex: s.items.findIndex((item) => item.path === nextItem.path) } : s));
+  }, [sessions, shuffle]);
+  const backgroundIsVideo = lastPlaybackRef.current === 'video' && Boolean(videoItem && videoSession);
+  const backgroundItem = backgroundIsVideo ? videoItem : globalAudio.item;
+  const backgroundSessionId = backgroundIsVideo ? videoSessionId : globalAudio.originSessionId;
+  const backgroundProgress = backgroundIsVideo ? videoProgress : globalAudio;
+  const backgroundIsVisible = backgroundIsVideo ? videoIsVisible : audioIsVisible;
+
   return (
     <div
+      data-fullscreen={isFullscreen}
+      data-hud-visible={hudVisible}
+      data-hud-dimmed={hudDimmed && hudVisible && !isAutoHide}
       onContextMenu={handleContextMenu}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
@@ -839,6 +948,7 @@ export const App: React.FC = () => {
 
       {/* Unified Window Bar with Tab Bar */}
       <WindowBar
+        isFullscreen={isFullscreen}
         isPinned={isPinned}
         onTogglePin={handleTogglePin}
         hudVisible={hudVisible}
@@ -877,10 +987,10 @@ export const App: React.FC = () => {
             startDragging();
           }
         }}
-        className="absolute top-0 left-0 w-full h-10 z-20 pointer-events-auto"
+        className={`absolute top-0 left-0 w-full h-10 z-20 ${isFullscreen ? 'pointer-events-none' : 'pointer-events-auto'}`}
       />
 
-      {/* Main Viewport: Multi-Session Keep-Alive View */}
+      {/* Only the selected image/PDF viewport; playback owners remain mounted below. */}
       {sessions.length === 0 ? (
         <div
           data-tauri-drag-region
@@ -958,36 +1068,6 @@ export const App: React.FC = () => {
                   onPrev={handlePrev}
                   onNext={handleNext}
                 />
-              ) : sItem && sItem.media_type === 'video' ? (
-                <Player
-                  item={sItem}
-                  currentIndex={sIndex}
-                  totalCount={sItems.length}
-                  isMarked={isCurrentItemMarked}
-                  markedCount={session.markedPaths.size}
-                  hudVisible={hudVisible}
-                  volume={volume}
-                  isMuted={isMuted}
-                  shuffle={shuffle}
-                  loopFileMode={loopFileMode}
-                  seekShortSec={settings.seek_short_sec}
-                  seekLongSec={settings.seek_long_sec}
-                  abLoopCrossfadeMs={settings.ab_loop_crossfade_ms}
-                  isMiniPip={isMiniPip}
-                  mediaFitMode={settings.media_fit_mode || 'scale_to_fit'}
-                  language={settings.language || 'vi'}
-                  onPrev={handlePrev}
-                  onNext={handleNext}
-                  onToggleMark={handleToggleMark}
-                  onCopyMarked={handleCopyMarked}
-                  onCutMarked={handleCutMarked}
-                  onVolumeChange={handleVolumeChange}
-                  onToggleMute={handleToggleMute}
-                  onToggleShuffle={handleToggleShuffle}
-                  onCycleLoopFile={handleCycleLoopFile}
-                  onToggleFullscreen={handleToggleFullscreen}
-                  sharedAudioRef={sharedAudioRef}
-                />
               ) : null}
             </div>
           );
@@ -995,7 +1075,12 @@ export const App: React.FC = () => {
       )}
 
       {audioItem && audioSession && (
-        <div className={`absolute inset-0 ${audioIsVisible ? 'visible z-10' : 'invisible pointer-events-none z-0'}`}>
+        <div
+          className={`absolute inset-0 ${audioIsVisible ? 'visible z-10' : 'invisible pointer-events-none z-0'}`}
+          aria-hidden={!audioIsVisible}
+          inert={!audioIsVisible}
+          style={audioIsVisible ? undefined : { transform: 'translate(-200vw, -200vh)' }}
+        >
           <Player
             item={audioItem}
             currentIndex={audioSession.items.findIndex((item) => item.path === audioItem.path)}
@@ -1030,27 +1115,65 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      {/* Mini Audio Pill when browsing images or PDF with background music loaded */}
-      {globalAudio.item && !audioIsVisible && (
+      {videoItem && videoSession && (
+        <div
+          className={`absolute inset-0 ${videoIsVisible ? 'visible z-10' : 'invisible pointer-events-none z-0'}`}
+          aria-hidden={!videoIsVisible}
+          inert={!videoIsVisible}
+          style={videoIsVisible ? undefined : { transform: 'translate(-200vw, -200vh)' }}
+        >
+          <Player
+            item={videoItem}
+            currentIndex={videoSession.items.findIndex((item) => item.path === videoItem.path)}
+            totalCount={videoSession.items.length}
+            isMarked={videoSession.markedPaths.has(videoItem.path)}
+            markedCount={videoSession.markedPaths.size}
+            hudVisible={hudVisible}
+            volume={volume}
+            isMuted={isMuted}
+            shuffle={shuffle}
+            loopFileMode={loopFileMode}
+            seekShortSec={settings.seek_short_sec}
+            seekLongSec={settings.seek_long_sec}
+            abLoopCrossfadeMs={settings.ab_loop_crossfade_ms}
+            language={settings.language || 'vi'}
+            isMiniPip={isMiniPip}
+            isActive={videoIsVisible}
+            videoSessionId={videoSession.id}
+            sharedVideoRef={sharedVideoRef}
+            onVideoPlaybackChange={handleVideoPlaybackChange}
+            onPlaylistNext={handleVideoNext}
+            onPrev={handlePrev}
+            onNext={handleNext}
+            onToggleMark={handleToggleMark}
+            onCopyMarked={handleCopyMarked}
+            onCutMarked={handleCutMarked}
+            onVolumeChange={handleVolumeChange}
+            onToggleMute={handleToggleMute}
+            onToggleShuffle={handleToggleShuffle}
+            onCycleLoopFile={handleCycleLoopFile}
+            onToggleFullscreen={handleToggleFullscreen}
+            mediaFitMode={settings.media_fit_mode || 'scale_to_fit'}
+            sharedAudioRef={sharedAudioRef}
+          />
+        </div>
+      )}
+
+      {/* Controls for the last audio/video source while browsing images or PDFs. */}
+      {backgroundItem && !backgroundIsVisible && (
         <MiniAudioPill
-          isPlaying={globalAudio.isPlaying}
-          item={globalAudio.item}
-          currentTime={globalAudio.currentTime}
-          duration={globalAudio.duration}
-          onTogglePlay={() => {
-            if (sharedAudioRef.current) {
-              if (sharedAudioRef.current.paused) {
-                sharedAudioRef.current.play().catch(console.warn);
-              } else {
-                sharedAudioRef.current.pause();
-              }
-            }
-          }}
-          onNextTrack={handleAudioNext}
+          isPlaying={backgroundProgress.isPlaying}
+          item={backgroundItem}
+          currentTime={backgroundProgress.currentTime}
+          duration={backgroundProgress.duration}
+          onTogglePlay={toggleBackgroundPlayback}
+          onNextTrack={backgroundIsVideo ? handleVideoNext : handleAudioNext}
           onJumpToAudioSession={() => {
-            if (globalAudio.originSessionId) {
-              setActiveSessionId(globalAudio.originSessionId);
-            }
+            if (!backgroundSessionId) return;
+            setSessions((prev) => prev.map((session) => session.id === backgroundSessionId
+              ? { ...session, currentIndex: session.items.findIndex((item) => item.path === backgroundItem.path) }
+              : session));
+            setActiveSessionId(backgroundSessionId);
           }}
         />
       )}
@@ -1086,7 +1209,7 @@ export const App: React.FC = () => {
           currentItem={currentItem}
           isMarked={isCurrentMarked}
           markedCount={markedPaths.size}
-          isPlaying={globalAudio.isPlaying}
+          isPlaying={currentItem?.media_type === 'video' ? videoProgress.isPlaying : backgroundProgress.isPlaying}
           isPinned={isPinned}
           language={settings.language || 'vi'}
           onClose={() => setContextMenuPos(null)}
@@ -1097,12 +1220,8 @@ export const App: React.FC = () => {
           onTogglePlay={() => {
             if (currentItem?.media_type === 'audio' || currentItem?.media_type === 'video') {
               window.dispatchEvent(new CustomEvent('player:toggle-play'));
-            } else if (sharedAudioRef.current) {
-              if (sharedAudioRef.current.paused) {
-                sharedAudioRef.current.play().catch(console.warn);
-              } else {
-                sharedAudioRef.current.pause();
-              }
+            } else {
+              toggleBackgroundPlayback();
             }
           }}
           onRotateImage={() => window.dispatchEvent(new CustomEvent('viewer:rotate'))}

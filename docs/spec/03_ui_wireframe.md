@@ -1,7 +1,7 @@
 # UI & Wireframe Specification: Media Tool (`_spec3_ui_wireframe`)
 
-> **Phiên bản:** 1.0.0  
-> **Ngày cập nhật:** 2026-10-01  
+> **Phiên bản:** 1.1.0
+> **Ngày cập nhật:** 2026-10-09
 > **Phân loại đặc tả:** Bố cục Giao diện (Layout Wireframe), Bảng màu & Hợp đồng Phím tắt  
 > **Tài liệu tham chiếu:** [00_system_overview.md](00_system_overview.md), [02_feature_flow.md](02_feature_flow.md)  
 
@@ -206,7 +206,7 @@ Một thư mục làm việc thực tế thường chứa lẫn lộn cả ảnh
    - Ví dụ: `01.jpg` → `02.mp4` → `03.jpg` → `04.mp3`.
 2. **Quy tắc Chuyển Đổi Giao diện Tức thì (Hot-swap UI):**
    - Đang ở `01.jpg` (Viewer Mode) → Next sang `02.mp4` → Ứng dụng **tự động chuyển ngay sang Player Mode**, nạp video và hiện thanh playback.
-   - Đang ở `02.mp4` (Player Mode) → Next sang `03.jpg` → Ứng dụng **tự động tắt video engine và chuyển về Viewer Mode** hiển thị ảnh.
+   - Đang ở `02.mp4` (Player Mode) → Next sang `03.jpg` → Ứng dụng **chuyển về Viewer Mode** hiển thị ảnh, giữ video phát nền và tiến độ/A–B.
 3. **Quy tắc Phím tắt Điều hướng khi qua lại giữa Ảnh và Video:**
    - **Khi đang xem Ảnh:** Bấm `Mũi tên Phải (→)` hoặc `Cmd/Ctrl + →` đều chuyển sang file tiếp theo (`02.mp4`) vì ảnh không có dòng thời gian tua.
    - **Khi đã chuyển sang Video:** Mũi tên đơn lẻ `←` / `→` được ưu tiên làm nhiệm vụ **Tua thời gian (Seek ±1s)**. Do đó, để chuyển sang file tiếp theo (`03.jpg`), người dùng dùng tổ hợp phím **`Cmd + →` (macOS)** hoặc **`Ctrl + →` (Windows)**.
@@ -407,7 +407,7 @@ Hệ thống sử dụng Window Resize Listener để tự động chuyển sang
 
 4. **Logic Điều khiển HUD Độc lập & Chống Choán Mắt:**
    - **Khi Cài đặt "Tự động ẩn sau X giây" (`delay > 0` hoặc Mini PiP):** Cơ chế tự động làm chủ. Di chuột hiện HUD, sau X giây tự ẩn. Nút manual HUD trên WindowBar được làm mờ (`opacity-30 cursor-not-allowed`) với tooltip giải thích để tránh xung đột thao tác.
-   - **Khi Cài đặt "Không bao giờ tự ẩn" (`delay = 0`):** Nút manual HUD (và phím tắt `H`, chuột phải context menu) hoạt động toàn quyền. Khi người dùng click ẩn thủ công, hệ thống khóa trạng thái `manualHudHidden = true`: **di chuột hay click chuột tuyệt đối KHÔNG làm hiện lại HUD**. Chỉ hiện lại khi bấm lại phím `H` hoặc click chuột phải chọn *"Ẩn / Hiện HUD"*.
+   - **Ở cửa sổ thường, khi Cài đặt "Không bao giờ tự ẩn" (`delay = 0`):** Nút manual HUD (và phím tắt `H`, chuột phải context menu) hoạt động toàn quyền. Khi người dùng click ẩn thủ công, hệ thống khóa trạng thái `manualHudHidden = true`: **di chuột hay click chuột tuyệt đối KHÔNG làm hiện lại HUD**. Chỉ hiện lại khi bấm lại phím `H` hoặc click chuột phải chọn *"Ẩn / Hiện HUD"*.
    - **Con trỏ chuột:** Luôn giữ con trỏ chuột hiển thị bình thường khi ẩn HUD (không sử dụng `cursor-none`), giúp người dùng luôn xác định được vị trí chuột trong app.
 
 5. **Phím tắt Toàn năng Hoạt động 100%:**
@@ -524,7 +524,7 @@ Khi bấm `[⚙️ Cài đặt]` trên Menu chuột phải hoặc nhấn tổ h�
 7. **Tab 7 — Ủng hộ tác giả (Support Author):**
    - Menu cuối cùng của sidebar với biểu tượng `Coffee` và gam màu hổ phách (amber) nổi bật.
    - Lời cảm ơn và chia sẻ của tác giả đến người dùng.
-   - Thẻ mã QR ngân hàng thật (Vietcombank, STK: `9988961694`, chủ TK: `BUI VIET LINH`, nút Sao chép STK phản hồi trực quan) nền trắng sắc nét cho phép quét thanh toán tức thì 24/7.
+   - Mã QR VietQR thật đặt giữa thẻ nền trắng tương phản cao, có nhãn VietQR • Napas247 và hướng dẫn quét bằng ứng dụng ngân hàng. Không hiển thị riêng thông tin chuyển khoản hoặc nút sao chép STK; nội dung cuộn được trong cửa sổ nhỏ.
 
 ---
 
@@ -641,3 +641,17 @@ Nhằm đảm bảo trải nghiệm thị giác cao cấp và độ tương ph�
 
 
 
+
+## 16. Thanh phát nền cho video/audio (2026-10-09)
+
+- Khi xem ảnh/PDF trong lúc video hoặc audio được nạp, hiện thanh phát nền của nguồn vừa nghe: tên file, tiến độ, Play/Pause, file kế tiếp và nút trở lại nguồn.
+- Nguồn video dùng icon Film, nút “Mở tab video”; nguồn audio dùng icon Music. Nút trở lại chọn đúng file đang phát kể cả thư mục nguồn đang hiển thị ảnh bìa.
+- Trở lại player giữ nguyên phần tử media, nguồn, tiến độ và mốc A–B; nguồn đã tạm dừng không tự phát lại. Player ẩn không nhận phím tắt của viewport ảnh.
+- Token chrome/Settings không đổi: một hàng 32px, font system 12px/600, icon 16px/gap 6px. Đợt 1.2.4 gồm cả bản sửa phát nền và Support QR căn giữa, bỏ nút Copy STK.
+
+### Fullscreen native và HUD (2026-10-09)
+- App desktop dùng fullscreen native Tauri; DOM Fullscreen API chỉ phục vụ browser preview. F/F11 hoặc nút fullscreen bật/tắt; Escape thoát khi không có Settings/context menu cần đóng trước. Trạng thái cũng đồng bộ từ resize native (gồm thao tác OS).
+- Vào fullscreen ẩn HUD ngay, bất kể setting hoặc trạng thái ẩn thủ công của cửa sổ thường. Di chuột/click hiện HUD; sau 2 giây không tương tác ẩn lại, giữ HUD khi Settings/context menu đang mở. Thoát fullscreen khôi phục logic setting và trạng thái ẩn thủ công trước đó.
+- Windows không render cụm minimize/maximize/close trong fullscreen; cửa sổ thường giữ một cụm controls, decorations luôn false. Dải kéo cửa sổ không bắt chuột trong fullscreen.
+- Video `scale_to_fit` lấy kích thước viewport hiện tại, không lưu kích thước resize cũ; `limit_file_size` vẫn giới hạn độ phân giải gốc. Không remount video khi đổi fullscreen.
+- Ở cửa sổ thường với chế độ luôn hiện HUD: sau 2 giây không tương tác, Window Bar và các thanh HUD còn 40% opacity; di chuột/click/phím/scroll khôi phục 100%. Không làm mờ media/Settings/context menu. Ẩn thủ công, Mini PiP và fullscreen giữ logic riêng.

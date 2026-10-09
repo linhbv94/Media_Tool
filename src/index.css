@@ -101,3 +101,7 @@
 .animate-spin-paused {
   animation-play-state: paused;
 }
+
+/* Only HUD layers fade; media, dialogs and menus keep their own opacity. */
+[data-hud-dimmed="true"] { --hud-opacity: 0.4; }
+[data-hud-dimmed="true"] [data-hud-layer] { opacity: var(--hud-opacity); }

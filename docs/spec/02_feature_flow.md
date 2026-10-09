@@ -1,7 +1,7 @@
 # Feature Flow & Logic Specification: Media Tool (`_spec2_feature_flow`)
 
-> **Phiên bản:** 1.0.0  
-> **Ngày cập nhật:** 2026-10-01  
+> **Phiên bản:** 1.1.0
+> **Ngày cập nhật:** 2026-10-09
 > **Phân loại đặc tả:** Luồng Tính năng, Thuật toán, Máy trạng thái (State Machine) & Xử lý biên  
 > **Tài liệu tham chiếu:** [00_system_overview.md](00_system_overview.md), [01_business_process.md](01_business_process.md)  
 
@@ -91,7 +91,7 @@ Khi một thư mục chứa lẫn lộn cả Ảnh (`.jpg`, `.png`), Video (`.mp
    - Đang ở file ảnh (`01.jpg`) → Bấm Next → Gặp file video (`02.mp4`):
      - Giao diện Viewer mờ đi, phân hệ Video Player lập tức được khởi tạo và render khung phát video.
    - Đang ở file video (`02.mp4`) → Bấm Next → Gặp file ảnh (`03.jpg`):
-     - Video Player giải phóng tài nguyên phát media, giao diện Viewer lập tức hiển thị ảnh.
+     - Giao diện Viewer hiển thị ảnh; video vẫn phát nền và giữ tiến độ/A–B. Chỉ tạm dừng khi người dùng yêu cầu hoặc phát nguồn khác; đóng tab nguồn thì dừng và giải phóng nguồn phát.
 3. **Quy tắc Phím tắt Điều hướng:**
    - **Tại phân hệ Viewer (Ảnh):** Do không có timeline, phím `Mũi tên Trái / Phải` (`←` / `→`) hoặc `Cmd/Ctrl + ←` / `→` đều có tác dụng chuyển file trước / sau.
    - **Tại phân hệ Player (Video / Audio):** Phím `←` / `→` đảm nhiệm chức năng tua ±1s. Để chuyển sang file tiếp theo trong danh sách hỗn hợp, bắt buộc sử dụng **`Cmd + →` (macOS)** hoặc **`Ctrl + →` (Windows)**.
@@ -471,3 +471,19 @@ Nhằm tối ưu hóa tài nguyên và trải nghiệm người dùng trên Wind
 - **Kéo thả mốc A/B (Marker Dragging):** Khi mốc A hoặc B đã được thiết lập, người dùng có thể nhấp chuột trực tiếp vào biểu tượng marker `A` hoặc `B` trên timeline và kéo thả để tinh chỉnh vị trí mốc lặp.
 - **Hủy mốc thông minh (Click to Cancel):** Khi click vào nút "Set A" hoặc "Set B" tại vị trí phát hiện tại mà khoảng cách đến mốc cũ nhỏ hơn ngưỡng nhạy `0.25s`, hệ thống sẽ hiểu là thao tác hủy mốc và tự động xóa bỏ mốc tương ứng.
 
+
+## 14. Phát nền video và audio khi mở ảnh (2026-10-09)
+
+- Windows Explorer gửi `open-media-file` vào cửa sổ chính qua single-instance; macOS Finder gửi file-open event. Cùng thư mục tái sử dụng tab, khác thư mục tạo tab mới; cả hai luồng chỉ đổi viewport.
+- App giữ một Player audio và một Player video ngoài viewport của tab. Mở ảnh/PDF hoặc quay lại không tạo lại player, không nạp lại URL, không reset tiến độ hay A–B.
+- Trong một cửa sổ, chỉ nguồn được phát gần nhất có âm thanh: phát video tạm dừng audio; phát audio tạm dừng video. Nguồn bị tạm dừng giữ tiến độ, quay lại không tự phát lại.
+- Space khi xem ảnh/PDF và thanh phát nền điều khiển nguồn vừa nghe. Player ẩn không nhận phím tua/A–B hoặc mũi tên điều hướng ảnh.
+- Hết video ở chế độ lặp toàn bộ chuyển đến video kế tiếp trong thư mục nguồn, bỏ qua ảnh, không đổi tab/ảnh đang xem. Lặp một file giữ nguyên nguồn và tua về đầu; lặp tắt kết thúc phát.
+- Đóng tab nguồn, hoặc “Đóng các tab khác” loại bỏ tab nguồn, dừng và gỡ nguồn video/audio. Chuyển session sang cửa sổ khác chưa có cơ chế chuyển giao liên tục tiến độ phát; không suy rộng kiểm thử trong một cửa sổ thành phát toàn cục giữa cửa sổ.
+
+### Fullscreen native và HUD (2026-10-09)
+- App desktop dùng fullscreen native Tauri; DOM Fullscreen API chỉ phục vụ browser preview. F/F11 hoặc nút fullscreen bật/tắt; Escape thoát khi không có Settings/context menu cần đóng trước. Trạng thái cũng đồng bộ từ resize native (gồm thao tác OS).
+- Vào fullscreen ẩn HUD ngay, bất kể setting hoặc trạng thái ẩn thủ công của cửa sổ thường. Di chuột/click hiện HUD; sau 2 giây không tương tác ẩn lại, giữ HUD khi Settings/context menu đang mở. Thoát fullscreen khôi phục logic setting và trạng thái ẩn thủ công trước đó.
+- Windows không render cụm minimize/maximize/close trong fullscreen; cửa sổ thường giữ một cụm controls, decorations luôn false. Dải kéo cửa sổ không bắt chuột trong fullscreen.
+- Video `scale_to_fit` lấy kích thước viewport hiện tại, không lưu kích thước resize cũ; `limit_file_size` vẫn giới hạn độ phân giải gốc. Không remount video khi đổi fullscreen.
+- Ở cửa sổ thường với chế độ luôn hiện HUD: sau 2 giây không tương tác, Window Bar và các thanh HUD còn 40% opacity; di chuột/click/phím/scroll khôi phục 100%. Không làm mờ media/Settings/context menu. Ẩn thủ công, Mini PiP và fullscreen giữ logic riêng.
